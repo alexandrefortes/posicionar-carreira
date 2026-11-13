@@ -15,9 +15,17 @@ codex plugin add posicionar-carreira@carreira-local
 
 O inicializador cria a estrutura em `~/PosicionarCarreira`. Use `--com-exemplo` em uma base vazia para instalar todo o exemplo fictício. Para começar com seus próprios dados, rode o inicializador sem essa opção em outra pasta.
 
-Abra uma conversa **Codex local** no aplicativo, selecione **Posicionar Carreira** do catálogo **Carreira local** e peça para abrir o painel de vagas. Procure **Laboratório Exemplo — Pessoa Analista de Dados**. No detalhe, os botões abrem o Markdown editável e o PDF fictícios pelos aplicativos associados no Windows. Você também pode registrar um evento de teste nessa vaga.
+## Abrir o painel de vagas
 
-O painel depende de MCP Apps na conversa. Se o aplicativo só retornar texto, consulte a lista e os detalhes pelo chat. Para gerar novos PDFs, instale as dependências indicadas na [skill de conversão](plugins/posicionar-carreira/skills/md-to-cv/SKILL.md). A abertura do PDF fictício usa o visualizador padrão do Windows.
+1. No Codex desktop, abra uma conversa local.
+2. Selecione **Posicionar Carreira** do catálogo **Carreira local**.
+3. Envie **“Abra o painel de vagas.”**
+
+No painel **Vagas**, você pode filtrar os processos, usar **Nova vaga** para cadastrar uma oportunidade ou pedir ao agente para **Pesquisar vagas na web**. Ao selecionar uma vaga, você vê a etapa, a próxima ação, o histórico e os materiais. Pelo detalhe, pode editar o processo, registrar um evento, preparar uma candidatura ou entrevista e abrir o currículo em Markdown ou PDF, quando disponível.
+
+Para experimentar, abra **Laboratório Exemplo — Pessoa Analista de Dados**. Os botões do currículo abrem os arquivos fictícios nos aplicativos associados no Windows. Você também pode registrar um evento de teste.
+
+O painel depende do suporte a MCP Apps na conversa. Se a interface não aparecer, peça **“Liste minhas vagas”** ou **“Mostre os detalhes da vaga Laboratório Exemplo”** no chat. Para gerar novos PDFs, instale as dependências indicadas na [skill de conversão](plugins/posicionar-carreira/skills/md-to-cv/SKILL.md).
 
 ## Usar uma pasta própria
 
