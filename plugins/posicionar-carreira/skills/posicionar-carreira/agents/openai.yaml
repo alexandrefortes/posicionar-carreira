@@ -1,0 +1,4 @@
+interface:
+  display_name: "Posicionar Carreira"
+  short_description: "Acompanhe vagas e prepare candidaturas"
+  default_prompt: "Use $posicionar-carreira:posicionar-carreira para abrir meu painel de vagas."

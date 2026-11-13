@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "posicionar-carreira-local": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-B", "-u", "${PLUGIN_ROOT}/server/servidor.py"],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

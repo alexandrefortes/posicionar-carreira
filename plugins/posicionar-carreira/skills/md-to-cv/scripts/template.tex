@@ -1,0 +1,94 @@
+\documentclass[11pt, a4paper]{article}
+
+% --- Codificacao e idioma -------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% CV em pt-BR por padrao (termos em ingles no meio do texto nao precisam de
+% tratamento especial). Para um CV inteiro em ingles, troque por: \usepackage[english]{babel}
+\usepackage[brazil]{babel}
+
+% --- Tipografia -----------------------------------------------------------
+\usepackage{lmodern}          % fonte escalavel (necessaria para o microtype expandir fonte)
+\usepackage{microtype}        % melhora espacamento e reduz quebras ruins de linha
+\usepackage{amsmath}          % seguro deixar; CV nao usa, mas evita erro com $$...$$ solto
+\usepackage{amssymb}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}        % tabela funciona, mas EVITE usar em CV (ver SKILL.md)
+
+% --- Margens --------------------------------------------------------------
+\usepackage[
+  left=1.8cm,
+  right=1.8cm,
+  top=1.6cm,
+  bottom=1.6cm
+]{geometry}
+
+% --- Metadados do PDF -----------------------------------------------------
+% Preenchidos a partir do frontmatter YAML do .md (title, author, keywords).
+% Num CV voce QUER esses campos com seu nome e as palavras-chave da vaga,
+% nao zerados. Alguns ATS leem os metadados.
+\usepackage{xcolor}
+\definecolor{linkblue}{HTML}{1A5FB4}
+\usepackage[
+  colorlinks=true,
+  linkcolor=linkblue,
+  urlcolor=linkblue,
+  citecolor=linkblue,
+  pdftitle={$title-meta$},
+  pdfauthor={$author-meta$},
+  pdfsubject={Curriculum Vitae},
+  pdfkeywords={$if(keywords)$$for(keywords)$$keywords$$sep$, $endfor$$endif$}
+]{hyperref}
+
+% --- Layout amigavel para ATS ---------------------------------------------
+\setstretch{1.0}
+\setcounter{secnumdepth}{0}   % sem numeracao de secao
+\pagestyle{empty}             % sem numero de pagina
+\raggedright                  % alinhado a esquerda, sem justificar (padrao de CV)
+\hyphenpenalty=10000          % desencoraja hifenizacao (evita palavra quebrada na extracao)
+\exhyphenpenalty=10000
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+% Pandoc usa \tightlist em listas sem linha em branco entre itens.
+% Bullets de CV sao sempre assim, entao a definicao precisa existir.
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% --- Hierarquia de titulos ------------------------------------------------
+% # (nivel 1)  -> NOME no topo: grande, negrito, centralizado. Use uma vez.
+\titleformat{\section}
+  {\LARGE\bfseries\centering}{}{0em}{}
+\titlespacing{\section}{0pt}{0pt}{2pt}
+
+% ## (nivel 2) -> secoes (Experiencia, Formacao): negrito, esquerda, com linha
+\titleformat{\subsection}
+  {\large\bfseries}{}{0em}{}[\vspace{1pt}\titlerule]
+\titlespacing{\subsection}{0pt}{10pt}{4pt}
+
+% ### (nivel 3) -> entradas (cargo, empresa, periodo): negrito, esquerda
+\titleformat{\subsubsection}
+  {\normalsize\bfseries}{}{0em}{}
+\titlespacing{\subsubsection}{0pt}{6pt}{2pt}
+
+% --- Listas compactas -----------------------------------------------------
+\setlist{noitemsep, topsep=2pt, parsep=0pt, leftmargin=1.2em}
+
+% --- Tabelas (se usadas, contra a recomendacao) ---------------------------
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{6pt}
+\newcounter{none}   % fix pandoc longtable sem caption
+
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+
+\begin{document}
+
+$body$
+
+\end{document}

@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Vagas</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --background: var(--color-background-primary, light-dark(#faf9f6, #181a19));
+      --surface: var(--color-background-secondary, light-dark(#fff, #222523));
+      --ink: var(--color-text-primary, light-dark(#222620, #f2f3ee));
+      --muted: var(--color-text-secondary, light-dark(#535c54, #b9c1b7));
+      --line: var(--color-border-primary, light-dark(#d4dad1, #464f48));
+      --accent: light-dark(#22644d, #a1e0bf);
+      --selected: light-dark(#e6f1e9, #2c4135);
+      font-family: var(--font-sans, Inter, system-ui, sans-serif);
+    }
+    :root[data-theme="light"] { color-scheme: light; }
+    :root[data-theme="dark"] { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; color: var(--ink); background: var(--background); font-size: 14px; }
+    main { border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 22px; letter-spacing: -.035em; }
+    h2 { font-size: 18px; overflow-wrap: anywhere; }
+    h3 { font-size: 14px; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: default; opacity: .65; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px; }
+    header .botoes { align-items: center; }
+    #status, #contagem, .secundario, dt { color: var(--muted); }
+    #status:empty, #monitoramento-status:empty { display: none; }
+    #status, #monitoramento-status { margin: 10px 0; }
+    #lista, #detalhe { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+    .grade { display: grid; grid-template-columns: minmax(180px, 2fr) minmax(0, 3fr); gap: 12px; margin-top: 12px; }
+    #lista { padding: 10px; }
+    input:not([type="checkbox"]), select, textarea {
+      width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 6px;
+      padding: 7px 8px; background: var(--background);
+    }
+    textarea { resize: vertical; min-height: 65px; }
+    fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+    .campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); gap: 9px; }
+    .campo { display: grid; gap: 4px; align-content: start; }
+    .campo-opcao { grid-template-columns: auto 1fr; align-items: start; }
+    .campo-opcao input { grid-column: 1; grid-row: 1; margin: 2px 0 0; }
+    .larga { grid-column: 1 / -1; }
+    .filtros { margin-top: 8px; }
+    .botoes { display: flex; flex-wrap: wrap; gap: 6px; }
+    form .botoes { margin-top: 10px; }
+    #vagas { display: grid; gap: 4px; max-height: 360px; overflow: auto; padding: 4px; margin: 6px -4px -4px; list-style: none; }
+    .vaga { width: 100%; display: grid; gap: 4px; text-align: left; border: 1px solid transparent; background: transparent; padding: 8px; border-radius: 6px; overflow-wrap: anywhere; }
+    .vaga:hover { border-color: var(--line); }
+    .vaga[aria-current="true"] { background: var(--selected); border-color: var(--accent); }
+    #detalhe { padding: 14px; max-height: 460px; overflow: auto; overflow-wrap: anywhere; }
+    #detalhe > * + *, .bloco > * + * { margin-top: 10px; }
+    .bloco { border-top: 1px solid var(--line); padding-top: 10px; }
+    dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); gap: 8px; margin: 0; }
+    dd { margin: 2px 0 0; }
+    ol, ul { padding-left: 20px; margin-bottom: 0; }
+    li + li { margin-top: 4px; }
+    .acao { padding: 7px 11px; color: var(--accent); border: 1px solid var(--accent); background: var(--selected); border-radius: 7px; font-weight: 600; }
+    .acao-secundaria { color: var(--ink); border-color: var(--line); background: var(--surface); }
+    .erro { color: var(--color-text-danger, light-dark(#a4302c, #ffb4aa)); }
+    @media (max-width: 480px) {
+      main { padding: 12px; }
+      .grade { grid-template-columns: 1fr; }
+      #vagas { max-height: 174px; }
+      #detalhe { max-height: 360px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Vagas</h1>
+      <div class="botoes">
+        <span id="contagem" aria-live="polite"></span>
+        <button type="button" class="acao acao-secundaria" id="pesquisar-web" hidden>Pesquisar vagas na web</button>
+        <button type="button" class="acao acao-secundaria" id="planejar-linkedin" hidden>Planejar busca no LinkedIn</button>
+        <button type="button" class="acao acao-secundaria" id="monitorar-novas" hidden>Monitorar novas vagas</button>
+        <button type="button" class="acao" id="nova" hidden>Nova vaga</button>
+      </div>
+    </header>
+    <p id="status" role="status">Conectando ao chat…</p>
+    <p id="monitoramento-status" class="secundario" role="status"></p>
+    <button type="button" class="acao" id="recarregar" hidden>Tentar novamente</button>
+    <div class="grade" id="painel" hidden>
+      <section id="lista" aria-label="Lista de vagas">
+        <input type="search" id="busca" aria-label="Buscar vagas" placeholder="Buscar vagas">
+        <details class="filtros">
+          <summary>Filtros</summary>
+          <div class="campos" id="filtros"></div>
+        </details>
+        <ul id="vagas"></ul>
+      </section>
+      <section id="detalhe" aria-label="Detalhes da vaga" tabindex="-1">
+        <p class="secundario">Selecione uma vaga para consultar o processo.</p>
+      </section>
+    </div>
+  </main>
+  <script>
+    const byId = id => document.getElementById(id);
+    const status = byId("status");
+    const detail = byId("detalhe");
+    const search = byId("busca");
+    const requests = new Map();
+    let nextId = 0;
+    let rows = [];
+    let selectedId = null;
+    let detailRequest = 0;
+    let listRequest = 0;
+    let saving = false;
+    let fieldId = 0;
+
+    function notify(method, params = {}) {
+      window.parent.postMessage({ jsonrpc: "2.0", method, params }, "*");
+    }
+
+    function request(method, params) {
+      return new Promise((resolve, reject) => {
+        const id = ++nextId;
+        const timer = setTimeout(() => {
+          requests.delete(id);
+          reject(new Error("O chat demorou a responder."));
+        }, 15000);
+        requests.set(id, { resolve, reject, timer });
+        window.parent.postMessage({ jsonrpc: "2.0", id, method, params }, "*");
+      });
+    }
+
+    function hostContext(context) {
+      if (context?.theme) document.documentElement.dataset.theme = context.theme;
+    }
+
+    window.addEventListener("message", ({ source, data }) => {
+      if (source !== window.parent || data?.jsonrpc !== "2.0") return;
+      if (data.method === "ui/notifications/host-context-changed") hostContext(data.params);
+      if (data.method === "ui/notifications/tool-cancelled") {
+        status.textContent = "A abertura do painel foi cancelada.";
+      }
+      if (data.method === "ping" || data.method === "ui/resource-teardown") {
+        window.parent.postMessage({ jsonrpc: "2.0", id: data.id, result: {} }, "*");
+        return;
+      }
+      const pending = requests.get(data.id);
+      if (!pending) return;
+      clearTimeout(pending.timer);
+      requests.delete(data.id);
+      if (data.error) pending.reject(new Error(data.error.message));
+      else pending.resolve(data.result);
+    });
+
+    async function callTool(name, args = {}) {
+      const result = await request("tools/call", { name, arguments: args });
+      if (result?.isError) throw new Error(result.content?.[0]?.text || "O painel não concluiu a operação.");
+      if (!result?.structuredContent) throw new Error("O servidor retornou um formato inesperado.");
+      return result.structuredContent;
+    }
+
+    function element(tag, text, className) {
+      const node = document.createElement(tag);
+      if (text != null) node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+
+    const labels = {
+      em_avaliacao: "Em avaliação", em_preparacao: "Em preparação",
+      candidatura_enviada: "Candidatura enviada", triagem: "Triagem",
+      entrevista_tecnica: "Entrevista técnica", entrevista_gestao: "Entrevista de gestão",
+      desistencia: "Desistência", vaga_cancelada: "Vaga cancelada",
+      descartado_na_avaliacao: "Descartado na avaliação", media: "Média",
+    };
+
+    const options = {
+      estado: ["aberto", "pausado", "encerrado"],
+      etapa: ["identificada", "em_avaliacao", "em_preparacao", "candidatura_enviada",
+        "triagem", "entrevista_tecnica", "entrevista_gestao", "oferta"],
+      resultado: ["contratado", "reprovado", "desistencia", "vaga_cancelada", "descartado_na_avaliacao"],
+      prioridade: ["alta", "media", "baixa"],
+      responsavel: ["candidato", "assistente", "empresa"],
+    };
+
+    function label(value) {
+      return labels[value] || (value ? value[0].toUpperCase() + value.slice(1).replaceAll("_", " ") : "—");
+    }
+
+    function date(value) {
+      return value ? value.split("-").reverse().join("/") : "Data desconhecida";
+    }
+
+    function searchKey(value) {
+      return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("pt-BR");
+    }
+
+    function renderRows() {
+      const query = searchKey(search.value.trim());
+      const activeFilters = [...byId("filtros").querySelectorAll("select")].filter(input => input.value);
+      const visible = rows.filter(row => activeFilters.every(input =>
+        (row[input.name] ?? "sem_resultado") === input.value
+      ) && searchKey(
+        [row.titulo, row.empresa, row.id, label(row.estado), label(row.etapa), label(row.resultado)].join(" ")
+      ).includes(query));
+      byId("contagem").textContent = query || activeFilters.length ? `${visible.length} de ${rows.length}` :
+        `${rows.length} ${rows.length === 1 ? "vaga" : "vagas"}`;
+      const list = byId("vagas");
+      list.replaceChildren();
+      if (!visible.length) list.append(element("li", "Nenhuma vaga encontrada.", "secundario"));
+      for (const row of visible) {
+        const item = element("li");
+        const button = element("button", null, "vaga");
+        button.type = "button";
+        button.dataset.id = row.id;
+        button.setAttribute("aria-current", String(row.id === selectedId));
+        button.append(element("strong", row.titulo), element("span",
+          `${row.empresa} · ${label(row.etapa)} · ${label(row.estado)}`, "secundario"));
+        button.addEventListener("click", () => select(row.id));
+        item.append(button);
+        list.append(item);
+      }
+    }
+
+    async function enviarAoChat(text, button, feedback, confirmation, fallback) {
+      button.disabled = true;
+      feedback.textContent = "Enviando contexto…";
+      try {
+        const result = await request("ui/message", { role: "user", content: [{ type: "text", text }] });
+        if (result?.isError) throw new Error("O chat recusou a mensagem.");
+        feedback.textContent = confirmation;
+      } catch {
+        feedback.textContent = fallback;
+        button.disabled = false;
+      }
+    }
+
+    function contextoVaga(vaga) {
+      return `\nID do processo: ${vaga.id}\nArquivo oficial: ${vaga.processo}`;
+    }
+
+    function prepare(vaga, button, feedback, action, fallback) {
+      const text = `Use $posicionar-carreira:posicionar-carreira para ${action} desta oportunidade.` + contextoVaga(vaga);
+      return enviarAoChat(text, button, feedback, "O chat recebeu o contexto da vaga.",
+        `O chat não recebeu o contexto. Você pode pedir no chat: ${fallback} de ${vaga.id}.`);
+    }
+
+    function monitorar(button, feedback, vaga) {
+      const objetivo = vaga
+        ? "dos retornos desta vaga"
+        : "de novas vagas compatíveis com meu perfil e meus objetivos de carreira";
+      const text = `Use $posicionar-carreira:posicionar-carreira para configurar o monitoramento recorrente por e-mail ${objetivo}.` +
+        (vaga ? contextoVaga(vaga) : "");
+      const pedido = vaga ? `configurar monitoramento por e-mail da vaga ${vaga.id}` : "configurar monitoramento por e-mail de novas vagas";
+      return enviarAoChat(text, button, feedback, "Pedido enviado. Continue a configuração no chat.",
+        `O chat não recebeu o pedido. Você pode pedir no chat: ${pedido}.`);
+    }
+
+    function section(title) {
+      const node = element("section", null, "bloco");
+      node.append(element("h3", title));
+      detail.append(node);
+      return node;
+    }
+
+    function actionButton(title, handler, secondary = false) {
+      const button = element("button", title, secondary ? "acao acao-secundaria" : "acao");
+      button.type = "button";
+      if (handler) button.addEventListener("click", handler);
+      return button;
+    }
+
+    function renderResume(vaga) {
+      const files = [["markdown", "Markdown"], ["pdf", "PDF"]]
+        .filter(([type]) => vaga.curriculos?.[type]);
+      if (!files.length) return;
+
+      const resume = section("Currículo");
+      const actions = element("div", null, "botoes");
+      const feedback = element("p", null, "secundario");
+      feedback.setAttribute("aria-live", "polite");
+      feedback.hidden = true;
+      for (const [type, format] of files) {
+        const { enviado, nome } = vaga.curriculos[type];
+        const title = `Abrir currículo ${enviado ? "enviado " : ""}em ${format}`;
+        const button = actionButton(title, async () => {
+          for (const control of actions.children) control.disabled = true;
+          feedback.hidden = false;
+          feedback.className = "secundario";
+          feedback.textContent = "Abrindo currículo…";
+          try {
+            await callTool("abrir_curriculo", { processo_id: vaga.id, tipo: type, enviado });
+            feedback.textContent = "Abertura solicitada ao Windows.";
+          } catch (error) {
+            feedback.className = "erro";
+            feedback.textContent = error.message;
+          } finally {
+            for (const control of actions.children) control.disabled = false;
+          }
+        }, true);
+        button.title = nome;
+        actions.append(button);
+      }
+      resume.append(actions, feedback);
+    }
+
+    function field(parent, name, title, {
+      type = "text", choices, value = "", required = false, wide = false, placeholder = "",
+    } = {}) {
+      const group = element("div", null, wide ? "campo larga" : "campo");
+      const input = element(choices ? "select" : type === "textarea" ? "textarea" : "input");
+      if (choices) {
+        for (const [key, text] of choices) {
+          const option = element("option", text);
+          option.value = key;
+          input.append(option);
+        }
+      } else if (type !== "textarea") {
+        input.type = type;
+      }
+      input.name = name;
+      input.id = `campo-${++fieldId}`;
+      input.value = value ?? "";
+      input.required = required;
+      if (placeholder) input.placeholder = placeholder;
+      const caption = element("label", title);
+      caption.htmlFor = input.id;
+      if (type === "checkbox") group.classList.add("campo-opcao");
+      group.append(caption, input);
+      parent.append(group);
+      return input;
+    }
+
+    function selectField(parent, name, title, value, empty) {
+      const choices = options[name].map(key => [key, label(key)]);
+      if (empty) choices.unshift(["", empty]);
+      return field(parent, name, title, { choices, value });
+    }
+
+    function eventFields(parent, title = "Descrição do evento") {
+      field(parent, "descricao", title, { type: "textarea", required: true, wide: true });
+      field(parent, "fonte", "Fonte do evento", { required: true, wide: true, placeholder: "URL ou caminho em carreira/" });
+      field(parent, "data", "Data do evento", { type: "date" });
+    }
+
+    function renderForm(title, submitText, close, save, success, context) {
+      const form = element("form");
+      const fields = element("fieldset", null, "campos");
+      const controls = element("div", null, "botoes");
+      const submit = actionButton(submitText);
+      submit.type = "submit";
+      const reload = actionButton("Recarregar processo", () => select(selectedId), true);
+      reload.hidden = true;
+      controls.append(submit, actionButton("Cancelar", close, true), reload);
+      const feedback = element("p", null, "erro");
+      feedback.setAttribute("role", "alert");
+      form.append(fields, controls, feedback);
+      detail.replaceChildren(element("h2", title));
+      if (context) detail.append(element("p", context, "secundario"));
+      detail.append(form);
+      detail.scrollTop = 0;
+      async function saveForm(event) {
+        event.preventDefault();
+        if (saving || !form.reportValidity()) return;
+        const values = Object.fromEntries(new FormData(form));
+        feedback.textContent = "";
+        reload.hidden = true;
+        saving = true;
+        fields.disabled = true;
+        for (const button of controls.children) button.disabled = true;
+        submit.textContent = "Salvando…";
+        try {
+          const vaga = await save(values);
+          success(vaga);
+        } catch (error) {
+          feedback.textContent = error.message;
+          reload.hidden = !/^O processo (mudou desde a abertura|está em gravação)/.test(error.message);
+        } finally {
+          saving = false;
+          fields.disabled = false;
+          for (const button of controls.children) button.disabled = false;
+          submit.disabled = !reload.hidden;
+          submit.textContent = submitText;
+        }
+      }
+      submit.addEventListener("click", saveForm);
+      form.addEventListener("submit", saveForm);
+      return fields;
+    }
+
+    function showSaved(vaga, message, created = false) {
+      selectedId = vaga.id;
+      if (created) {
+        search.value = "";
+        for (const filter of byId("filtros").querySelectorAll("select")) filter.value = "";
+      }
+      renderDetail(vaga);
+      const feedback = element("p", message, "secundario");
+      feedback.setAttribute("aria-live", "polite");
+      detail.prepend(feedback);
+      detail.focus();
+      load();
+    }
+
+    function createForm() {
+      if (saving) return;
+      const prior = selectedId;
+      selectedId = null;
+      detailRequest++;
+      renderRows();
+      const fields = renderForm("Nova vaga", "Cadastrar vaga", () => {
+        if (prior) select(prior);
+        else detail.replaceChildren(element("p", "Selecione uma vaga para consultar o processo.", "secundario"));
+      }, values => {
+        const { empresa, titulo, fonte, processo_id } = values;
+        return callTool("criar_vaga", {
+          empresa: empresa.trim(), titulo: titulo.trim(), fonte: fonte.trim(),
+          ...(processo_id.trim() ? { processo_id: processo_id.trim() } : {}),
+        });
+      }, vaga => showSaved(vaga, "Vaga cadastrada.", true));
+      field(fields, "empresa", "Empresa", { required: true, wide: true }).focus();
+      field(fields, "titulo", "Título da vaga", { required: true, wide: true });
+      field(fields, "fonte", "Fonte da vaga", { required: true, wide: true, placeholder: "URL ou caminho em carreira/" });
+      field(fields, "processo_id", "ID do processo (opcional)", { wide: true, placeholder: "empresa/plataforma-123" });
+    }
+
+    function eventArgs(vaga, values) {
+      return {
+        processo_id: vaga.id, revisao: vaga.revisao,
+        descricao: values.descricao.trim(), fonte: values.fonte.trim(), data: values.data || null,
+      };
+    }
+
+    function registerEventForm(vaga) {
+      const fields = renderForm("Registrar evento", "Salvar evento", () => renderDetail(vaga),
+        values => callTool("registrar_evento", eventArgs(vaga, values)),
+        result => showSaved(result, "Evento registrado."), `${vaga.titulo} · ${vaga.id}`);
+      eventFields(fields);
+      fields.elements.descricao.focus();
+    }
+
+    function editForm(vaga, initialState = vaga.estado) {
+      const fields = renderForm("Editar processo", "Salvar alterações", () => renderDetail(vaga), values => {
+        const mudancas = {};
+        for (const name of ["estado", "etapa", "prioridade", "proxima_acao", "responsavel",
+          "prazo", "fonte_prazo", "revisar_em", "resultado", "encerrada_em"]) {
+          const value = values[name]?.trim() || null;
+          if (value !== (vaga[name] ?? null)) mudancas[name] = value;
+        }
+        if (!values.prazo) {
+          delete mudancas.fonte_prazo;
+          if (vaga.fonte_prazo) mudancas.fonte_prazo = null;
+        } else if ("prazo" in mudancas) {
+          mudancas.fonte_prazo = values.fonte_prazo.trim();
+        }
+        if (values.estado !== "encerrado") {
+          if (vaga.resultado) mudancas.resultado = null;
+          if (vaga.encerrada_em) mudancas.encerrada_em = null;
+        }
+        if (values.candidatura_confirmada) {
+          mudancas.candidatura_confirmada = true;
+          mudancas.candidatura_em = values.candidatura_em || null;
+          mudancas.fonte_candidatura = values.fonte_candidatura.trim();
+        }
+        if (!Object.keys(mudancas).length) throw new Error("Altere um campo do processo ou use Registrar evento.");
+        return callTool("atualizar_vaga", { ...eventArgs(vaga, values), mudancas });
+      }, result => showSaved(result, "Processo atualizado."), `${vaga.titulo} · ${vaga.id}`);
+
+      const state = selectField(fields, "estado", "Estado", initialState);
+      if (vaga.estado === "encerrado") state.querySelector('[value="pausado"]').disabled = true;
+      const stage = selectField(fields, "etapa", "Etapa", vaga.etapa);
+      const result = selectField(fields, "resultado", "Resultado", vaga.resultado ?? "", "Selecione um resultado");
+      const closure = field(fields, "encerrada_em", "Data de encerramento", { type: "date", value: vaga.encerrada_em });
+      const reopening = element("p", "Use a reabertura quando o mesmo processo for retomado. Para outra requisição, cadastre uma nova vaga.", "secundario larga");
+      fields.append(reopening);
+      selectField(fields, "prioridade", "Prioridade", vaga.prioridade ?? "media");
+      selectField(fields, "responsavel", "Responsável", vaga.responsavel);
+      field(fields, "proxima_acao", "Próxima ação", { required: true, wide: true, value: vaga.proxima_acao });
+      const deadline = field(fields, "prazo", "Prazo", { type: "date", value: vaga.prazo });
+      const deadlineSource = field(fields, "fonte_prazo", "Fonte do prazo", {
+        wide: true, value: vaga.fonte_prazo, placeholder: "URL ou caminho em carreira/",
+      });
+      field(fields, "revisar_em", "Revisão sugerida", { type: "date", value: vaga.revisar_em });
+      const confirmation = field(fields, "candidatura_confirmada", "Confirmo que a candidatura foi enviada", {
+        type: "checkbox", value: "sim", wide: true,
+      });
+      const sent = field(fields, "candidatura_em", "Data do envio", { type: "date" });
+      const sentSource = field(fields, "fonte_candidatura", "Fonte do envio", {
+        wide: true, placeholder: "URL ou caminho em carreira/",
+      });
+      eventFields(fields);
+
+      function toggle(input, show) {
+        input.parentElement.hidden = !show;
+        input.disabled = !show;
+      }
+
+      function refresh() {
+        const closed = state.value === "encerrado";
+        toggle(result, closed);
+        toggle(closure, closed);
+        result.required = closed;
+        reopening.hidden = vaga.estado !== "encerrado" || closed;
+        toggle(deadlineSource, Boolean(deadline.value));
+        deadlineSource.required = Boolean(deadline.value);
+        const canConfirm = stage.value === "candidatura_enviada" && !vaga.candidatura_confirmada;
+        toggle(confirmation, canConfirm);
+        confirmation.required = canConfirm && stage.value !== vaga.etapa;
+        toggle(sent, canConfirm && confirmation.checked);
+        toggle(sentSource, canConfirm && confirmation.checked);
+        sentSource.required = canConfirm && confirmation.checked;
+      }
+      for (const input of [state, stage, deadline, confirmation]) input.addEventListener("change", refresh);
+      refresh();
+      state.focus();
+    }
+
+    function renderDetail(vaga) {
+      detail.replaceChildren(element("h2", vaga.titulo), element("p", `${vaga.empresa} · ${vaga.id}`, "secundario"));
+      const fields = element("dl");
+      for (const [name, value] of [["Estado", vaga.estado], ["Etapa", vaga.etapa], ["Resultado", vaga.resultado]]) {
+        const field = element("div");
+        field.append(element("dt", name), element("dd", label(value)));
+        fields.append(field);
+      }
+      detail.append(fields);
+      if (vaga.revisao) {
+        const manage = element("div", null, "botoes");
+        manage.append(actionButton("Editar processo", () => editForm(vaga), true),
+          actionButton("Registrar evento", () => registerEventForm(vaga), true),
+          vaga.estado === "encerrado" ?
+            actionButton("Reabrir processo", () => editForm(vaga, "aberto"), true) :
+            actionButton("Encerrar processo", () => editForm(vaga, "encerrado"), true));
+        detail.append(manage);
+      }
+      renderResume(vaga);
+      const next = section("Próximo passo");
+      next.append(element("p", vaga.proxima_acao), element("p", `Responsável: ${vaga.responsavel}`, "secundario"));
+      if (vaga.prazo) next.append(element("p", `Prazo: ${date(vaga.prazo)}`, "secundario"));
+      if (vaga.revisar_em) next.append(element("p", `Revisão sugerida: ${date(vaga.revisar_em)}`, "secundario"));
+      const feedback = element("p", null, "secundario");
+      feedback.setAttribute("role", "status");
+      const actions = element("div", null, "botoes");
+      for (const [title, prompt, fallback] of [
+        ["Preparar entrevista", "preparar a entrevista", "preparar entrevista"],
+        ["Avaliar vaga", "avaliar a vaga", "avaliar vaga"],
+        ["Preparar currículo", "preparar o currículo", "preparar currículo"],
+        ["Preparar candidatura", "preparar a candidatura", "preparar candidatura"],
+      ]) {
+        const button = actionButton(title, () => prepare(vaga, button, feedback, prompt, fallback),
+          title !== "Preparar entrevista");
+        actions.append(button);
+      }
+      const monitor = actionButton("Monitorar esta vaga", () => monitorar(monitor, feedback, vaga), true);
+      actions.append(monitor);
+      next.append(actions, feedback);
+      const history = element("ol");
+      for (const event of vaga.eventos) {
+        const item = element("li");
+        item.append(element("p", `${date(event.data)} · ${event.descricao}`),
+          element("p", `Registro em ${date(event.registrado_em)} · ${event.fonte}`, "secundario"));
+        history.append(item);
+      }
+      section("Histórico").append(history);
+      const files = section("Materiais");
+      if (!vaga.materiais.length) {
+        files.append(element("p", "Nenhum material no dossiê.", "secundario"));
+        return;
+      }
+      const items = element("ul");
+      for (const material of vaga.materiais) {
+        const suffix = { envio: " · Versão em envios", entrevista: " · Entrevista" }[material.tipo] || "";
+        items.append(element("li", material.caminho + suffix));
+      }
+      files.append(items);
+    }
+
+    async function select(id) {
+      if (saving) return;
+      selectedId = id;
+      const currentRequest = ++detailRequest;
+      for (const button of byId("vagas").querySelectorAll("button")) {
+        button.setAttribute("aria-current", String(button.dataset.id === id));
+      }
+      detail.replaceChildren(element("p", "Lendo o processo…", "secundario"));
+      try {
+        const vaga = await callTool("detalhar_vaga", { processo_id: id });
+        if (currentRequest === detailRequest) {
+          renderDetail(vaga);
+          detail.scrollTop = 0;
+          detail.focus();
+        }
+      } catch (error) {
+        if (currentRequest === detailRequest) detail.replaceChildren(element("p", error.message));
+      }
+    }
+
+    async function load() {
+      const currentRequest = ++listRequest;
+      const retry = byId("recarregar");
+      retry.hidden = true;
+      status.textContent = "Lendo os dossiês…";
+      try {
+        const { vagas } = await callTool("listar_vagas");
+        if (currentRequest !== listRequest) return;
+        rows = vagas;
+        renderRows();
+        byId("painel").hidden = false;
+        byId("nova").hidden = false;
+        byId("pesquisar-web").hidden = false;
+        byId("planejar-linkedin").hidden = false;
+        byId("monitorar-novas").hidden = false;
+        status.textContent = "";
+      } catch (error) {
+        if (currentRequest !== listRequest) return;
+        status.textContent = error.message;
+        retry.hidden = false;
+      }
+    }
+
+    async function connect() {
+      if (window.parent === window) {
+        status.textContent = "Abra este painel pelo plugin no chat.";
+        return;
+      }
+      try {
+        const result = await request("ui/initialize", {
+          appInfo: { name: "Posicionar Carreira", version: "0.5.0" },
+          appCapabilities: {},
+          protocolVersion: "2026-01-26",
+        });
+        hostContext(result.hostContext);
+        notify("ui/notifications/initialized");
+        new ResizeObserver(() => notify("ui/notifications/size-changed", {
+          width: document.body.offsetWidth,
+          height: document.body.offsetHeight,
+        })).observe(document.body);
+        await load();
+      } catch (error) {
+        status.textContent = error.message;
+      }
+    }
+
+    search.addEventListener("input", renderRows);
+    const filters = byId("filtros");
+    selectField(filters, "estado", "Estado", "", "Todos").setAttribute("aria-label", "Filtrar por estado");
+    selectField(filters, "etapa", "Etapa", "", "Todas").setAttribute("aria-label", "Filtrar por etapa");
+    const resultFilter = selectField(filters, "resultado", "Resultado", "", "Todos");
+    resultFilter.setAttribute("aria-label", "Filtrar por resultado");
+    const unset = element("option", "Sem resultado");
+    unset.value = "sem_resultado";
+    resultFilter.append(unset);
+    filters.addEventListener("change", renderRows);
+    byId("nova").addEventListener("click", createForm);
+    const pesquisarWeb = byId("pesquisar-web");
+    pesquisarWeb.addEventListener("click", () => enviarAoChat(
+      "Use $posicionar-carreira:posicionar-carreira para pesquisar vagas abertas na web que combinem com meu perfil e meus objetivos de carreira. " +
+      "Consulte sites de empresas e portais como Vagas.com, Gupy, Indeed e LinkedIn. Use o navegador quando ajudar a conferir os anúncios. " +
+      "Agrupe anúncios repetidos e apresente as melhores vagas em ordem de aderência, com link e situação da inscrição. Aguarde meu pedido para cadastrar.",
+      pesquisarWeb, byId("monitoramento-status"), "Pedido enviado. Acompanhe a pesquisa no chat.",
+      "O chat não recebeu o pedido. Você pode pedir no chat: pesquisar vagas na web."
+    ));
+    const planejarLinkedIn = byId("planejar-linkedin");
+    planejarLinkedIn.addEventListener("click", () => enviarAoChat(
+      "Use $posicionar-carreira:posicionar-carreira para planejar uma busca no LinkedIn de acordo com meus objetivos de carreira. " +
+      "Prepare os termos e filtros da busca, explique como posso ativar o alerta oficial no LinkedIn e como usar o monitoramento por e-mail se eu quiser.",
+      planejarLinkedIn, byId("monitoramento-status"), "Pedido enviado. Continue o planejamento no chat.",
+      "O chat não recebeu o pedido. Você pode pedir no chat: planejar busca no LinkedIn."
+    ));
+    const monitorNovas = byId("monitorar-novas");
+    monitorNovas.addEventListener("click", () => monitorar(monitorNovas, byId("monitoramento-status")));
+    byId("recarregar").addEventListener("click", load);
+    connect();
+  </script>
+</body>
+</html>

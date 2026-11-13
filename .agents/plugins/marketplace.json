@@ -1,0 +1,12 @@
+{
+  "name": "carreira-local",
+  "interface": { "displayName": "Carreira local" },
+  "plugins": [
+    {
+      "name": "posicionar-carreira",
+      "source": { "source": "local", "path": "./plugins/posicionar-carreira" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    }
+  ]
+}

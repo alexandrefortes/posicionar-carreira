@@ -1,0 +1,8 @@
+/carreira/
+/dados/
+/.posicionar-carreira-raiz
+/.env
+/.env.*
+/.venv/
+__pycache__/
+*.py[cod]
