@@ -66,9 +66,9 @@ score =
 
 O script arredonda para uma casa decimal e aplica depois:
 
-- alinhamento de 0 a 4: teto 4,0;
-- alinhamento de 5 a 6: teto 6,5;
-- alinhamento de 7 a 10: sem teto adicional;
+- alinhamento até 4: teto 4,0;
+- alinhamento acima de 4 e até 6: teto 6,5;
+- alinhamento acima de 6: sem teto adicional;
 - `Strong fit` exige score de 8,5 ou mais e alinhamento de 8 ou mais;
 - `Moderate fit` exige score de 7,0 ou mais e alinhamento de 6 ou mais;
 - score de 5,0 a 6,9: `Weak fit`;
@@ -77,6 +77,8 @@ O script arredonda para uma casa decimal e aplica depois:
 ## Validação
 
 Execute `python -B "<pasta-da-skill>/scripts/validate_score.py" "<entrada.json>"`. Use `--output "<novo-resultado.json>"` para gravar uma saída nova quando autorizado. Caminhos relativos partem do diretório atual.
+
+Quando a gravação da avaliação estiver autorizada, guarde a saída em `avaliacao-validada.json`, ao lado de `avaliacao.md` no dossiê. O relatório de vagas lê esse arquivo. Ao reavaliar, use uma saída temporária, confira o resultado e preserve a avaliação anterior no histórico antes de substituir a versão atual.
 
 ## Saída
 

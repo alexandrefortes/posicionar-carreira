@@ -78,11 +78,17 @@ Para preparar uma candidatura, peça a revisão das evidências, do currículo e
 
 Você também pode pedir ao **Humanizer** que revise um texto mantendo a voz e os fatos do original. Para usar suas preferências de escrita, indique-as no pedido ou forneça uma amostra. [Humanizer](plugins/posicionar-carreira/skills/humanizer/SKILL.md)
 
+## Preparar ou revisar entrevistas
+
+Use **Preparar entrevista** no detalhe da vaga para ensaiar perguntas e revisar casos. Você também pode fornecer uma gravação ou transcrição e pedir uma análise das respostas reais. O agente preserva o material original, identifica trechos incertos e apresenta sugestões de melhoria à parte. [Roteiro de entrevistas](plugins/posicionar-carreira/skills/posicionar-carreira/references/entrevistas.md)
+
 ## Montar ou atualizar o portfólio
 
 Coloque na pasta do projeto um PowerPoint, um vídeo de palestra ou demonstração, uma captura de tela ou um áudio exportado. No chat com **Posicionar Carreira**, indique o arquivo e peça para transformar o material em um caso ou atualizar um que já exista.
 
 A skill consulta o portfólio, examina as fontes com as ferramentas disponíveis e separa contexto, contribuição pessoal e resultado verificável. O caso indica de onde vêm as afirmações e sinaliza o que ainda precisa de confirmação. Você pode revisar o rascunho ou pedir que ele seja salvo na base local. A publicação depende de um pedido separado. [Fluxo de portfólio](plugins/posicionar-carreira/skills/posicionar-carreira/references/portfolio.md)
+
+Para guardar uma entrega, decisão ou feedback, peça um registro com contexto, contribuição, fonte e limites. Você decide depois onde aproveitar esse material no perfil, no currículo ou no portfólio. [Roteiro de evidências](plugins/posicionar-carreira/skills/posicionar-carreira/references/evidencias.md)
 
 ## Pesquisar vagas na web
 

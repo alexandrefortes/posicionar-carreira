@@ -1,7 +1,7 @@
 ---
 name: posicionar-carreira
 description: >-
-  Ajuda a montar a base de carreira e o portfólio, buscar e cadastrar vagas, configurar alertas e monitoramento, preparar candidaturas e ensaiar entrevistas. Use também para criar ou revisar casos a partir de apresentações, imagens, vídeos e áudios fornecidos.
+  Ajuda a montar a base de carreira e o portfólio, registrar evidências de projetos, buscar e cadastrar vagas, configurar monitoramento, preparar candidaturas e ensaiar ou revisar entrevistas gravadas. Use também para criar ou revisar casos a partir de apresentações, imagens, vídeos e áudios fornecidos.
 ---
 
 # Posicionar Carreira
@@ -29,6 +29,8 @@ Mostre os rascunhos antes de gravar dados pessoais. Salve os documentos aprovado
 ## Montar ou atualizar o portfólio
 
 Para criar ou atualizar um caso a partir de arquivos de projeto, apresentações, imagens, vídeos, gravações ou áudios exportados, siga [Portfólio a partir de evidências](references/portfolio.md). Consulte os casos que já existem antes de criar um novo. Distinga o que a fonte demonstra, a contribuição da pessoa e o que ainda precisa ser confirmado.
+
+Quando a pessoa pedir para registrar uma entrega, decisão, resultado ou feedback, siga [Evidências profissionais](references/evidencias.md). Se uma evidência relevante surgir no trabalho em andamento, sugira o registro com base nas fontes já consultadas. Confirme o uso em perfil, currículo ou material público antes de incorporá-la a esses materiais.
 
 ## Gestão de processos
 
@@ -62,8 +64,6 @@ Siga [Candidaturas](references/candidaturas.md). Consulte as evidências, revise
 
 Ao revisar prosa de currículo, carta ou respostas, use [Humanizer](../humanizer/SKILL.md) em modo embutido para corrigir trechos que prejudiquem a clareza ou a voz da pessoa. Preserve fatos, contribuições e resultados.
 
-## Preparar entrevista
+## Preparar ou revisar entrevistas
 
-Use o estágio real da vaga para escolher casos, simular perguntas e identificar pontos a esclarecer. Estruture os exemplos com contexto, contribuição pessoal, decisões, validação e resultado. Marque perguntas de ensaio como simulações. Trabalhe na conversa e salve um plano no dossiê quando a pessoa pedir. Preserve as gravações e os materiais originais, identificando incertezas de transcrição. Registre feedback e avanços conforme a evidência disponível.
-
-Se a conversa incluir remuneração ou negociação, consulte o benchmark da vaga e confirme quais condições a pessoa quer esclarecer.
+Siga [Entrevistas](references/entrevistas.md) para ensaiar respostas, atualizar o plano de uma vaga ou analisar gravações e feedback. Use o estágio real da vaga e casos sustentados por evidências. Quando solicitado, salve o plano no dossiê. Preserve o material recebido e mantenha respostas reais, simulações e sugestões de melhoria identificadas.

@@ -2,7 +2,7 @@
 
 ## Preparação do dossiê
 
-Confira em `processo.md` a empresa, o cargo, o identificador e a etapa antes de trabalhar no dossiê. Use a descrição em `vaga.md`, a avaliação existente e as fontes autorizadas na base de carreira. Consulte o perfil, o currículo base, as evidências recentes, os casos pertinentes em `portfolio/` e as respostas já aprovadas. Concilie as fontes com as correções mais recentes da pessoa.
+Confira em `processo.md` a empresa, o cargo, o identificador e a etapa antes de trabalhar no dossiê. Use a descrição em `vaga.md`, a avaliação existente e as fontes autorizadas na base de carreira. Consulte o perfil, o currículo base, as evidências recentes, os casos pertinentes em `portfolio/` e as respostas já aprovadas. [Concilie as fontes](evidencias.md#conferir-fatos-e-correções) com as correções mais recentes da pessoa.
 
 Confira a [pesquisa salarial da vaga](benchmark-salarial.md) e atualize fontes que já não representem o escopo, a localidade ou o vínculo. Use o levantamento para preparar perguntas e apoiar decisões. Para preencher salário atual ou pretensão, use somente o valor autorizado pela pessoa para aquele campo.
 
