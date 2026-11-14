@@ -36,6 +36,8 @@ Para gravações autorizadas, use `criar_vaga`, `registrar_evento` ou `atualizar
 
 Ao mapear uma vaga no chat, registre em `vaga.md` a descrição disponível, a fonte e a data da consulta. Deixe a síntese e a análise em `avaliacao.md`. Siga o [procedimento de pesquisa salarial](references/benchmark-salarial.md) para registrar a faixa anunciada e os comparáveis, inclusive quando o anúncio omitir a faixa.
 
+Ao montar ou complementar o dossiê, siga o [roteiro de pesquisa de clima organizacional](references/clima-organizacional.md) e inclua os achados e as lacunas em `avaliacao.md`.
+
 Preserve o histórico e mantenha estado, etapa e resultado separados. Confirme a identidade da vaga pelo ID, anúncio ou evidência antes de cadastrar ou registrar retorno. Uma mensagem sem vínculo confirmado não altera nenhum dossiê. Confirme evidência antes de registrar envio, encerramento ou avanço de etapa. Um formulário preenchido ainda requer submissão. Uma indicação de revisão tem finalidade de acompanhamento e não agenda lembrete.
 
 Para lotes ou sessões sem MCP, use `python -B "<PLUGIN_DIR>/server/lote.py"`. Confira a prévia por dossiê antes de aplicar um lote e reconcilie as falhas antes de repetir. Preserve `painel-vagas.md` como índice de ordenação, se existir. Guarde o conteúdo produzido no dossiê e use as operações estruturadas para alterar o registro do processo.
@@ -45,6 +47,8 @@ Para lotes ou sessões sem MCP, use `python -B "<PLUGIN_DIR>/server/lote.py"`. C
 Compare as responsabilidades e os requisitos com as evidências profissionais e as preferências da pessoa. Separe aderência, condições, cultura e lacunas. Cite as fontes pertinentes e indique quando uma informação precisa de confirmação. Para uma avaliação com nota, siga o [contrato de pontuação](references/scoring.md) e execute o validador empacotado. Uma nota expressa aderência ao objetivo informado. Quando faltar informação essencial, registre as lacunas e deixe a nota em branco.
 
 Consulte o [benchmark salarial](references/benchmark-salarial.md) antes de recomendar próximos passos ou preparar negociação. Use somente critérios confirmados pela pessoa. A remuneração é informativa por padrão.
+
+Para fundamentar a avaliação de cultura, consulte ou atualize a [pesquisa de clima](references/clima-organizacional.md) no recorte da vaga. Use os achados na recomendação e nas perguntas para a entrevista. Mantenha o score de aderência separado.
 
 ## Monitorar vagas por e-mail
 

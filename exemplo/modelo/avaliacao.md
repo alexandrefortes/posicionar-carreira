@@ -11,7 +11,9 @@
 
 ## Cultura e condições
 
-O anúncio descreve interação com a equipe de operação. Ele não traz informações suficientes para avaliar a cultura, confirmar a frequência presencial ou identificar o vínculo. A [pesquisa salarial](benchmark-salarial.md) registra a faixa ausente e os limites da comparação.
+O [anúncio fictício](vaga.md), consultado em 15/01/2025, menciona interação com a equipe de operação. Essa é a descrição da empresa no exemplo. A demonstração não inclui relatos de funcionários. A amostra é insuficiente para avaliar o clima da equipe. Pergunta para a entrevista: como a equipe de operação e a pessoa analista combinam prioridades quando surgem demandas urgentes de áreas diferentes?
+
+A frequência presencial e o vínculo também seguem pendentes. A [pesquisa salarial](benchmark-salarial.md) registra a faixa ausente e os limites da comparação.
 
 ## Recomendação e próxima ação
 

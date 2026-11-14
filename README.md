@@ -72,6 +72,8 @@ Use a organização dos exemplos e substitua o conteúdo pelas suas fontes. Voc�
 
 Ao mapear uma vaga pelo chat, o plugin pesquisa a faixa anunciada e referências de mercado e registra as fontes em `benchmark-salarial.md`. A pesquisa indica o que falta confirmar e usa os critérios da sua base. O exemplo fictício inclui esse arquivo para você consultar nos materiais do dossiê. [Pesquisa salarial](plugins/posicionar-carreira/skills/posicionar-carreira/references/benchmark-salarial.md)
 
+Ao montar o dossiê ou usar **Avaliar vaga**, o agente também pesquisa o clima da empresa em avaliações públicas de funcionários, como Glassdoor e Indeed, e em outras fontes pertinentes. A avaliação registra os achados, seus limites e perguntas para a entrevista. [Roteiro de pesquisa de clima](plugins/posicionar-carreira/skills/posicionar-carreira/references/clima-organizacional.md)
+
 Para preparar uma candidatura, peça a revisão das evidências, do currículo e da carta. O plugin pode gerar um PDF com nome descritivo, conferir o conteúdo e preparar as respostas para sua revisão. O envio requer sua autorização. [Fluxo de candidatura](plugins/posicionar-carreira/skills/posicionar-carreira/references/candidaturas.md)
 
 Você também pode pedir ao **Humanizer** que revise um texto mantendo a voz e os fatos do original. Para usar suas preferências de escrita, indique-as no pedido ou forneça uma amostra. [Humanizer](plugins/posicionar-carreira/skills/humanizer/SKILL.md)
