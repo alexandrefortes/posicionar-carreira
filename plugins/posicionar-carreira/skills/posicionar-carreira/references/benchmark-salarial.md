@@ -1,6 +1,6 @@
 # Pesquisa salarial por vaga
 
-Ao mapear uma vaga, pesquise a remuneração mesmo quando o anúncio não divulgar uma faixa. Salve a pesquisa em `carreira/oportunidades/<empresa>/<id>/benchmark-salarial.md` na base de dados configurada. Use os objetivos e as preferências que a pessoa confirmar. Apresente os valores e o que esclarecer para ela decidir se quer avançar.
+Ao mapear uma vaga, pesquise a remuneração mesmo quando o anúncio não divulgar uma faixa. Salve a pesquisa em `oportunidades/<empresa>/<id>/benchmark-salarial.md` na base de dados configurada. Use os objetivos e as preferências que a pessoa confirmar. Apresente os valores e o que esclarecer para ela decidir se quer avançar.
 
 ## Fontes e comparabilidade
 

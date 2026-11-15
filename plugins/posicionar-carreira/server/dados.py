@@ -1,33 +1,61 @@
-"""Leitura local do registro oficial de oportunidades."""
+"""Configuração e leitura local dos registros de carreira."""
 from __future__ import annotations
 
+import json
 import os
 from hashlib import sha256
 from pathlib import Path
 from urllib.parse import unquote
 
 
-def resolver_raiz(root: Path | None = None) -> Path:
-    if root is None:
-        configurado = os.environ.get("POSICIONAR_CARREIRA_ROOT")
-        if not configurado:
-            seletor = Path.home() / ".posicionar-carreira-raiz"
-            if seletor.is_file():
-                configurado = seletor.read_text(encoding="utf-8-sig").strip()
-        root = Path(configurado) if configurado else Path.home() / "PosicionarCarreira"
+def _caminho_configurado(arquivo: Path) -> str:
+    try:
+        return arquivo.read_text(encoding="utf-8-sig").strip()
+    except FileNotFoundError:
+        return ""
+
+
+def _pasta_absoluta(root: Path) -> Path:
     root = root.expanduser()
     if not root.is_absolute():
-        raise ValueError("Informe um caminho absoluto para a pasta de dados.")
-    root = root.resolve()
-    if not (root / "carreira" / "oportunidades").is_dir():
-        raise FileNotFoundError("Inicialize a pasta de dados ou configure a raiz da base existente. Consulte o guia de instalação.")
+        raise FileNotFoundError("Use um caminho absoluto na configuração da pasta de dados (CARREIRA_ROOT).")
+    return root.resolve()
+
+
+def caminho_carreira_configurado() -> Path:
+    """Retorna o caminho de dados escolhido, ainda que a pasta não exista."""
+    configurado = os.environ.get("CARREIRA_ROOT")
+    if configurado:
+        return _pasta_absoluta(Path(configurado))
+    legado = os.environ.get("POSICIONAR_CARREIRA_ROOT") or os.environ.get("PAPAO_ROOT")
+    if legado:
+        return _pasta_absoluta(Path(legado) / "carreira")
+
+    home = Path.home()
+    configurado = _caminho_configurado(home / ".config/posicionar-carreira/data-root.txt")
+    if configurado:
+        return _pasta_absoluta(Path(configurado))
+    legado = _caminho_configurado(home / ".posicionar-carreira-raiz")
+    return _pasta_absoluta((Path(legado) if legado else home / "PosicionarCarreira") / "carreira")
+
+
+def resolver_carreira_root(root: Path | None = None, *, exigir_oportunidades: bool = True) -> Path:
+    root = caminho_carreira_configurado() if root is None else _pasta_absoluta(root)
+    if not root.is_dir() or (exigir_oportunidades and not (root / "oportunidades").is_dir()):
+        raise FileNotFoundError("Aponte CARREIRA_ROOT para a pasta de dados que contém oportunidades/.")
     return root
 
 
-def _processos(raiz: Path) -> list[dict]:
-    import gestao_vagas
+def responsavel_pessoal(carreira: Path) -> str:
+    try:
+        configuracao = json.loads((carreira / "config.json").read_text(encoding="utf-8-sig"))
+    except FileNotFoundError:
+        return "titular"
+    nome = configuracao.get("responsavel", "titular") if isinstance(configuracao, dict) else None
+    if not isinstance(nome, str) or not nome.strip() or nome.strip().casefold() in {"assistente", "empresa"}:
+        raise ValueError("Use um nome para responsavel em config.json da pasta de dados.")
+    return nome.strip()
 
-    return gestao_vagas.load_processes(raiz / "carreira")
 
 
 def _resumo(processo: dict) -> dict:
@@ -61,14 +89,16 @@ def _ordem_painel(carreira: Path) -> list[str]:
     return ordem
 
 
-def listar(raiz: Path) -> list[dict]:
+def listar(carreira: Path) -> list[dict]:
+    import gestao_vagas
+
     processos = sorted(
-        _processos(raiz), key=lambda processo: processo["atualizado_em"], reverse=True
+        gestao_vagas.load_processes(carreira), key=lambda processo: processo["atualizado_em"], reverse=True
     )
     por_id = {processo["id"]: processo for processo in processos}
     ordenados = [
         por_id.pop(processo_id)
-        for processo_id in _ordem_painel(raiz / "carreira")
+        for processo_id in _ordem_painel(carreira)
         if processo_id in por_id
     ]
     ordenados.extend(por_id.values())
@@ -86,12 +116,12 @@ def ler_processo(carreira: Path, processo_id: str) -> tuple[dict, bytes]:
     return gestao_vagas.load_process(carreira, processo_id, text=conteudo.decode("utf-8")), conteudo
 
 
-def detalhar(raiz: Path, processo_id: str) -> dict:
-    processo, conteudo = ler_processo(raiz / "carreira", processo_id)
-    return formatar_detalhe(processo, conteudo)
+def detalhar(carreira: Path, processo_id: str) -> dict:
+    processo, conteudo = ler_processo(carreira, processo_id)
+    return formatar_detalhe(carreira, processo, conteudo)
 
 
-def formatar_detalhe(processo: dict, conteudo: bytes) -> dict:
+def formatar_detalhe(carreira: Path, processo: dict, conteudo: bytes) -> dict:
     from curriculos import resolver_curriculos
 
     arquivo = processo["_path"]
@@ -113,9 +143,11 @@ def formatar_detalhe(processo: dict, conteudo: bytes) -> dict:
         **_resumo(processo),
         "processo": str(arquivo),
         "revisao": sha256(conteudo).hexdigest(),
+        "responsaveis": [responsavel_pessoal(carreira), "assistente", "empresa"],
         **{campo: processo.get(campo) for campo in (
             "proxima_acao", "responsavel", "prioridade", "prazo", "fonte_prazo", "revisar_em",
             "encerrada_em", "candidatura_confirmada", "candidatura_em", "fonte_candidatura",
+            "disponibilidade_inscricao", "fonte_disponibilidade_inscricao",
         )},
         "eventos": [
             {campo: evento[campo] for campo in ("data", "registrado_em", "descricao", "fonte", "alteracoes")
@@ -131,4 +163,7 @@ def formatar_detalhe(processo: dict, conteudo: bytes) -> dict:
 
 
 if __name__ == "__main__":
-    print(resolver_raiz())
+    try:
+        print(resolver_carreira_root())
+    except OSError as exc:
+        raise SystemExit(str(exc)) from None

@@ -14,13 +14,14 @@ from urllib.parse import urlsplit
 import yaml
 
 import gestao_vagas
-from dados import formatar_detalhe, ler_processo
+from dados import formatar_detalhe, ler_processo, responsavel_pessoal
 
 
 CAMPOS_EDITAVEIS = frozenset((
-    "estado", "etapa", "resultado", "prioridade", "proxima_acao", "responsavel",
+    "titulo", "estado", "etapa", "resultado", "prioridade", "proxima_acao", "responsavel",
     "prazo", "fonte_prazo", "revisar_em", "encerrada_em",
     "candidatura_confirmada", "candidatura_em", "fonte_candidatura",
+    "disponibilidade_inscricao", "fonte_disponibilidade_inscricao",
 ))
 CONFLITO = "O processo mudou desde a abertura. Recarregue o detalhe e revise os dados."
 EVENTO_REPETIDO = "Este evento já foi registrado no processo."
@@ -135,7 +136,7 @@ def _criar(carreira, empresa, titulo, fonte, processo_id, previa):
     registro = {
         "id": processo_id, "empresa": empresa, "titulo": titulo, "estado": "aberto",
         "etapa": "identificada", "resultado": None, "prioridade": "media",
-        "proxima_acao": "Avaliar a vaga", "responsavel": "candidato", "fonte_estado": fonte,
+        "proxima_acao": "Avaliar a vaga", "responsavel": responsavel_pessoal(carreira), "fonte_estado": fonte,
         "identificada_em": None, "atualizado_em": entrada["registrado_em"], "encerrada_em": None,
         "candidatura_confirmada": False, "candidatura_em": None, "fonte_candidatura": None,
         "prazo": None, "fonte_prazo": None, "revisar_em": None,
@@ -151,11 +152,11 @@ def _criar(carreira, empresa, titulo, fonte, processo_id, previa):
         if not any(path.parent.iterdir()):
             path.parent.rmdir()
         raise
-    return formatar_detalhe({**registro, "_path": path}, conteudo)
+    return formatar_detalhe(carreira, {**registro, "_path": path}, conteudo)
 
 
-def criar_vaga(raiz, empresa, titulo, fonte, processo_id=None, *, previa=False):
-    carreira = (raiz / "carreira").resolve()
+def criar_vaga(carreira, empresa, titulo, fonte, processo_id=None, *, previa=False):
+    carreira = carreira.resolve()
     empresa = texto(empresa, "a empresa")
     titulo = texto(titulo, "o título da vaga")
     if previa:
@@ -174,7 +175,21 @@ def _mudancas(carreira, registro, campos, entrada):
         elif valor is not None and not isinstance(valor, str):
             raise ValueError(f"Valor inválido para {campo}.")
     mudancas = {campo: valor.strip() if isinstance(valor, str) else valor for campo, valor in campos.items()}
-    for campo in ("fonte_prazo", "fonte_candidatura"):
+    if "titulo" in mudancas:
+        mudancas["titulo"] = texto(mudancas["titulo"], "o título da vaga")
+    if mudancas.keys() & {"disponibilidade_inscricao", "fonte_disponibilidade_inscricao"}:
+        anterior = registro.get("disponibilidade_inscricao") or None
+        disponibilidade = mudancas.get("disponibilidade_inscricao", anterior)
+        fonte_disponibilidade = mudancas.get("fonte_disponibilidade_inscricao")
+        if disponibilidade is None:
+            if fonte_disponibilidade is not None:
+                raise ValueError("Informe a disponibilidade de inscrição para registrar sua fonte.")
+            mudancas["fonte_disponibilidade_inscricao"] = None
+        elif disponibilidade not in gestao_vagas.DISPONIBILIDADES_INSCRICAO:
+            raise ValueError("Disponibilidade de inscrição inválida.")
+        elif (disponibilidade != anterior or "fonte_disponibilidade_inscricao" in mudancas) and not fonte_disponibilidade:
+            raise ValueError("Informe a fonte da disponibilidade de inscrição.")
+    for campo in ("fonte_prazo", "fonte_candidatura", "fonte_disponibilidade_inscricao"):
         if mudancas.get(campo) is not None:
             mudancas[campo] = fonte_valida(carreira, mudancas[campo])
     for campo in ("prazo", "revisar_em", "encerrada_em", "candidatura_em"):
@@ -226,11 +241,11 @@ def _editar(carreira, processo_id, revisao, entrada, campos, previa):
     if previa:
         return {"id": processo_id, "revisao": revisao, "mudancas": mudancas, "evento": entrada}
     conteudo = gravar(path, registro, original)
-    return formatar_detalhe({**registro, "_path": path}, conteudo)
+    return formatar_detalhe(carreira, {**registro, "_path": path}, conteudo)
 
 
-def _operar(raiz, processo_id, revisao, descricao, fonte, data, campos, previa):
-    carreira = (raiz / "carreira").resolve()
+def _operar(carreira, processo_id, revisao, descricao, fonte, data, campos, previa):
+    carreira = carreira.resolve()
     entrada = evento(carreira, descricao, fonte, data)
     if previa:
         return _editar(carreira, processo_id, revisao, entrada, campos, previa)
@@ -241,14 +256,14 @@ def _operar(raiz, processo_id, revisao, descricao, fonte, data, campos, previa):
         return _editar(carreira, processo_id, revisao, entrada, campos, previa)
 
 
-def registrar_evento(raiz, processo_id, revisao, descricao, fonte, data=None, *, previa=False):
-    return _operar(raiz, processo_id, revisao, descricao, fonte, data, None, previa)
+def registrar_evento(carreira, processo_id, revisao, descricao, fonte, data=None, *, previa=False):
+    return _operar(carreira, processo_id, revisao, descricao, fonte, data, None, previa)
 
 
-def atualizar_vaga(raiz, processo_id, revisao, descricao, fonte, mudancas, data=None, *, previa=False):
+def atualizar_vaga(carreira, processo_id, revisao, descricao, fonte, mudancas, data=None, *, previa=False):
     if not isinstance(mudancas, dict):
         raise ValueError("Informe os campos editáveis do processo.")
-    return _operar(raiz, processo_id, revisao, descricao, fonte, data, mudancas, previa)
+    return _operar(carreira, processo_id, revisao, descricao, fonte, data, mudancas, previa)
 
 
 OPERACOES = {

@@ -1,8 +1,9 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "posicionar-carreira",
-  "version": "0.5.6",
-  "description": "Gerencia vagas e ajuda a preparar candidaturas e entrevistas no Codex.",
+  "version": "0.6.0",
+  "description": "Gerencie oportunidades, candidaturas e entrevistas no Codex.",
+  "author": { "name": "Posicionar Carreira" },
   "extensions": {
     "com.openai": {
       "requires_local_executor": true,

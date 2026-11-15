@@ -6,15 +6,19 @@ import json
 from pathlib import Path
 import re
 from urllib.parse import unquote
-import yaml
+
+from dados import resolver_carreira_root, responsavel_pessoal
 
 ESTADOS = {'aberto', 'pausado', 'encerrado'}
 ETAPAS = {'identificada', 'em_avaliacao', 'em_preparacao', 'candidatura_enviada',
           'triagem', 'entrevista_tecnica', 'entrevista_gestao', 'oferta'}
 RESULTADOS = {'contratado', 'reprovado', 'desistencia', 'vaga_cancelada', 'descartado_na_avaliacao'}
+DISPONIBILIDADES_INSCRICAO = {'aberta_verificada', 'nao_confirmada', 'anuncio_expirado'}
 LINK = re.compile(r'\]\((<[^>]+>|[^)]+)\)')
 
 def metadata(path, *, text=None):
+    import yaml
+
     if text is None:
         text = path.read_text(encoding='utf-8')
     else:
@@ -68,7 +72,7 @@ def validate_process(root, path, d):
         raise ValueError(f'{path}: estado/etapa inválido')
     if d['prioridade'] not in {'alta', 'media', 'baixa'}:
         raise ValueError(f'{path}: prioridade inválida')
-    if d['responsavel'] not in {'candidato', 'assistente', 'empresa'}:
+    if d['responsavel'] not in {'titular', 'candidato', 'assistente', 'empresa'} and d['responsavel'] != responsavel_pessoal(root):
         raise ValueError(f'{path}: responsável inválido')
     if d['estado'] == 'encerrado':
         if d.get('resultado') not in RESULTADOS:
@@ -83,7 +87,7 @@ def validate_process(root, path, d):
         raise ValueError(f'{path}: atualização ausente')
     check_source(root, d['fonte_estado'])
     if d.get('disponibilidade_inscricao'):
-        if d['disponibilidade_inscricao'] not in {'aberta_verificada', 'nao_confirmada', 'anuncio_expirado'}:
+        if d['disponibilidade_inscricao'] not in DISPONIBILIDADES_INSCRICAO:
             raise ValueError(f'{path}: disponibilidade de inscrição inválida')
         check_source(root, d.get('fonte_disponibilidade_inscricao'))
     if d['candidatura_confirmada']:
@@ -147,10 +151,11 @@ def load_processes(root):
 
 
 def validate_links(root, pending=()):
-    """Verifica arquivos Markdown operacionais, relatórios e redirecionamentos."""
+    """Verifica arquivos Markdown operacionais e relatórios gerados."""
     paths = [root/'README.md', root/'AGENTS.md', root/'painel-vagas.md']
-    for folder in ('oportunidades', 'empresas', 'monitoramento', 'relatorios', 'estrategia'):
+    for folder in ('oportunidades', 'empresas', 'monitoramento', 'estrategia'):
         paths.extend((root/folder).rglob('*.md'))
+    paths.extend((root/'relatorios').glob('*/acompanhamento-gerado-*.md'))
     for path in paths:
         if not path.exists():
             continue
@@ -172,9 +177,10 @@ def clean(value):
 def process_link(root, d, prefix=''):
     return f'[{clean(d["empresa"])} — {clean(d["titulo"])}](<{prefix}{d["_path"].relative_to(root).as_posix()}>)'
 
-def table(root, records):
-    lines = ['| Vaga / processo | Etapa | Próxima ação / responsável | Prazo / revisão | Avaliação |',
-             '|---|---|---|---|---|']
+def sections(root, records):
+    import yaml
+
+    lines = []
     for d in records:
         appraisal = d['_path'].parent/'avaliacao.md'
         label = f'{d["_score"]:.1f}/10' if d['_score'] is not None else 'sem score'
@@ -185,36 +191,78 @@ def table(root, records):
         phase = {'em_preparacao': 'em preparação', 'em_avaliacao': 'em avaliação', 'entrevista_tecnica': 'entrevista técnica', 'entrevista_gestao': 'entrevista de gestão'}.get(d['etapa'], d['etapa'].replace('_',' '))
         if d.get('resultado'):
             phase += ' / '+d['resultado'].replace('_',' ')
-        lines.append(f'| {process_link(root,d)} | {phase} | {clean(d["proxima_acao"])} ({d["responsavel"]}) | {due} | {ev} |')
+        action = d['proxima_acao']
+        if d.get('proxima_acao_plano') and d['proxima_acao_plano'] != action:
+            action += ' Plano atual: '+d['proxima_acao_plano']
+        title = f'{d["empresa"]} — {d["titulo"]}'.replace('\n', ' ')
+        path = d['_path'].relative_to(root).as_posix()
+        lines.extend([f'### {title}', '', f'- **Processo:** [Abrir processo](<{path}>)',
+                      f'- **Estado:** {d["estado"].replace("_", " " )}', f'- **Prioridade:** {d["prioridade"]}', f'- **Etapa / resultado:** {phase}',
+                      f'- **Próxima ação:** {action}', f'- **Responsável:** {d["responsavel"]}',
+                      f'- **Prazo / revisão:** {due}', f'- **Avaliação:** {ev}'])
+        if d['estado'] in {'aberto', 'pausado'}:
+            benchmark = d['_path'].parent/'benchmark-salarial.md'
+            if benchmark.is_file():
+                try:
+                    resumo = metadata(benchmark).get('resumo')
+                except (ValueError, yaml.YAMLError):
+                    resumo = None
+                detalhe = f'{clean(resumo.strip())} — ' if isinstance(resumo, str) and resumo.strip() else ''
+                lines.append(f'- **Benchmark salarial:** {detalhe}[fontes e limites](<{benchmark.relative_to(root).as_posix()}>)')
+            else:
+                lines.append('- **Benchmark salarial:** Pesquisa pendente.')
+        availability = d.get('disponibilidade_inscricao')
+        if availability:
+            labels = {'aberta_verificada':'aberta verificada', 'nao_confirmada':'não confirmada', 'anuncio_expirado':'anúncio expirado'}
+            lines.append(f'- **Disponibilidade da inscrição:** {labels[availability]}')
+        plan = d.get('grupo_plano_atual')
+        if plan in {'plano_modalidade_compativel', 'plano_esclarecimento'} and d['estado']=='aberto' and not d['candidatura_confirmada']:
+            lines.append('- **Plano atual:** '+('modalidade compatível' if plan=='plano_modalidade_compativel' else 'esclarecer antes de candidatar'))
+        lines.append('')
     return '\n'.join(lines) if records else 'Nenhum registro nesta categoria.'
 
 def panel(root, records, today):
     records = sorted(records, key=lambda d: ({'alta':0,'media':1,'baixa':2}[d['prioridade']],d['empresa'],d['titulo']))
-    lines = ['# Painel geral de vagas', '', f'Gerado em {today.isoformat()}. **Não editar estados aqui:** atualize `processo.md` e execute `python3 scripts/gestao_vagas.py gerar`.', '',
+    guide = '../plugins/posicionar-carreira/README.md'
+    help_text = (f'[Como manter]({guide}#gestão-de-oportunidades)' if (root/guide).is_file()
+                 else 'Como manter: consulte Gestão de oportunidades no guia do Posicionar Carreira.')
+    links = [f'[{label}]({target})' for label, target in (
+        ('Preferências e pretensão', 'estrategia/referencias-candidaturas.md'),
+        ('Triagem de mensagens', 'monitoramento/triagem.md'),
+    ) if (root/target).is_file()]
+    lines = ['# Painel geral de vagas', '', f'Gerado em {today.isoformat()}. **Estado e próxima ação oficiais:** consulte o processo de cada vaga e use as operações do Posicionar Carreira para atualizá-lo.', '',
              f'{len(records)} oportunidades registradas; {sum(d["candidatura_confirmada"] for d in records)} candidaturas confirmadas no histórico (inclusive encerradas e sem data conhecida). Pistas e recibos sem cargo não contam como envios.', '',
-             '[Preferências e pretensão](estrategia/referencias-candidaturas.md) · [Triagem de mensagens](monitoramento/triagem.md) · [Como manter](scripts/README.md)', '',
+             ' · '.join([*links, help_text]), '',
              'Scores preservados das avaliações validadas. Cultura e condições devem ser lidas com a avaliação; as datas de pesquisa constam dos dossiês.', '']
     for source in sorted({d['fonte_disponibilidade_inscricao'] for d in records if d.get('disponibilidade_inscricao')}):
         lines += [f'[Auditoria completa de disponibilidade](<{source}>): formulário acessível, anúncio expirado e disponibilidade não confirmada são separados da etapa pessoal. Pistas sem processo constam da auditoria.', '']
-    due = [d for d in records if d['estado']=='aberto' and d.get('prazo')]
-    overdue = [d for d in records if d['estado']!='encerrado' and d.get('revisar_em') and d['revisar_em'] <= today.isoformat()]
-    groups = [('Ações com prazo informado',due),('Revisões sugeridas vencidas ou para hoje',overdue),
-              ('Aguardando empresa',[d for d in records if d['estado']=='aberto' and d['responsavel']=='empresa']),
-              ('Inscrições abertas verificadas — revisar condições',[d for d in records if d['estado']=='aberto' and d['responsavel']!='empresa' and d.get('disponibilidade_inscricao')=='aberta_verificada']),
-              ('Disponibilidade não confirmada — conferir inscrição',[d for d in records if d['estado']=='aberto' and d['responsavel']!='empresa' and d.get('disponibilidade_inscricao')=='nao_confirmada']),
-              ('A avaliar, preparar ou esclarecer',[d for d in records if d['estado']=='aberto' and d['responsavel']!='empresa' and not d.get('disponibilidade_inscricao')]),
-              ('Anúncios expirados — sem nova candidatura',[d for d in records if d['estado']=='pausado' and d.get('disponibilidade_inscricao')=='anuncio_expirado']),
-              ('Pausadas',[d for d in records if d['estado']=='pausado' and d.get('disponibilidade_inscricao')!='anuncio_expirado']),
-              ('Encerradas',[d for d in records if d['estado']=='encerrado'])]
-    for title, group in groups:
-        lines.extend(['## '+title,'',table(root,group),''])
-    lines += ['## Empresas de interesse e pendências sem vaga associada','',
-              '[Triagem — recibos, duplicações e lacunas](monitoramento/triagem.md). Não altera automaticamente estados dos processos.','']
+    current = [d for d in records if d['estado']=='aberto' and not d['candidatura_confirmada'] and d.get('grupo_plano_atual') in {'plano_modalidade_compativel', 'plano_esclarecimento'}]
+    if current:
+        lines += [f'{len(current)} famílias no plano atual: {sum(d["grupo_plano_atual"]=="plano_modalidade_compativel" for d in current)} candidaturas a avaliar e {sum(d["grupo_plano_atual"]=="plano_esclarecimento" for d in current)} a esclarecer antes de candidatar. Candidatura pública disponível não garante formulário autenticado ou submissão. Scores anteriores permanecem históricos, sem recálculo.', '']
+        sources = {d['fonte_plano'] for d in current if isinstance(d.get('fonte_plano'), str)}
+        for source in sorted(sources):
+            try:
+                check_source(root, source)
+            except ValueError:
+                continue
+            lines += [f'[Fonte do plano atual](<{source}>)', '']
+    if (root/'monitoramento/triagem.md').is_file():
+        lines += ['[Triagem — recibos, duplicações e lacunas](monitoramento/triagem.md). Não altera automaticamente estados dos processos.','']
     for p in sorted((root/'empresas').glob('*/empresa.md')):
         if 'interesse_sem_vaga: true' in p.read_text(encoding='utf-8'):
             title = re.search(r'^# (.+)$', p.read_text(encoding='utf-8'), re.M)
             name = title.group(1) if title else p.parent.name
             lines.append(f'- [{name}](<{p.relative_to(root).as_posix()}>) — interesse sem vaga identificada.')
+    finished = [d for d in records if d['estado']=='encerrado' or (d.get('disponibilidade_inscricao')=='anuncio_expirado' and not d['candidatura_confirmada'])]
+    active = [d for d in records if d not in finished]
+    lines += ['', '## Em andamento ou pausadas', '', sections(root, active),
+              '', '## Anúncios expirados ou processos encerrados', '', sections(root, finished)]
+    existing = root/'painel-vagas.md'
+    if existing.exists():
+        previous = existing.read_text(encoding='utf-8')
+        marker = '\n## Revisões recebidas —'
+        if marker in previous:
+            lines.append(previous[previous.index(marker):].rstrip())
     return '\n'.join(lines)+'\n'
 
 def monthly(root, records, month, today):
@@ -223,8 +271,9 @@ def monthly(root, records, month, today):
     if month > today.isoformat()[:7]:
         raise ValueError('Não gerar fechamento para mês futuro')
     def in_month(d): return isinstance(d,str) and d.startswith(month+'-')
-    lines = [f'# Acompanhamento de {month}', '', f'Fotografia gerada em {today.isoformat()}; dados conhecidos nesta data. Não é reconstrução garantida do conhecimento disponível no passado.', '',
-             '[Painel atual](../../painel-vagas.md)', '']
+    lines = [f'# Acompanhamento de {month}', '', f'Fotografia gerada em {today.isoformat()}; dados conhecidos nesta data. Não é reconstrução garantida do conhecimento disponível no passado.', '']
+    if (root/'painel-vagas.md').is_file():
+        lines += ['[Painel atual](../../painel-vagas.md)', '']
     for title, filtered in [
         ('Vagas identificadas no mês',[d for d in records if in_month(d.get('identificada_em'))]),
         ('Candidaturas confirmadas enviadas no mês',[d for d in records if d['candidatura_confirmada'] and in_month(d.get('candidatura_em'))])]:
@@ -243,11 +292,12 @@ def monthly(root, records, month, today):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('acao',choices=['validar','gerar','relatorio'])
-    parser.add_argument('--root',type=Path,default=Path(__file__).resolve().parents[1])
+    parser.add_argument('--root',type=Path,help='Diretório de dados de carreira; usa CARREIRA_ROOT ou a configuração local quando omitido.')
     parser.add_argument('--mes')
     parser.add_argument('--data',default=dt.date.today().isoformat(),help='Data de referência, AAAA-MM-DD')
     args=parser.parse_args()
-    today=date(args.data,'data'); root=args.root.resolve()
+    today=date(args.data,'data')
+    root=resolver_carreira_root() if args.root is None else args.root.expanduser().resolve()
     records=load_processes(root)
     if not records:
         raise ValueError('Nenhum processo encontrado; painel não será substituído')
@@ -271,6 +321,8 @@ def main():
     print(f'{len(records)} processos validados; ação {args.acao} concluída.')
 
 if __name__=='__main__':
+    import yaml
+
     try: main()
     except (ValueError, OSError, yaml.YAMLError) as e:
         raise SystemExit(str(e))

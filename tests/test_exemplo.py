@@ -13,7 +13,7 @@ EXEMPLO = PACOTE / "exemplo"
 SERVIDOR = PACOTE / "plugins" / "posicionar-carreira" / "server"
 sys.path[:0] = [str(EXEMPLO), str(SERVIDOR)]
 
-from inicializar import inicializar, raiz_padrao
+from inicializar import inicializar
 from servidor import respond
 
 
@@ -26,8 +26,11 @@ class ExemploTest(unittest.TestCase):
         temporario = TemporaryDirectory()
         self.addCleanup(temporario.cleanup)
         self.raiz = Path(temporario.name).resolve()
-        self.dossie = self.raiz / "carreira" / "oportunidades" / ID_EXEMPLO
-        ambiente = patch.dict(os.environ, {"POSICIONAR_CARREIRA_ROOT": str(self.raiz)})
+        self.carreira = self.raiz / "carreira"
+        self.dossie = self.carreira / "oportunidades" / ID_EXEMPLO
+        ambiente = patch.dict(os.environ, {
+            "CARREIRA_ROOT": "", "PAPAO_ROOT": "", "POSICIONAR_CARREIRA_ROOT": str(self.raiz),
+        })
         ambiente.start()
         self.addCleanup(ambiente.stop)
 
@@ -40,10 +43,9 @@ class ExemploTest(unittest.TestCase):
         return resposta["result"]
 
     def test_base_vazia_e_recusa_de_sobrescrita(self):
-        inicializar(self.raiz)
+        inicializar(self.carreira)
         self.assertEqual(self.chamar("listar_vagas")["structuredContent"]["vagas"], [])
-        inicializar(self.raiz, com_exemplo=True)
-        carreira = self.raiz / "carreira"
+        inicializar(self.carreira, com_exemplo=True)
         for relativo in (
             "perfil/perfil-profissional.md",
             "perfil/evidencias/painel-indicadores-operacionais.md",
@@ -51,46 +53,53 @@ class ExemploTest(unittest.TestCase):
             "curriculos/base.md",
             "portfolio/painel-indicadores-operacionais.md",
         ):
-            self.assertTrue((carreira / relativo).is_file(), relativo)
+            self.assertTrue((self.carreira / relativo).is_file(), relativo)
         curriculo = self.dossie / "curriculo.md"
         curriculo.write_text("Alteração local de teste.", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "base vazia"):
-            inicializar(self.raiz, com_exemplo=True)
+            inicializar(self.carreira, com_exemplo=True)
         self.assertEqual(curriculo.read_text(encoding="utf-8"), "Alteração local de teste.")
 
     def test_exemplo_nao_mistura_perfil_existente_com_dados_ficticios(self):
-        inicializar(self.raiz)
-        perfil = self.raiz / "carreira/perfil/perfil-profissional.md"
+        inicializar(self.carreira)
+        perfil = self.carreira / "perfil/perfil-profissional.md"
         perfil.parent.mkdir()
         perfil.write_text("Perfil existente.", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "base vazia"):
-            inicializar(self.raiz, com_exemplo=True)
+            inicializar(self.carreira, com_exemplo=True)
         self.assertEqual(perfil.read_text(encoding="utf-8"), "Perfil existente.")
         self.assertFalse(self.dossie.exists())
 
-    def test_precedencia_da_raiz_e_recusa_de_dados_no_pacote(self):
-        com_variavel = self.raiz / "base-var"
-        com_seletor = self.raiz / "base-seletor"
-        seletor = self.raiz / ".posicionar-carreira-raiz"
-        with patch("pathlib.Path.home", return_value=self.raiz), patch.dict(
-            os.environ, {"POSICIONAR_CARREIRA_ROOT": ""}, clear=False
-        ):
-            self.assertEqual(raiz_padrao(), self.raiz / "PosicionarCarreira")
-            seletor.write_text(str(com_seletor) + "\n", encoding="utf-8-sig")
-            self.assertEqual(raiz_padrao(), com_seletor)
-            os.environ["POSICIONAR_CARREIRA_ROOT"] = str(com_variavel)
-            self.assertEqual(raiz_padrao(), com_variavel)
+    def test_recusa_de_dados_no_pacote(self):
         with self.assertRaisesRegex(ValueError, "fora do repositório"):
             inicializar(PACOTE / "dados-teste")
 
+    def test_cli_inicializa_caminhos_direto_e_legado(self):
+        direto = self.raiz / "base-direta"
+        comandos = [
+            (["--carreira-root", str(direto)], direto, direto),
+            (["--raiz", str(self.raiz)], self.carreira, self.raiz),
+        ]
+        for flags, carreira, saida in comandos:
+            with self.subTest(flags=flags):
+                resultado = subprocess.run(
+                    [sys.executable, "-B", str(EXEMPLO / "inicializar.py"), *flags, "--com-exemplo"],
+                    encoding="utf-8", capture_output=True, check=True,
+                )
+                self.assertEqual(Path(resultado.stdout.strip()), saida)
+                self.assertTrue((carreira / "oportunidades" / ID_EXEMPLO / "processo.md").is_file())
+
     def test_mcp_lista_detalha_atualiza_e_abre_arquivos_do_exemplo(self):
-        inicializar(self.raiz, com_exemplo=True)
+        inicializar(self.carreira, com_exemplo=True)
         lista = self.chamar("listar_vagas")["structuredContent"]["vagas"]
         self.assertEqual([vaga["id"] for vaga in lista], [ID_EXEMPLO])
         detalhe = self.chamar("detalhar_vaga", processo_id=ID_EXEMPLO)["structuredContent"]
         self.assertEqual(set(detalhe["curriculos"]), {"markdown", "pdf"})
         self.assertEqual(detalhe["responsavel"], "candidato")
         self.assertTrue((self.dossie / PDF_EXEMPLO).read_bytes().startswith(b"%PDF-"))
+        pronto = self.chamar("verificar_configuracao")["structuredContent"]
+        self.assertEqual(pronto["materiais"]["preferencias"]["caminho"], "estrategia/objetivos.md")
+        self.assertEqual(pronto["fluxos"]["candidatura"]["estado"], "fontes_disponiveis")
         for nome in ("avaliacao.md", "benchmark-salarial.md", "carta.md"):
             self.assertIn({"caminho": nome, "tipo": "material"}, detalhe["materiais"])
 
@@ -116,7 +125,7 @@ class ExemploTest(unittest.TestCase):
             ])
 
     def test_servidor_responde_por_stdio(self):
-        inicializar(self.raiz)
+        inicializar(self.carreira)
         resultado = subprocess.run(
             [sys.executable, "-B", str(SERVIDOR / "servidor.py")],
             input=json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/list"}) + "\n",

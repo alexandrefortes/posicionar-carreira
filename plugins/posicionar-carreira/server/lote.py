@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-from dados import detalhar, resolver_raiz
+from dados import detalhar, resolver_carreira_root
 from operacoes import CONFLITO, EVENTO_REPETIDO, OPERACOES, executar_operacao
 from servidor import validar_argumentos
 
@@ -82,7 +82,7 @@ def main():
         parser.error("Informe a entrada JSON ou --detalhar ID.")
 
     try:
-        raiz = resolver_raiz()
+        raiz = resolver_carreira_root()
         if args.detalhar is not None:
             relatorio = detalhar(raiz, args.detalhar)
         else:

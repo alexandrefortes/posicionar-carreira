@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Vagas</title>
+  <title>Painel de vagas</title>
   <style>
     :root {
       color-scheme: light dark;
@@ -35,7 +35,12 @@
     #status, #contagem, .secundario, dt { color: var(--muted); }
     #status:empty, #monitoramento-status:empty { display: none; }
     #status, #monitoramento-status { margin: 10px 0; }
-    #lista, #detalhe { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+    #lista, #detalhe, #boas-vindas { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+    #boas-vindas { display: grid; gap: 12px; padding: 14px; margin-top: 12px; overflow-wrap: anywhere; }
+    #boas-vindas h3 { margin-bottom: 6px; }
+    #boas-vindas ul { margin-top: 4px; }
+    #boas-vindas small { display: block; }
+    #fluxos .acao { margin: 4px 0 6px; }
     .grade { display: grid; grid-template-columns: minmax(180px, 2fr) minmax(0, 3fr); gap: 12px; margin-top: 12px; }
     #lista { padding: 10px; }
     input:not([type="checkbox"]), select, textarea {
@@ -74,12 +79,13 @@
     }
   </style>
 </head>
-<body>
+<body data-inicio="vagas">
   <main>
     <header>
-      <h1>Vagas</h1>
+      <h1>Painel de vagas</h1>
       <div class="botoes">
         <span id="contagem" aria-live="polite"></span>
+        <button type="button" class="acao acao-secundaria" id="abrir-boas-vindas" hidden>Boas-vindas</button>
         <button type="button" class="acao acao-secundaria" id="pesquisar-web" hidden>Pesquisar vagas na web</button>
         <button type="button" class="acao acao-secundaria" id="planejar-linkedin" hidden>Planejar busca no LinkedIn</button>
         <button type="button" class="acao acao-secundaria" id="monitorar-novas" hidden>Monitorar novas vagas</button>
@@ -89,6 +95,34 @@
     <p id="status" role="status">Conectando ao chat…</p>
     <p id="monitoramento-status" class="secundario" role="status"></p>
     <button type="button" class="acao" id="recarregar" hidden>Tentar novamente</button>
+    <button type="button" class="acao acao-secundaria" id="configurar-base" hidden>Configurar base de carreira</button>
+    <section id="boas-vindas" aria-labelledby="boas-vindas-titulo" hidden>
+      <h2 id="boas-vindas-titulo">Boas-vindas ao Posicionar Carreira</h2>
+      <p>Escolha a pasta onde ficam suas oportunidades e materiais de carreira.</p>
+      <form id="verificar-base">
+        <div class="campo">
+          <label for="pasta-base">Pasta de dados</label>
+          <input type="text" name="pasta" id="pasta-base" placeholder="Caminho absoluto" aria-describedby="pasta-ajuda">
+          <small id="pasta-ajuda" class="secundario">Deixe em branco para verificar a base já configurada.</small>
+        </div>
+        <div class="botoes">
+          <button type="submit" class="acao" id="verificar-pasta">Verificar pasta</button>
+        </div>
+      </form>
+      <p id="configuracao-status" role="status"></p>
+      <section aria-label="Materiais da base" id="configuracao-materiais" hidden>
+        <h3>Materiais da base</h3>
+        <ul id="configuracao-itens"></ul>
+      </section>
+      <div class="botoes">
+        <button type="button" class="acao acao-secundaria" id="configurar-no-chat">Continuar configuração no chat</button>
+      </div>
+      <p id="configuracao-chat-status" role="status"></p>
+      <section aria-label="Fluxos de carreira" id="configuracao-fluxos" hidden>
+        <h3>Fluxos de carreira</h3>
+        <ul id="fluxos"></ul>
+      </section>
+    </section>
     <div class="grade" id="painel" hidden>
       <section id="lista" aria-label="Lista de vagas">
         <input type="search" id="busca" aria-label="Buscar vagas" placeholder="Buscar vagas">
@@ -114,6 +148,8 @@
     let selectedId = null;
     let detailRequest = 0;
     let listRequest = 0;
+    let configRequest = 0;
+    let checkedFolder = null;
     let saving = false;
     let fieldId = 0;
 
@@ -175,6 +211,8 @@
       entrevista_tecnica: "Entrevista técnica", entrevista_gestao: "Entrevista de gestão",
       desistencia: "Desistência", vaga_cancelada: "Vaga cancelada",
       descartado_na_avaliacao: "Descartado na avaliação", media: "Média",
+      aberta_verificada: "Aberta e verificada", nao_confirmada: "Não confirmada",
+      anuncio_expirado: "Anúncio expirado",
     };
 
     const options = {
@@ -183,7 +221,7 @@
         "triagem", "entrevista_tecnica", "entrevista_gestao", "oferta"],
       resultado: ["contratado", "reprovado", "desistencia", "vaga_cancelada", "descartado_na_avaliacao"],
       prioridade: ["alta", "media", "baixa"],
-      responsavel: ["candidato", "assistente", "empresa"],
+      disponibilidade_inscricao: ["aberta_verificada", "nao_confirmada", "anuncio_expirado"],
     };
 
     function label(value) {
@@ -236,6 +274,100 @@
         feedback.textContent = fallback;
         button.disabled = false;
       }
+    }
+
+    const listControls = ["contagem", "pesquisar-web", "planejar-linkedin", "monitorar-novas", "nova"];
+    const materials = {
+      oportunidades: "Oportunidades", perfil: "Perfil profissional", preferencias: "Objetivos e preferências",
+      curriculo: "Currículo base", portfolio: "Portfólio", evidencias: "Evidências opcionais",
+    };
+    const fileStates = {
+      nao_verificado: "A verificar", ausente: "Ausente", rascunho: "Rascunho",
+      indisponivel: "Indisponível", disponivel: "Encontrado",
+    };
+    const workflows = [
+      ["gestao_de_vagas", "Gestão de vagas", "Cadastre vagas e registre eventos na base em uso.",
+        "Abrir vagas na base em uso"],
+      ["perfil_e_objetivos", "Perfil e objetivos", "Use informações que você possa confirmar.",
+        "Revisar perfil e objetivos", "Ajude-me a revisar meu perfil e meus objetivos de carreira."],
+      ["busca_e_monitoramento", "Busca e monitoramento", "O monitoramento por e-mail exige uma conta conectada.",
+        "Planejar busca", "Ajude-me a planejar a busca com base nas minhas preferências."],
+      ["avaliacao", "Avaliação de vagas", "Confira a descrição da vaga e as evidências pertinentes.",
+        "Escolher vaga para avaliar", "Ajude-me a escolher uma vaga para avaliar."],
+      ["candidatura", "Currículo e candidatura", "A geração do PDF exige Pandoc, pdflatex e pypdf no Python.",
+        "Preparar currículo", "Ajude-me a escolher uma vaga e a preparar um currículo para ela."],
+      ["entrevistas", "Entrevistas e transcrição", "Para transcrever uma entrevista, confirme se há uma ferramenta de transcrição na sessão.",
+        "Preparar entrevista", "Ajude-me a escolher uma vaga e a preparar a entrevista."],
+      ["portfolio", "Portfólio", "Revise os casos e confirme quais evidências podem ser divulgadas.",
+        "Rever portfólio", "Ajude-me a revisar os casos do meu portfólio."],
+    ];
+
+    function configurationChat(button, pedido, incluirPasta) {
+      return enviarAoChat(
+        "Use $posicionar-carreira:posicionar-carreira. " + pedido +
+        (incluirPasta && checkedFolder ? `\nÚltima pasta verificada (caminho): ${JSON.stringify(checkedFolder)}` : ""),
+        button, byId("configuracao-chat-status"), "Pedido enviado. Continue no chat.",
+        "O chat não recebeu o pedido. Faça a solicitação diretamente no chat."
+      );
+    }
+
+    function renderConfiguration(result) {
+      checkedFolder = result.pasta;
+      const place = result.pasta ?
+        `${result.base_configurada ? "Base em uso" : "Pasta verificada"} · ${result.pasta}. ` : "";
+      byId("configuracao-status").textContent = place + result.proximo_passo;
+      byId("configuracao-itens").replaceChildren(...Object.entries(result.materiais).map(([name, item]) => {
+        const row = element("li", `${materials[name]} · ${fileStates[item.estado]}`);
+        row.append(element("small", item.caminho, "secundario"));
+        return row;
+      }));
+      byId("configuracao-materiais").hidden = false;
+      byId("fluxos").replaceChildren(...workflows.map(([id, name, next, action, pedido]) => {
+        const flow = result.fluxos[id];
+        const state = flow.pendencias.length ?
+          `Fontes pendentes · ${flow.pendencias.map(key => materials[key]).join(", ")}` : "Fontes encontradas";
+        const ready = result.base_configurada && !flow.pendencias.length;
+        const row = element("li");
+        row.append(element("strong", name), element("small", state), element("small", next, "secundario"));
+        if (ready && id === "gestao_de_vagas") {
+          row.append(actionButton(action, load));
+        } else {
+          const button = actionButton(ready ? action : "Configurar fluxo", () => configurationChat(button, ready ? pedido :
+            `Ajude-me a configurar minha base para o fluxo ${name}. Peça minha confirmação antes de criar qualquer arquivo.`,
+            !ready), true);
+          row.append(button);
+        }
+        return row;
+      }));
+      byId("configuracao-fluxos").hidden = false;
+    }
+
+    async function checkConfiguration(pasta) {
+      const current = ++configRequest;
+      checkedFolder = null;
+      byId("configuracao-materiais").hidden = true;
+      byId("configuracao-fluxos").hidden = true;
+      byId("configuracao-status").textContent = "Verificando a pasta…";
+      byId("configuracao-chat-status").textContent = "";
+      byId("configurar-no-chat").disabled = false;
+      try {
+        const result = await callTool("verificar_configuracao", pasta ? { pasta } : {});
+        if (current === configRequest) renderConfiguration(result);
+      } catch (error) {
+        if (current === configRequest) byId("configuracao-status").textContent = error.message;
+      }
+    }
+
+    function showWelcome() {
+      listRequest++;
+      for (const id of [...listControls, "painel", "recarregar", "configurar-base", "abrir-boas-vindas"]) {
+        byId(id).hidden = true;
+      }
+      status.textContent = "";
+      byId("monitoramento-status").textContent = "";
+      byId("boas-vindas").hidden = false;
+      byId("pasta-base").value = "";
+      return checkConfiguration();
     }
 
     function contextoVaga(vaga) {
@@ -445,6 +577,8 @@
     function editForm(vaga, initialState = vaga.estado) {
       const fields = renderForm("Editar processo", "Salvar alterações", () => renderDetail(vaga), values => {
         const mudancas = {};
+        const titulo = values.titulo.trim();
+        if (titulo !== vaga.titulo.trim()) mudancas.titulo = titulo;
         for (const name of ["estado", "etapa", "prioridade", "proxima_acao", "responsavel",
           "prazo", "fonte_prazo", "revisar_em", "resultado", "encerrada_em"]) {
           const value = values[name]?.trim() || null;
@@ -455,6 +589,14 @@
           if (vaga.fonte_prazo) mudancas.fonte_prazo = null;
         } else if ("prazo" in mudancas) {
           mudancas.fonte_prazo = values.fonte_prazo.trim();
+        }
+        const availability = values.disponibilidade_inscricao || null;
+        const availabilitySource = values.fonte_disponibilidade_inscricao?.trim() || null;
+        if (availability !== (vaga.disponibilidade_inscricao ?? null)) {
+          mudancas.disponibilidade_inscricao = availability;
+          mudancas.fonte_disponibilidade_inscricao = availabilitySource;
+        } else if (availability && availabilitySource !== (vaga.fonte_disponibilidade_inscricao ?? null)) {
+          mudancas.fonte_disponibilidade_inscricao = availabilitySource;
         }
         if (values.estado !== "encerrado") {
           if (vaga.resultado) mudancas.resultado = null;
@@ -469,6 +611,7 @@
         return callTool("atualizar_vaga", { ...eventArgs(vaga, values), mudancas });
       }, result => showSaved(result, "Processo atualizado."), `${vaga.titulo} · ${vaga.id}`);
 
+      field(fields, "titulo", "Título da vaga", { required: true, wide: true, value: vaga.titulo });
       const state = selectField(fields, "estado", "Estado", initialState);
       if (vaga.estado === "encerrado") state.querySelector('[value="pausado"]').disabled = true;
       const stage = selectField(fields, "etapa", "Etapa", vaga.etapa);
@@ -477,13 +620,22 @@
       const reopening = element("p", "Use a reabertura quando o mesmo processo for retomado. Para outra requisição, cadastre uma nova vaga.", "secundario larga");
       fields.append(reopening);
       selectField(fields, "prioridade", "Prioridade", vaga.prioridade ?? "media");
-      selectField(fields, "responsavel", "Responsável", vaga.responsavel);
+      const owners = new Set([...(vaga.responsaveis ?? []), vaga.responsavel]);
+      field(fields, "responsavel", "Responsável", {
+        choices: Array.from(owners, name => [name, label(name)]),
+        value: vaga.responsavel,
+      });
       field(fields, "proxima_acao", "Próxima ação", { required: true, wide: true, value: vaga.proxima_acao });
       const deadline = field(fields, "prazo", "Prazo", { type: "date", value: vaga.prazo });
       const deadlineSource = field(fields, "fonte_prazo", "Fonte do prazo", {
         wide: true, value: vaga.fonte_prazo, placeholder: "URL ou caminho em carreira/",
       });
       field(fields, "revisar_em", "Revisão sugerida", { type: "date", value: vaga.revisar_em });
+      const availability = selectField(fields, "disponibilidade_inscricao", "Disponibilidade de inscrição",
+        vaga.disponibilidade_inscricao, "Sem registro");
+      const availabilitySource = field(fields, "fonte_disponibilidade_inscricao", "Fonte da disponibilidade", {
+        wide: true, value: vaga.fonte_disponibilidade_inscricao, placeholder: "URL ou caminho em carreira/",
+      });
       const confirmation = field(fields, "candidatura_confirmada", "Confirmo que a candidatura foi enviada", {
         type: "checkbox", value: "sim", wide: true,
       });
@@ -506,6 +658,8 @@
         reopening.hidden = vaga.estado !== "encerrado" || closed;
         toggle(deadlineSource, Boolean(deadline.value));
         deadlineSource.required = Boolean(deadline.value);
+        toggle(availabilitySource, Boolean(availability.value));
+        availabilitySource.required = Boolean(availability.value);
         const canConfirm = stage.value === "candidatura_enviada" && !vaga.candidatura_confirmada;
         toggle(confirmation, canConfirm);
         confirmation.required = canConfirm && stage.value !== vaga.etapa;
@@ -513,7 +667,7 @@
         toggle(sentSource, canConfirm && confirmation.checked);
         sentSource.required = canConfirm && confirmation.checked;
       }
-      for (const input of [state, stage, deadline, confirmation]) input.addEventListener("change", refresh);
+      for (const input of [state, stage, deadline, availability, confirmation]) input.addEventListener("change", refresh);
       refresh();
       state.focus();
     }
@@ -521,7 +675,9 @@
     function renderDetail(vaga) {
       detail.replaceChildren(element("h2", vaga.titulo), element("p", `${vaga.empresa} · ${vaga.id}`, "secundario"));
       const fields = element("dl");
-      for (const [name, value] of [["Estado", vaga.estado], ["Etapa", vaga.etapa], ["Resultado", vaga.resultado]]) {
+      const summary = [["Estado", vaga.estado], ["Etapa", vaga.etapa], ["Resultado", vaga.resultado]];
+      if (vaga.disponibilidade_inscricao) summary.push(["Disponibilidade de inscrição", vaga.disponibilidade_inscricao]);
+      for (const [name, value] of summary) {
         const field = element("div");
         field.append(element("dt", name), element("dd", label(value)));
         fields.append(field);
@@ -600,8 +756,12 @@
 
     async function load() {
       const currentRequest = ++listRequest;
+      configRequest++;
+      byId("boas-vindas").hidden = true;
+      byId("abrir-boas-vindas").hidden = false;
       const retry = byId("recarregar");
       retry.hidden = true;
+      byId("configurar-base").hidden = true;
       status.textContent = "Lendo os dossiês…";
       try {
         const { vagas } = await callTool("listar_vagas");
@@ -609,15 +769,14 @@
         rows = vagas;
         renderRows();
         byId("painel").hidden = false;
-        byId("nova").hidden = false;
-        byId("pesquisar-web").hidden = false;
-        byId("planejar-linkedin").hidden = false;
-        byId("monitorar-novas").hidden = false;
+        for (const id of listControls) byId(id).hidden = false;
         status.textContent = "";
       } catch (error) {
         if (currentRequest !== listRequest) return;
         status.textContent = error.message;
         retry.hidden = false;
+        byId("configurar-base").hidden = !error.message.includes("CARREIRA_ROOT");
+        if (!byId("configurar-base").hidden) byId("abrir-boas-vindas").hidden = true;
       }
     }
 
@@ -628,7 +787,7 @@
       }
       try {
         const result = await request("ui/initialize", {
-          appInfo: { name: "Posicionar Carreira", version: "0.5.0" },
+          appInfo: { name: "Posicionar Carreira", version: "0.6.0" },
           appCapabilities: {},
           protocolVersion: "2026-01-26",
         });
@@ -638,7 +797,8 @@
           width: document.body.offsetWidth,
           height: document.body.offsetHeight,
         })).observe(document.body);
-        await load();
+        if (document.body.dataset.inicio === "boas-vindas") await showWelcome();
+        else await load();
       } catch (error) {
         status.textContent = error.message;
       }
@@ -672,6 +832,17 @@
     ));
     const monitorNovas = byId("monitorar-novas");
     monitorNovas.addEventListener("click", () => monitorar(monitorNovas, byId("monitoramento-status")));
+    byId("abrir-boas-vindas").addEventListener("click", showWelcome);
+    byId("configurar-base").addEventListener("click", showWelcome);
+    function verifyFolder(event) {
+      event.preventDefault();
+      checkConfiguration(byId("pasta-base").value.trim());
+    }
+    byId("verificar-pasta").addEventListener("click", verifyFolder);
+    byId("verificar-base").addEventListener("submit", verifyFolder);
+    const configurarChat = byId("configurar-no-chat");
+    configurarChat.addEventListener("click", () => configurationChat(configurarChat,
+      "Oriente a configuração da minha base de carreira. Peça minha confirmação antes de criar qualquer arquivo.", true));
     byId("recarregar").addEventListener("click", load);
     connect();
   </script>

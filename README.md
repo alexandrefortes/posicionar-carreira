@@ -8,12 +8,17 @@ Extraia o ZIP ou clone este repositório e abra o PowerShell na raiz da pasta. V
 
 ```powershell
 python -m pip install -r requirements.txt
-python -B exemplo/inicializar.py --com-exemplo
 codex plugin marketplace add .
 codex plugin add posicionar-carreira@carreira-local
 ```
 
-O inicializador cria a estrutura em `~/PosicionarCarreira`. Use `--com-exemplo` em uma base vazia para instalar todo o exemplo fictício. Para começar com seus próprios dados, rode o inicializador sem essa opção em outra pasta.
+## Verificar e preparar a base
+
+1. No Codex desktop, abra uma conversa local e selecione **Posicionar Carreira** do catálogo **Carreira local**.
+2. Envie **“Abra as boas-vindas de Posicionar Carreira.”** A tela mostra a pasta em uso, os arquivos encontrados e quais fluxos ainda precisam de dados.
+3. Se você ainda não tem base, escolha uma pasta existente fora do repositório e informe o caminho absoluto. Peça para preparar a pasta e indique se quer modelos de perfil, objetivos e preferências, currículo ou portfólio. O preparo cria a pasta `oportunidades/` e os modelos escolhidos, preserva arquivos existentes e mantém a pasta em uso. Para passar a usar a pasta nova, siga [Usar uma pasta própria](#usar-uma-pasta-própria).
+
+Se a conversa não exibir a tela, peça **“Verifique a configuração da minha carreira.”**
 
 ## Abrir o painel de vagas
 
@@ -21,22 +26,26 @@ O inicializador cria a estrutura em `~/PosicionarCarreira`. Use `--com-exemplo` 
 2. Selecione **Posicionar Carreira** do catálogo **Carreira local**.
 3. Envie **“Abra o painel de vagas.”**
 
-No painel **Vagas**, você pode filtrar os processos, usar **Nova vaga** para cadastrar uma oportunidade ou pedir ao agente para **Pesquisar vagas na web**. Ao selecionar uma vaga, você vê a etapa, a próxima ação, o histórico e os materiais. Pelo detalhe, pode editar o processo, registrar um evento, preparar uma candidatura ou entrevista e abrir o currículo em Markdown ou PDF, quando disponível.
+No painel **Vagas**, você pode filtrar os processos, usar **Nova vaga** para cadastrar uma oportunidade ou pedir ao agente para **Pesquisar vagas na web**. Ao selecionar uma vaga, você vê a etapa, a disponibilidade da inscrição, a próxima ação, o histórico e os materiais. Pelo detalhe, pode editar o processo, corrigir o título mantendo o mesmo dossiê, registrar um evento, preparar uma candidatura ou entrevista e abrir o currículo em Markdown ou PDF, quando disponível.
 
-Para experimentar, abra **Laboratório Exemplo — Pessoa Analista de Dados**. Os botões do currículo abrem os arquivos fictícios nos aplicativos associados no Windows. Você também pode registrar um evento de teste.
+Para experimentar, [instale a base fictícia](#ler-o-exemplo-da-marina) e abra **Laboratório Exemplo — Pessoa Analista de Dados**. Os botões do currículo abrem os arquivos fictícios nos aplicativos associados no Windows. Você também pode registrar um evento de teste.
 
 O painel depende do suporte a MCP Apps na conversa. Se a interface não aparecer, peça **“Liste minhas vagas”** ou **“Mostre os detalhes da vaga Laboratório Exemplo”** no chat. Para gerar novos PDFs, instale as dependências indicadas na [skill de conversão](plugins/posicionar-carreira/skills/md-to-cv/SKILL.md).
 
 ## Usar uma pasta própria
 
-Escolha uma pasta fora do clone. O caminho deve apontar para a raiz que contém `carreira/oportunidades`. Para persistir a escolha no desktop, grave o caminho absoluto no arquivo local indicado abaixo. A variável `POSICIONAR_CARREIRA_ROOT`, quando disponível ao processo do servidor, tem prioridade.
+Escolha uma pasta de dados fora do clone. `CARREIRA_ROOT` e `~/.config/posicionar-carreira/data-root.txt` apontam diretamente para a pasta que contém `oportunidades/`. O exemplo abaixo prepara uma pasta nova e grava a configuração persistente. Se já houver um seletor, guarde o conteúdo atual antes de trocá-lo.
 
 ```powershell
 $pastaCarreira = Join-Path $env:USERPROFILE 'MinhaCarreira'
-python -B exemplo/inicializar.py --raiz $pastaCarreira
-Set-Content -LiteralPath (Join-Path $env:USERPROFILE '.posicionar-carreira-raiz') -Value $pastaCarreira -Encoding utf8
-python -B plugins/posicionar-carreira/server/servidor.py --raiz
+python -B exemplo/inicializar.py --carreira-root $pastaCarreira
+$seletor = Join-Path $env:USERPROFILE '.config/posicionar-carreira/data-root.txt'
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $seletor) | Out-Null
+Set-Content -LiteralPath $seletor -Value $pastaCarreira -Encoding utf8
+python -B plugins/posicionar-carreira/server/servidor.py --carreira-root
 ```
+
+Se você já usava a edição anterior, continue com a mesma pasta. `POSICIONAR_CARREIRA_ROOT` e `~/.posicionar-carreira-raiz` continuam apontando para a pasta acima de `carreira/`. A edição também reconhece a base existente em `~/PosicionarCarreira/carreira`. Confira qual pasta está em uso antes de cadastrar ou editar vagas. As variáveis de ambiente têm prioridade sobre os arquivos seletores. [Ordem de resolução e opções de configuração](plugins/posicionar-carreira/README.md#fonte-local)
 
 Mantenha a base pessoal fora do repositório. Dentro de cada dossiê, `processo.md` contém estado, etapa, resultado, histórico e próxima ação. O painel e o chat usam os mesmos registros. Os materiais enviados ficam em `envios/`. Os atalhos de preparação levam o contexto da vaga à conversa. Revise qualquer material antes de autorizar submissão.
 
@@ -52,9 +61,11 @@ Selecione **Posicionar Carreira** e peça **“Quero montar minha base de carrei
 | Evidências e portfólio | Projetos que você pode apresentar, sua contribuição e resultados verificáveis. Indique materiais confidenciais e o que pode ser divulgado. |
 | Primeiras vagas | Empresa, cargo e fonte para cada vaga que quiser acompanhar. |
 
-O inicializador prepara a pasta. A conversa ajuda a organizar o conteúdo pessoal, conforme você fornece e aprova os dados.
+O modelo de objetivos e preferências usa `estrategia/referencias-candidaturas.md`. Você também pode continuar usando o `estrategia/objetivos.md` da edição anterior. A conversa ajuda a organizar o conteúdo pessoal conforme você fornece e aprova os dados.
 
 ## Ler o exemplo da Marina
+
+Para instalar a base fictícia, rode `python -B exemplo/inicializar.py --com-exemplo` com a base de destino vazia. Em uma primeira instalação, o exemplo fica em `~/PosicionarCarreira/carreira`. Se você já usa uma base, instale a demonstração em outra pasta vazia com `--carreira-root <pasta-do-exemplo>`. Para ver a demonstração no painel, configure essa pasta como indicado em [Usar uma pasta própria](#usar-uma-pasta-própria).
 
 Os documentos usam a mesma entrega fictícia, um painel de indicadores operacionais, para mostrar como reaproveitar evidências em cada etapa.
 
@@ -108,6 +119,18 @@ No painel, use **Planejar busca no LinkedIn** para obter termos e filtros de aco
 
 Se você já usa o Dot, peça **“Gere um bloco para copiar e atualizar meu monitor de vagas no Dot.”** Informe o texto atual e o ajuste que quer fazer. A skill usa os critérios confirmados e entrega o texto para você revisar e colar na conversa do Dot. Uma vaga de interesse pode ser encaminhada em um pedido separado ao Dot, se o computador com o Codex estiver conectado. [Dot e computadores conectados](https://learn.chatgpt.com/docs/dots/computers-and-apps#connect-your-computers)
 
+## Validar, gerar painel Markdown e criar relatórios
+
+Com a base configurada, rode os comandos abaixo a partir da raiz do repositório. Use `--root <pasta-de-dados>` se quiser apontar diretamente para outra base.
+
+```powershell
+python -B plugins/posicionar-carreira/server/gestao_vagas.py validar
+python -B plugins/posicionar-carreira/server/gestao_vagas.py gerar
+python -B plugins/posicionar-carreira/server/gestao_vagas.py relatorio --mes AAAA-MM
+```
+
+`validar` confere os processos e links locais. `gerar` atualiza o arquivo `painel-vagas.md` e preserva a seção **Revisões recebidas**. `relatorio` cria uma fotografia mensal com candidaturas e eventos. [Regras dos relatórios](plugins/posicionar-carreira/README.md#validação-painel-markdown-e-relatórios)
+
 ## Operações locais em lote
 
 Use `python -B plugins/posicionar-carreira/server/lote.py --detalhar empresa/local-001` para consultar o registro e sua revisão. A entrada JSON do lote é uma lista de objetos com `ferramenta` (`criar_vaga`, `atualizar_vaga` ou `registrar_evento`) e `argumentos`, os mesmos da ferramenta MCP. Uma atualização recebe o ID, a revisão, a descrição, a fonte e os campos em `mudancas`.
@@ -117,10 +140,13 @@ python -B plugins/posicionar-carreira/server/lote.py entrada.json
 python -B plugins/posicionar-carreira/server/lote.py entrada.json --aplicar
 ```
 
-A primeira chamada mostra a prévia. Use `--aplicar` para gravar após revisar. Para repetir apenas falhas, salve a saída como JSON, confira os itens e use `--somente-falhas` com esse arquivo. Releia qualquer processo em conflito antes de reaplicar.
+A primeira chamada mostra a prévia. Use `--aplicar` para gravar após revisar. Para repetir apenas falhas, salve a saída como JSON, confira os itens e use `--somente-falhas` com esse arquivo. Releia qualquer processo em conflito antes de reaplicar. Para operações pedidas ao agente no chat, o plugin usa as ferramentas MCP.
 
 ## Testes
 
 ```powershell
 python -X utf8 -B -m unittest discover -s tests -v
+python -X utf8 -B -m unittest discover -s plugins/posicionar-carreira/tests -v
 ```
+
+Os testes de navegador usam Playwright para Python e Chrome.

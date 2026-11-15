@@ -1,4 +1,4 @@
-"""Servidor MCP de gestão dos dossiês, por stdio."""
+"""Servidor MCP de gestão dos dossiês de carreira, por stdio."""
 from __future__ import annotations
 
 import json
@@ -6,20 +6,37 @@ import os
 import sys
 from pathlib import Path
 
-from dados import detalhar, ler_processo, listar, resolver_raiz
+from configuracao import MODELOS, inicializar_carreira, verificar_configuracao
+from dados import detalhar, ler_processo, listar, resolver_carreira_root
+from gestao_vagas import DISPONIBILIDADES_INSCRICAO
 
 
-VERSION = "0.5.0"
+VERSION = "0.6.0"
 UI_URI = "ui://posicionar-carreira-local/painel-v5.html"
+WELCOME_URI = "ui://posicionar-carreira-local/boas-vindas.html"
 UI_MIME = "text/html;profile=mcp-app"
 UI_FILE = Path(__file__).resolve().parents[1] / "ui" / "painel.html"
 PROTOCOLS = ("2025-11-25", "2025-06-18", "2025-03-26")
-RESOURCE = {"uri": UI_URI, "name": "Vagas", "mimeType": UI_MIME}
+RESOURCE = {"uri": UI_URI, "name": "Painel de vagas", "mimeType": UI_MIME}
+WELCOME_RESOURCE = {"uri": WELCOME_URI, "name": "Boas-vindas ao Posicionar Carreira", "mimeType": UI_MIME}
 EMPTY_INPUT = {"type": "object", "properties": {}, "additionalProperties": False}
+STRING = {"type": "string", "minLength": 1}
+PASTA_ABSOLUTA = {**STRING, "description": "Caminho absoluto de uma pasta de dados existente."}
 TOOLS = [
     {
+        "name": "abrir_boas_vindas",
+        "title": "Abrir boas-vindas do Posicionar Carreira",
+        "description": "Abre a primeira configuração e mostra os fluxos do plugin. "
+                       "Em um chat sem painel, use verificar_configuracao.",
+        "inputSchema": EMPTY_INPUT,
+        "_meta": {
+            "ui": {"resourceUri": WELCOME_URI, "visibility": ["model"], "preferredModelDisplayMode": "inline"},
+            "openai/ui": {"entrypoints": [{"type": "thread"}]},
+        },
+    },
+    {
         "name": "abrir_painel",
-        "title": "Abrir vagas",
+        "title": "Abrir painel de vagas",
         "description": "Abre o painel de vagas no chat. Use listar_vagas se precisar da lista em texto.",
         "inputSchema": EMPTY_INPUT,
         "_meta": {
@@ -44,11 +61,19 @@ TOOLS = [
             "additionalProperties": False,
         },
     },
+    {
+        "name": "verificar_configuracao",
+        "title": "Verificar configuração de carreira",
+        "description": "Verifica arquivos esperados e pendências por fluxo. Informe uma pasta absoluta para "
+                       "inspecioná-la ou omita para usar a base configurada.",
+        "inputSchema": {
+            "type": "object", "properties": {"pasta": PASTA_ABSOLUTA}, "additionalProperties": False,
+        },
+    },
 ]
 for tool in TOOLS:
     tool["annotations"] = {"readOnlyHint": True, "openWorldHint": False}
 
-STRING = {"type": "string", "minLength": 1}
 OPTIONAL_DATE = {"type": ["string", "null"], "format": "date"}
 NULLABLE = {"type": ["string", "null"]}
 EVENT_INPUT = {
@@ -56,11 +81,14 @@ EVENT_INPUT = {
     "descricao": STRING, "fonte": STRING, "data": OPTIONAL_DATE,
 }
 EDIT_INPUT = {
+    "titulo": STRING,
     "estado": STRING, "etapa": STRING, "resultado": NULLABLE, "prioridade": STRING,
     "proxima_acao": STRING, "responsavel": STRING, "prazo": OPTIONAL_DATE,
     "fonte_prazo": NULLABLE, "revisar_em": OPTIONAL_DATE, "encerrada_em": OPTIONAL_DATE,
     "candidatura_confirmada": {"type": "boolean"}, "candidatura_em": OPTIONAL_DATE,
     "fonte_candidatura": NULLABLE,
+    "disponibilidade_inscricao": {**NULLABLE, "enum": [*sorted(DISPONIBILIDADES_INSCRICAO), None]},
+    "fonte_disponibilidade_inscricao": NULLABLE,
 }
 for name, title, description, props, required in (
     (
@@ -77,7 +105,10 @@ for name, title, description, props, required in (
     (
         "atualizar_vaga", "Atualizar processo",
         "Atualiza os campos informados e registra um evento com fonte. Use a revisão de detalhar_vaga. "
+        "Use mudancas.titulo para corrigir o título da vaga mantendo o mesmo ID. "
         "Para confirmar envio, informe candidatura_confirmada e fonte_candidatura. "
+        "Para definir ou mudar disponibilidade_inscricao, informe fonte_disponibilidade_inscricao "
+        "(URL ou arquivo relativo a carreira). Use disponibilidade_inscricao null para limpar os dois campos. "
         "Para alterar prazo, informe fonte_prazo. Encerrar exige resultado e reabrir usa estado aberto.",
         {**EVENT_INPUT, "mudancas": {"type": "object", "properties": EDIT_INPUT,
                                    "minProperties": 1, "additionalProperties": False}},
@@ -91,6 +122,23 @@ for name, title, description, props, required in (
         "annotations": {"readOnlyHint": False, "destructiveHint": name == "atualizar_vaga",
                         "idempotentHint": False, "openWorldHint": False},
     })
+TOOLS.append({
+    "name": "inicializar_carreira",
+    "title": "Preparar pasta de carreira",
+    "description": "Cria oportunidades/ e somente os modelos solicitados que estiverem ausentes. "
+                   "Use após a pessoa confirmar a pasta e os modelos. A configuração da base fica separada.",
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "pasta": PASTA_ABSOLUTA,
+            "modelos": {"type": "array", "items": {"type": "string", "enum": list(MODELOS)}, "uniqueItems": True},
+        },
+        "required": ["pasta"],
+        "additionalProperties": False,
+    },
+    "annotations": {"readOnlyHint": False, "destructiveHint": False,
+                    "idempotentHint": True, "openWorldHint": False},
+})
 TOOLS.append({
     "name": "abrir_curriculo",
     "title": "Abrir currículo no Windows",
@@ -143,7 +191,7 @@ def abrir_curriculo(root, processo_id, tipo, enviado):
 
     if tipo not in ("markdown", "pdf") or not isinstance(enviado, bool):
         raise ValueError("Informe o formato e a versão do currículo.")
-    processo, conteudo = ler_processo(root / "carreira", processo_id)
+    processo, conteudo = ler_processo(root, processo_id)
     curriculo = resolver_curriculos(processo, conteudo).get(tipo)
     if curriculo is None or curriculo.enviado != enviado:
         raise ValueError("O currículo disponível mudou. Reabra o detalhe da vaga.")
@@ -169,9 +217,15 @@ def call_tool(params):
 
     if name == "abrir_painel":
         return tool_result(message="Painel de vagas. A consulta por texto está disponível em listar_vagas.")
+    if name == "abrir_boas_vindas":
+        return tool_result(message="Boas-vindas ao Posicionar Carreira. Para configurar por texto, use verificar_configuracao.")
 
     try:
-        root = resolver_raiz()
+        if name == "verificar_configuracao":
+            return tool_result(verificar_configuracao(**arguments))
+        if name == "inicializar_carreira":
+            return tool_result(inicializar_carreira(**arguments))
+        root = resolver_carreira_root()
         if name == "listar_vagas":
             return tool_result({"vagas": listar(root)})
         if name == "detalhar_vaga":
@@ -204,16 +258,20 @@ def dispatch(method, params):
     if method == "tools/call":
         return call_tool(params)
     if method == "resources/list":
-        return {"resources": [RESOURCE]}
+        return {"resources": [RESOURCE, WELCOME_RESOURCE]}
     if method == "resources/templates/list":
         return {"resourceTemplates": []}
     if method == "resources/read":
-        if params.get("uri") != UI_URI:
+        uri = params.get("uri")
+        if uri not in (UI_URI, WELCOME_URI):
             raise RpcError(-32002, "Recurso desconhecido.")
+        html = UI_FILE.read_text(encoding="utf-8")
+        if uri == WELCOME_URI:
+            html = html.replace('data-inicio="vagas"', 'data-inicio="boas-vindas"', 1)
         return {"contents": [{
-            "uri": UI_URI,
+            "uri": uri,
             "mimeType": UI_MIME,
-            "text": UI_FILE.read_text(encoding="utf-8"),
+            "text": html,
             "_meta": {"ui": {"csp": {"connectDomains": [], "resourceDomains": []}}},
         }]}
     raise RpcError(-32601, "Método desconhecido.")
@@ -247,11 +305,12 @@ def respond(line):
 
 
 def main():
-    if sys.argv[1:] == ["--raiz"]:
+    if sys.argv[1:] in (["--carreira-root"], ["--papao-root"], ["--raiz"]):
         try:
             sys.stdout.reconfigure(encoding="utf-8")
-            print(resolver_raiz())
-        except (OSError, ValueError) as exc:
+            carreira = resolver_carreira_root()
+            print(carreira if sys.argv[1] == "--carreira-root" else carreira.parent)
+        except OSError as exc:
             raise SystemExit(str(exc)) from exc
         return
     for line in sys.stdin.buffer:
