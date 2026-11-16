@@ -36,7 +36,7 @@ class ConfiguracaoTest(unittest.TestCase):
         self.assertEqual([msg["id"] for msg in respostas], list(range(len(mensagens))))
         self.assertTrue(all("result" in msg for msg in respostas), respostas)
         self.assertEqual(respostas[0]["result"]["serverInfo"]["name"], "posicionar-carreira-local")
-        self.assertEqual(respostas[0]["result"]["serverInfo"]["version"], "0.6.2")
+        self.assertEqual(respostas[0]["result"]["serverInfo"]["version"], "0.6.3")
         ferramentas = {item["name"]: item for item in respostas[1]["result"]["tools"]}
         self.assertTrue(ferramentas["verificar_configuracao"]["annotations"]["readOnlyHint"])
         self.assertEqual(ferramentas["inicializar_carreira"]["inputSchema"]["required"], ["pasta"])

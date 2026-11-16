@@ -11,7 +11,7 @@ from dados import detalhar, ler_processo, listar, resolver_carreira_root
 from gestao_vagas import DISPONIBILIDADES_INSCRICAO
 
 
-VERSION = "0.6.2"
+VERSION = "0.6.3"
 UI_URI = "ui://posicionar-carreira-local/painel-v5.html"
 WELCOME_URI = "ui://posicionar-carreira-local/boas-vindas.html"
 UI_MIME = "text/html;profile=mcp-app"
@@ -53,7 +53,7 @@ TOOLS = [
     {
         "name": "detalhar_vaga",
         "title": "Consultar processo",
-        "description": "Lê histórico, materiais, próximo passo e caminho oficial pelo ID retornado por listar_vagas.",
+        "description": "Lê histórico, materiais, próximo passo, caminho oficial e titulo_chat da vaga pelo ID.",
         "inputSchema": {
             "type": "object",
             "properties": {"processo_id": {"type": "string", "minLength": 1}},

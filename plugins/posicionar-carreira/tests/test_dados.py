@@ -76,6 +76,25 @@ class DadosTest(unittest.TestCase):
             {"caminho": "envios/2026-10-01/cv.pdf", "tipo": "envio"},
         ])
 
+    def test_titulo_chat_usa_empresa_e_status_confirmados(self):
+        casos = (
+            ("aberto", "identificada", None, "identificada"),
+            ("aberto", "candidatura_enviada", None, "enviada"),
+            ("aberto", "entrevista_tecnica", None, "entrevista técnica"),
+            ("pausado", "entrevista_tecnica", None, "pausado"),
+            ("encerrado", "entrevista_tecnica", "desistencia", "desistência"),
+        )
+        for numero, (estado, etapa, resultado, status) in enumerate(casos, start=3):
+            with self.subTest(estado=estado, etapa=etapa):
+                identificador = f"local-{numero:03}"
+                self.criar_processo(
+                    identificador, "2026-10-12",
+                    empresa="  Empresa. Café–Norte - Exemplo  ",
+                    estado=estado, etapa=etapa, resultado=resultado,
+                )
+                detalhe = detalhar(self.carreira, f"empresa-exemplo/{identificador}")
+                self.assertEqual(detalhe["titulo_chat"], f"candidatura empresa café norte exemplo - {status}")
+
     def test_rejeita_id_inexistente_ou_caminho_arbitrario(self):
         for identificador in ("empresa-exemplo/local-999", "../carreira/AGENTS.md", str(self.primeiro)):
             with self.subTest(identificador=identificador):

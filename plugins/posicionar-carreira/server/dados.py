@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from hashlib import sha256
 from pathlib import Path
 from urllib.parse import unquote
@@ -121,6 +122,26 @@ def detalhar(carreira: Path, processo_id: str) -> dict:
     return formatar_detalhe(carreira, processo, conteudo)
 
 
+def _titulo_chat(processo: dict) -> str:
+    empresa = re.sub(r"[.\-‐‑‒–—−]+", " ", processo["empresa"].lower())
+    empresa = " ".join(empresa.split()) or "empresa"
+    status = processo["estado"]
+    if status == "aberto":
+        status = processo["etapa"]
+    elif status == "encerrado":
+        status = processo.get("resultado") or status
+    rotulos = {
+        "em_avaliacao": "em avaliação",
+        "em_preparacao": "em preparação",
+        "candidatura_enviada": "enviada",
+        "entrevista_tecnica": "entrevista técnica",
+        "entrevista_gestao": "entrevista de gestão",
+        "desistencia": "desistência",
+        "descartado_na_avaliacao": "descartado na avaliação",
+    }
+    return f"candidatura {empresa} - {rotulos.get(status, status.replace('_', ' '))}"
+
+
 def formatar_detalhe(carreira: Path, processo: dict, conteudo: bytes) -> dict:
     from curriculos import resolver_curriculos
 
@@ -141,6 +162,7 @@ def formatar_detalhe(carreira: Path, processo: dict, conteudo: bytes) -> dict:
 
     return {
         **_resumo(processo),
+        "titulo_chat": _titulo_chat(processo),
         "processo": str(arquivo),
         "revisao": sha256(conteudo).hexdigest(),
         "responsaveis": [responsavel_pessoal(carreira), "assistente", "empresa"],

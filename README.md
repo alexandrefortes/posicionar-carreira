@@ -30,6 +30,8 @@ No painel **Vagas**, você pode filtrar os processos, usar **Nova vaga** para ca
 
 Para experimentar, [instale a base fictícia](#ler-o-exemplo-da-marina) e abra **Laboratório Exemplo — Pessoa Analista de Dados**. Os botões do currículo abrem os arquivos fictícios nos aplicativos associados no Windows. Você também pode registrar um evento de teste.
 
+Use um chat por vaga que quiser acompanhar. Depois de cadastrar uma vaga pelo painel, clique em **Usar vaga neste chat** para iniciar a conversa com ela. Ao trabalhar na vaga, o agente dá ao chat um título como `candidatura laboratório exemplo - identificada` e atualiza o status conforme o processo avança.
+
 O painel depende do suporte a MCP Apps na conversa. Se a interface não aparecer, peça **“Liste minhas vagas”** ou **“Mostre os detalhes da vaga Laboratório Exemplo”** no chat. Para gerar novos PDFs, instale as dependências indicadas na [skill de conversão](plugins/posicionar-carreira/skills/md-to-cv/SKILL.md).
 
 ## Usar uma pasta própria

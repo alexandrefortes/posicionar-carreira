@@ -58,6 +58,16 @@ Para encontrar vagas na internet ou cadastrar anúncios selecionados, siga [Pesq
 
 Para montar ou atualizar o portfólio a partir de arquivos de projeto, apresentações, imagens, vídeos ou áudios exportados, siga [Portfólio a partir de evidências](references/portfolio.md). Consulte as evidências pertinentes e o índice de portfólio quando houver para localizar o caso e preservar a organização já adotada.
 
+## Uma vaga por chat
+
+Use um chat por vaga ao cadastrar, avaliar ou acompanhar uma oportunidade específica. Identifique a vaga pelo ID do processo ou pelo anúncio confirmado antes do cadastro. Se o chat já estiver dedicado a outra vaga, sugira outro chat e preserve o título, inclusive quando a empresa for a mesma.
+
+Ao assumir a vaga no chat ou por um atalho do painel, consulte `detalhar_vaga`. Para um cadastro novo, use o retorno confirmado de `criar_vaga`. Use o campo `titulo_chat` como título do próprio chat do Codex. Chame a ferramenta nativa `set_thread_title` passando apenas `title`.
+
+O título segue `candidatura nome da empresa - status`, todo em minúsculas, com espaços no lugar de pontos ou traços no nome da empresa e um hífen simples antes do status. Use a etapa enquanto o processo estiver aberto, com `enviada` para `candidatura_enviada`. Use `pausado` durante uma pausa e o resultado confirmado após o encerramento. Quando estiver avaliando uma vaga específica de empresa confirmada que ainda não tem dossiê, use `em avaliação` até confirmar o registro.
+
+Atualize o título do chat dedicado quando uma mudança confirmada alterar o `titulo_chat`. Uma prévia ou proposta não muda o título por si só. Preserve o título em buscas gerais, consultas de várias vagas ou quando a pessoa tiver pedido um título próprio. Se a ferramenta nativa estiver indisponível, informe o título para a pessoa aplicar.
+
 ## Modos de trabalho
 
 | Quando usar | Procedimento |

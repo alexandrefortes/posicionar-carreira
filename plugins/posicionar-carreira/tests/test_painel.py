@@ -447,6 +447,15 @@ class PainelTest(unittest.TestCase):
         novas = [vaga for vaga in listar(self.dados.carreira) if vaga["empresa"] == "Empresa Nova"]
         self.assertEqual(len(novas), 1)
         self.assertEqual(novas[0]["etapa"], "identificada")
+        self.assertEqual(self.mensagens, [])
+        processo_novo = detalhar(self.dados.carreira, novas[0]["id"])
+        self.assertEqual(processo_novo["titulo_chat"], "candidatura empresa nova - identificada")
+        detalhe.get_by_role("button", name="Usar vaga neste chat", exact=True).click()
+        expect(detalhe.get_by_role("status")).to_have_text("O chat recebeu o contexto da vaga.")
+        self.assertEqual(self.mensagens[0]["content"][0]["text"],
+                         "Use $posicionar-carreira:posicionar-carreira para usar este chat no acompanhamento "
+                         "desta oportunidade. Ajuste o título do chat.\n"
+                         f"ID do processo: {processo_novo['id']}\nArquivo oficial: {processo_novo['processo']}")
 
         painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Entrevista técnica · Encerrado").click()
         detalhe.get_by_role("button", name="Registrar evento").click()

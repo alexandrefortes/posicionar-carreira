@@ -702,6 +702,8 @@
       feedback.setAttribute("role", "status");
       const actions = element("div", null, "botoes");
       for (const [title, prompt, fallback, orientacao] of [
+        ["Usar vaga neste chat", "usar este chat no acompanhamento", "ajustar o título deste chat para o acompanhamento",
+          " Ajuste o título do chat."],
         ["Preparar entrevista", "preparar a entrevista", "preparar entrevista"],
         ["Avaliar vaga", "avaliar a vaga", "avaliar vaga"],
         ["Preparar currículo", "preparar o currículo", "preparar currículo", ` ${orientacaoCurriculo}`],
@@ -788,7 +790,7 @@
       }
       try {
         const result = await request("ui/initialize", {
-          appInfo: { name: "Posicionar Carreira", version: "0.6.2" },
+          appInfo: { name: "Posicionar Carreira", version: "0.6.3" },
           appCapabilities: {},
           protocolVersion: "2026-01-26",
         });
