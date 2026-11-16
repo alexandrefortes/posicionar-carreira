@@ -101,8 +101,7 @@ class PainelTest(unittest.TestCase):
             return {}
         raise AssertionError(f"Método não esperado no host: {metodo}")
 
-    def abrir_painel(self, *, boas_vindas=False):
-        nome = "abrir_boas_vindas" if boas_vindas else "abrir_painel"
+    def abrir_painel(self, *, nome="abrir_painel"):
         abrir = self.ferramentas[nome]
         self.assertFalse(self.mcp("tools/call", {"name": nome}).get("isError", False))
         uri = abrir["_meta"]["ui"]["resourceUri"]
@@ -127,11 +126,51 @@ class PainelTest(unittest.TestCase):
             document.body.append(frame);
         }""", recurso["text"])
         painel = page.frame_locator("iframe")
-        expect(painel.get_by_role("heading", name="Painel de vagas")).to_be_visible()
-        if not boas_vindas:
+        titulo = "Dashboard" if nome == "abrir_dashboard" else "Painel de vagas"
+        expect(painel.get_by_role("heading", name=titulo)).to_be_visible()
+        if nome == "abrir_painel":
             expect(painel.get_by_text("2 vagas", exact=True)).to_be_visible()
         expect(painel.locator("html")).to_have_attribute("data-theme", "dark")
         return painel, painel.get_by_role("region", name="Detalhes da vaga")
+
+    def test_dashboard_conta_etapas_e_resultados_e_volta_as_vagas(self):
+        self.dados.criar_processo("local-003", "2026-10-13", estado="pausado")
+        painel, _ = self.abrir_painel(nome="abrir_dashboard")
+        dashboard = painel.get_by_role("region", name="Dashboard", exact=True)
+        resumo = dashboard.locator('dl[aria-label="Resumo dos processos"]')
+        for rotulo, total in (("Total", "3"), ("Abertas", "1"), ("Pausadas", "1"), ("Encerradas", "1")):
+            cartao = resumo.get_by_text(rotulo, exact=True).locator("..")
+            expect(cartao.get_by_text(total, exact=True)).to_be_visible()
+        etapas = dashboard.get_by_role("region", name="Abertas e pausadas por etapa")
+        triagem = etapas.get_by_role("rowheader", name="Triagem", exact=True).locator("..")
+        expect(triagem.get_by_role("cell", name="2", exact=True)).to_be_visible()
+        entrevista = etapas.get_by_role("rowheader", name="Entrevista técnica", exact=True).locator("..")
+        expect(entrevista.get_by_role("cell", name="0", exact=True)).to_be_visible()
+        resultados = dashboard.get_by_role("region", name="Resultados dos processos encerrados")
+        reprovado = resultados.get_by_role("rowheader", name="Reprovado", exact=True).locator("..")
+        expect(reprovado.get_by_role("cell", name="1", exact=True)).to_be_visible()
+
+        self.dados.criar_processo("local-004", "2026-10-14")
+        painel.get_by_role("button", name="Atualizar", exact=True).click()
+        expect(triagem.get_by_role("cell", name="3", exact=True)).to_be_visible()
+
+        painel.get_by_role("button", name="Ver vagas", exact=True).click()
+        expect(painel.get_by_role("region", name="Lista de vagas")).to_be_visible()
+        expect(painel.get_by_text("4 vagas", exact=True)).to_be_visible()
+        expect(dashboard).to_be_hidden()
+        painel.get_by_role("button", name="Dashboard", exact=True).click()
+        expect(triagem.get_by_role("cell", name="3", exact=True)).to_be_visible()
+        expect(painel.get_by_role("region", name="Lista de vagas")).to_be_hidden()
+
+    def test_dashboard_de_base_vazia(self):
+        (self.dados.primeiro / "processo.md").unlink()
+        (self.dossie / "processo.md").unlink()
+        painel, _ = self.abrir_painel(nome="abrir_dashboard")
+        dashboard = painel.get_by_role("region", name="Dashboard", exact=True)
+        expect(dashboard.get_by_text("Nenhuma vaga cadastrada.", exact=True)).to_be_visible()
+        resumo = dashboard.locator('dl[aria-label="Resumo dos processos"]')
+        expect(resumo.get_by_text("0", exact=True)).to_have_count(4)
+        expect(dashboard.get_by_role("table")).to_have_count(0)
 
     def test_boas_vindas_verifica_pastas_e_orienta_no_chat(self):
         for relativo in ("perfil/perfil-profissional.md", "estrategia/referencias-candidaturas.md", "curriculos/base.md"):
@@ -143,7 +182,7 @@ class PainelTest(unittest.TestCase):
         perfil.parent.mkdir(parents=True)
         perfil.write_text("# Perfil profissional\n\n[preencher: experiências]\n", encoding="utf-8")
 
-        painel, _ = self.abrir_painel(boas_vindas=True)
+        painel, _ = self.abrir_painel(nome="abrir_boas_vindas")
         boas_vindas = painel.get_by_role("region", name="Boas-vindas ao Posicionar Carreira")
         verificar = boas_vindas.get_by_role("button", name="Verificar pasta")
         abrir = boas_vindas.get_by_role("button", name="Abrir vagas na base em uso")

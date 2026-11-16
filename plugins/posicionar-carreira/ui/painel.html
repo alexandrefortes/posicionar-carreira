@@ -71,21 +71,45 @@
     .acao { padding: 7px 11px; color: var(--accent); border: 1px solid var(--accent); background: var(--selected); border-radius: 7px; font-weight: 600; }
     .acao-secundaria { color: var(--ink); border-color: var(--line); background: var(--surface); }
     .erro { color: var(--color-text-danger, light-dark(#a4302c, #ffb4aa)); }
+    #dashboard { display: grid; gap: 12px; margin-top: 14px; }
+    .dashboard-resumo { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .dashboard-resumo > div, .dashboard-graficos > section {
+      min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+    }
+    .dashboard-resumo > div:first-child { background: var(--selected); }
+    .dashboard-resumo dd {
+      margin-top: 5px; font-size: 26px; line-height: 1.1; letter-spacing: -.045em;
+      font-weight: 650; font-variant-numeric: tabular-nums;
+    }
+    .dashboard-graficos { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+    .dashboard-graficos table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .dashboard-graficos th { width: 52%; text-align: start; font-weight: 400; padding-inline-end: 8px; }
+    .dashboard-graficos td, .dashboard-graficos th { padding-block: 7px; }
+    .dashboard-graficos td:last-child {
+      width: 3ch; padding-inline-start: 8px; text-align: end; font-weight: 600; font-variant-numeric: tabular-nums;
+    }
+    .dashboard-graficos meter { width: 100%; height: 7px; display: block; appearance: none; }
+    .dashboard-graficos meter::-webkit-meter-bar { border: 0; border-radius: 4px; background: var(--line); }
+    .dashboard-graficos meter::-webkit-meter-optimum-value { border-radius: 4px; background: var(--accent); }
     @media (max-width: 480px) {
       main { padding: 12px; }
       .grade { grid-template-columns: 1fr; }
       #vagas { max-height: 174px; }
       #detalhe { max-height: 360px; }
+      .dashboard-resumo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
 </head>
 <body data-inicio="vagas">
   <main>
     <header>
-      <h1>Painel de vagas</h1>
+      <h1 id="titulo-painel" tabindex="-1">Painel de vagas</h1>
       <div class="botoes">
         <span id="contagem" aria-live="polite"></span>
         <button type="button" class="acao acao-secundaria" id="abrir-boas-vindas" hidden>Boas-vindas</button>
+        <button type="button" class="acao acao-secundaria" id="abrir-dashboard" hidden>Dashboard</button>
+        <button type="button" class="acao acao-secundaria" id="atualizar-dashboard" hidden>Atualizar</button>
+        <button type="button" class="acao" id="voltar-vagas" hidden>Ver vagas</button>
         <button type="button" class="acao acao-secundaria" id="pesquisar-web" hidden>Pesquisar vagas na web</button>
         <button type="button" class="acao acao-secundaria" id="planejar-linkedin" hidden>Planejar busca no LinkedIn</button>
         <button type="button" class="acao acao-secundaria" id="monitorar-novas" hidden>Monitorar novas vagas</button>
@@ -123,6 +147,25 @@
         <ul id="fluxos"></ul>
       </section>
     </section>
+    <section id="dashboard" aria-labelledby="titulo-painel" hidden>
+      <dl class="dashboard-resumo" aria-label="Resumo dos processos">
+        <div><dt>Total</dt><dd id="dashboard-total"></dd></div>
+        <div><dt>Abertas</dt><dd id="dashboard-aberto"></dd></div>
+        <div><dt>Pausadas</dt><dd id="dashboard-pausado"></dd></div>
+        <div><dt>Encerradas</dt><dd id="dashboard-encerrado"></dd></div>
+      </dl>
+      <p id="dashboard-vazio" class="secundario" hidden>Nenhuma vaga cadastrada.</p>
+      <div class="dashboard-graficos" id="dashboard-graficos">
+        <section aria-labelledby="dashboard-titulo-etapas">
+          <h2 id="dashboard-titulo-etapas">Abertas e pausadas por etapa</h2>
+          <table><tbody id="dashboard-etapas"></tbody></table>
+        </section>
+        <section aria-labelledby="dashboard-titulo-resultados">
+          <h2 id="dashboard-titulo-resultados">Resultados dos processos encerrados</h2>
+          <table><tbody id="dashboard-resultados"></tbody></table>
+        </section>
+      </div>
+    </section>
     <div class="grade" id="painel" hidden>
       <section id="lista" aria-label="Lista de vagas">
         <input type="search" id="busca" aria-label="Buscar vagas" placeholder="Buscar vagas">
@@ -145,6 +188,7 @@
     const requests = new Map();
     let nextId = 0;
     let rows = [];
+    let currentView = "vagas";
     let selectedId = null;
     let detailRequest = 0;
     let listRequest = 0;
@@ -263,6 +307,42 @@
       }
     }
 
+    function renderDashboardTable(id, counts) {
+      const max = Math.max(1, ...Object.values(counts));
+      byId(id).replaceChildren(...Object.entries(counts).map(([key, count]) => {
+        const row = element("tr");
+        const name = element("th", label(key));
+        name.scope = "row";
+        const bar = element("td");
+        bar.setAttribute("aria-hidden", "true");
+        const meter = element("meter");
+        meter.max = max;
+        meter.value = count;
+        bar.append(meter);
+        row.append(name, bar, element("td", count.toLocaleString("pt-BR")));
+        return row;
+      }));
+    }
+
+    function renderDashboard() {
+      const states = { aberto: 0, pausado: 0, encerrado: 0 };
+      const stages = Object.fromEntries(options.etapa.map(value => [value, 0]));
+      const outcomes = Object.fromEntries(options.resultado.map(value => [value, 0]));
+      for (const row of rows) {
+        states[row.estado]++;
+        if (row.estado === "encerrado") outcomes[row.resultado]++;
+        else stages[row.etapa]++;
+      }
+      byId("dashboard-total").textContent = rows.length.toLocaleString("pt-BR");
+      for (const [key, count] of Object.entries(states)) {
+        byId("dashboard-" + key).textContent = count.toLocaleString("pt-BR");
+      }
+      byId("dashboard-vazio").hidden = rows.length > 0;
+      byId("dashboard-graficos").hidden = rows.length === 0;
+      renderDashboardTable("dashboard-etapas", stages);
+      renderDashboardTable("dashboard-resultados", outcomes);
+    }
+
     async function enviarAoChat(text, button, feedback, confirmation, fallback) {
       button.disabled = true;
       feedback.textContent = "Enviando contexto…";
@@ -276,7 +356,7 @@
       }
     }
 
-    const listControls = ["contagem", "pesquisar-web", "planejar-linkedin", "monitorar-novas", "nova"];
+    const listControls = ["contagem", "abrir-dashboard", "pesquisar-web", "planejar-linkedin", "monitorar-novas", "nova"];
     const materials = {
       oportunidades: "Oportunidades", perfil: "Perfil profissional", preferencias: "Objetivos e preferências",
       curriculo: "Currículo base", portfolio: "Portfólio", evidencias: "Evidências opcionais",
@@ -331,7 +411,7 @@
         const row = element("li");
         row.append(element("strong", name), element("small", state), element("small", next, "secundario"));
         if (ready && id === "gestao_de_vagas") {
-          row.append(actionButton(action, load));
+          row.append(actionButton(action, () => load()));
         } else {
           const button = actionButton(ready ? action : "Configurar fluxo", () => configurationChat(button, ready ? pedido :
             `Ajude-me a configurar minha base para o fluxo ${name}. Peça minha confirmação antes de criar qualquer arquivo.`,
@@ -361,9 +441,11 @@
 
     function showWelcome() {
       listRequest++;
-      for (const id of [...listControls, "painel", "recarregar", "configurar-base", "abrir-boas-vindas"]) {
+      for (const id of [...listControls, "painel", "dashboard", "atualizar-dashboard", "voltar-vagas",
+        "recarregar", "configurar-base", "abrir-boas-vindas"]) {
         byId(id).hidden = true;
       }
+      byId("titulo-painel").textContent = document.title = "Painel de vagas";
       status.textContent = "";
       byId("monitoramento-status").textContent = "";
       byId("boas-vindas").hidden = false;
@@ -757,11 +839,24 @@
       }
     }
 
-    async function load() {
+    async function load(view = "vagas") {
       const currentRequest = ++listRequest;
       configRequest++;
+      currentView = view;
+      const dashboard = view === "dashboard";
+      byId("titulo-painel").textContent = document.title = dashboard ? "Dashboard" : "Painel de vagas";
       byId("boas-vindas").hidden = true;
-      byId("abrir-boas-vindas").hidden = false;
+      byId("abrir-boas-vindas").hidden = dashboard;
+      byId("voltar-vagas").hidden = !dashboard;
+      const refresh = byId("atualizar-dashboard");
+      refresh.hidden = !dashboard || byId("dashboard").hidden;
+      refresh.disabled = true;
+      if (dashboard) {
+        for (const id of [...listControls, "painel"]) byId(id).hidden = true;
+        byId("monitoramento-status").textContent = "";
+      } else {
+        byId("dashboard").hidden = true;
+      }
       const retry = byId("recarregar");
       retry.hidden = true;
       byId("configurar-base").hidden = true;
@@ -770,12 +865,19 @@
         const { vagas } = await callTool("listar_vagas");
         if (currentRequest !== listRequest) return;
         rows = vagas;
-        renderRows();
-        byId("painel").hidden = false;
-        for (const id of listControls) byId(id).hidden = false;
+        if (dashboard) {
+          renderDashboard();
+          byId("dashboard").hidden = false;
+          refresh.hidden = refresh.disabled = false;
+        } else {
+          renderRows();
+          byId("painel").hidden = false;
+          for (const id of listControls) byId(id).hidden = false;
+        }
         status.textContent = "";
       } catch (error) {
         if (currentRequest !== listRequest) return;
+        if (dashboard) byId("dashboard").hidden = refresh.hidden = true;
         status.textContent = error.message;
         retry.hidden = false;
         byId("configurar-base").hidden = !error.message.includes("CARREIRA_ROOT");
@@ -790,7 +892,7 @@
       }
       try {
         const result = await request("ui/initialize", {
-          appInfo: { name: "Posicionar Carreira", version: "0.6.3" },
+          appInfo: { name: "Posicionar Carreira", version: "0.7.0" },
           appCapabilities: {},
           protocolVersion: "2026-01-26",
         });
@@ -801,7 +903,7 @@
           height: document.body.offsetHeight,
         })).observe(document.body);
         if (document.body.dataset.inicio === "boas-vindas") await showWelcome();
-        else await load();
+        else await load(document.body.dataset.inicio);
       } catch (error) {
         status.textContent = error.message;
       }
@@ -846,7 +948,17 @@
     const configurarChat = byId("configurar-no-chat");
     configurarChat.addEventListener("click", () => configurationChat(configurarChat,
       "Oriente a configuração da minha base de carreira. Peça minha confirmação antes de criar qualquer arquivo.", true));
-    byId("recarregar").addEventListener("click", load);
+    byId("abrir-dashboard").addEventListener("click", () => {
+      if (saving) return;
+      load("dashboard");
+      byId("titulo-painel").focus();
+    });
+    byId("voltar-vagas").addEventListener("click", () => {
+      load();
+      byId("titulo-painel").focus();
+    });
+    byId("atualizar-dashboard").addEventListener("click", () => load("dashboard"));
+    byId("recarregar").addEventListener("click", () => load(currentView));
     connect();
   </script>
 </body>

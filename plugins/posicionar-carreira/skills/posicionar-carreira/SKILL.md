@@ -38,6 +38,8 @@ Quando a pessoa pedir ajuda para preencher os modelos iniciais, comece pelo hist
 
 ## Painel no chat
 
+Quando a pessoa selecionar **Posicionar Carreira** e pedir **Dashboard** ou uma visão geral dos processos, chame `abrir_dashboard` diretamente. Se o cliente não exibir a interface, consulte `listar_vagas` e responda com os totais, as etapas dos processos abertos e pausados e os resultados dos encerrados. Conte cada processo pelo ID.
+
 Quando a pessoa pedir para abrir a lista de vagas no chat, chame `abrir_painel`. Para consultas em texto, use `listar_vagas` ou `detalhar_vaga` com `processo_id`.
 
 Os atalhos do painel enviam um pedido com as linhas `ID do processo:` e `Arquivo oficial:`. Use esse ID como identidade da seleção. Confirme a seleção e o caminho oficial com `detalhar_vaga`.

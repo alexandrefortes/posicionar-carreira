@@ -34,6 +34,12 @@ Use um chat por vaga que quiser acompanhar. Depois de cadastrar uma vaga pelo pa
 
 O painel depende do suporte a MCP Apps na conversa. Se a interface não aparecer, peça **“Liste minhas vagas”** ou **“Mostre os detalhes da vaga Laboratório Exemplo”** no chat. Para gerar novos PDFs, instale as dependências indicadas na [skill de conversão](plugins/posicionar-carreira/skills/md-to-cv/SKILL.md).
 
+## Dashboard
+
+No chat do Codex, selecione **@Posicionar Carreira** e envie **Dashboard**. A visão geral mostra o total de vagas, quantas estão abertas, pausadas ou encerradas, as etapas das abertas e pausadas e os resultados dos processos encerrados.
+
+Use **Atualizar** para reler a base local. Para filtrar vagas, abrir dossiês ou editar processos, clique em **Ver vagas**. No painel detalhado, o botão **Dashboard** abre a visão geral.
+
 ## Usar uma pasta própria
 
 Escolha uma pasta de dados fora do clone. `CARREIRA_ROOT` e `~/.config/posicionar-carreira/data-root.txt` apontam diretamente para a pasta que contém `oportunidades/`. O exemplo abaixo prepara uma pasta nova e grava a configuração persistente. Se já houver um seletor, guarde o conteúdo atual antes de trocá-lo.

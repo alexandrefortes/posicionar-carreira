@@ -11,14 +11,16 @@ from dados import detalhar, ler_processo, listar, resolver_carreira_root
 from gestao_vagas import DISPONIBILIDADES_INSCRICAO
 
 
-VERSION = "0.6.3"
+VERSION = "0.7.0"
 UI_URI = "ui://posicionar-carreira-local/painel-v5.html"
 WELCOME_URI = "ui://posicionar-carreira-local/boas-vindas.html"
+DASHBOARD_URI = "ui://posicionar-carreira-local/dashboard.html"
 UI_MIME = "text/html;profile=mcp-app"
 UI_FILE = Path(__file__).resolve().parents[1] / "ui" / "painel.html"
 PROTOCOLS = ("2025-11-25", "2025-06-18", "2025-03-26")
 RESOURCE = {"uri": UI_URI, "name": "Painel de vagas", "mimeType": UI_MIME}
 WELCOME_RESOURCE = {"uri": WELCOME_URI, "name": "Boas-vindas ao Posicionar Carreira", "mimeType": UI_MIME}
+DASHBOARD_RESOURCE = {"uri": DASHBOARD_URI, "name": "Dashboard", "mimeType": UI_MIME}
 EMPTY_INPUT = {"type": "object", "properties": {}, "additionalProperties": False}
 STRING = {"type": "string", "minLength": 1}
 PASTA_ABSOLUTA = {**STRING, "description": "Caminho absoluto de uma pasta de dados existente."}
@@ -41,6 +43,17 @@ TOOLS = [
         "inputSchema": EMPTY_INPUT,
         "_meta": {
             "ui": {"resourceUri": UI_URI, "visibility": ["model"], "preferredModelDisplayMode": "inline"},
+            "openai/ui": {"entrypoints": [{"type": "thread"}]},
+        },
+    },
+    {
+        "name": "abrir_dashboard",
+        "title": "Dashboard",
+        "description": "Abre a visão geral dos processos: totais, vagas abertas e pausadas por etapa "
+                       "e resultados das vagas encerradas.",
+        "inputSchema": EMPTY_INPUT,
+        "_meta": {
+            "ui": {"resourceUri": DASHBOARD_URI, "visibility": ["model"], "preferredModelDisplayMode": "inline"},
             "openai/ui": {"entrypoints": [{"type": "thread"}]},
         },
     },
@@ -219,6 +232,8 @@ def call_tool(params):
         return tool_result(message="Painel de vagas. A consulta por texto está disponível em listar_vagas.")
     if name == "abrir_boas_vindas":
         return tool_result(message="Boas-vindas ao Posicionar Carreira. Para configurar por texto, use verificar_configuracao.")
+    if name == "abrir_dashboard":
+        return tool_result(message="Dashboard dos processos. Para obter o panorama por texto, use listar_vagas.")
 
     try:
         if name == "verificar_configuracao":
@@ -258,16 +273,15 @@ def dispatch(method, params):
     if method == "tools/call":
         return call_tool(params)
     if method == "resources/list":
-        return {"resources": [RESOURCE, WELCOME_RESOURCE]}
+        return {"resources": [RESOURCE, WELCOME_RESOURCE, DASHBOARD_RESOURCE]}
     if method == "resources/templates/list":
         return {"resourceTemplates": []}
     if method == "resources/read":
         uri = params.get("uri")
-        if uri not in (UI_URI, WELCOME_URI):
+        modos = {UI_URI: "vagas", WELCOME_URI: "boas-vindas", DASHBOARD_URI: "dashboard"}
+        if not isinstance(uri, str) or uri not in modos:
             raise RpcError(-32002, "Recurso desconhecido.")
-        html = UI_FILE.read_text(encoding="utf-8")
-        if uri == WELCOME_URI:
-            html = html.replace('data-inicio="vagas"', 'data-inicio="boas-vindas"', 1)
+        html = UI_FILE.read_text(encoding="utf-8").replace('data-inicio="vagas"', f'data-inicio="{modos[uri]}"', 1)
         return {"contents": [{
             "uri": uri,
             "mimeType": UI_MIME,

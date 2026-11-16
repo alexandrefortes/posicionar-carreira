@@ -17,6 +17,12 @@ Abra uma conversa local no Codex desktop, selecione **Posicionar Carreira** e pe
 
 O painel depende de MCP Apps habilitado na conversa e disponível na janela do desktop. O recurso experimental `enable_mcp_apps` do Codex pode variar por conversa. A consulta em texto está disponível pelas ferramentas `listar_vagas` e `detalhar_vaga`.
 
+## Dashboard
+
+No chat do Codex, selecione **@Posicionar Carreira** e envie **Dashboard**. A visão geral mostra o total de vagas, quantas estão abertas, pausadas ou encerradas, as etapas das abertas e pausadas e os resultados dos processos encerrados.
+
+Use **Atualizar** para reler a base local. Para filtrar vagas, abrir dossiês ou editar processos, clique em **Ver vagas**. No painel detalhado, o botão **Dashboard** abre a visão geral.
+
 ## Fonte local
 
 Escolha uma pasta existente fora do plugin para guardar seus dados. Salve o caminho absoluto da pasta de dados em uma única linha de `~/.config/posicionar-carreira/data-root.txt`. A pasta de dados contém `oportunidades/`. A resolução segue esta ordem:
