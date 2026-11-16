@@ -134,7 +134,7 @@ class PainelTest(unittest.TestCase):
         return painel, painel.get_by_role("region", name="Detalhes da vaga")
 
     def test_boas_vindas_verifica_pastas_e_orienta_no_chat(self):
-        for relativo in ("perfil/perfil-profissional.md", "estrategia/referencias-candidaturas.md"):
+        for relativo in ("perfil/perfil-profissional.md", "estrategia/referencias-candidaturas.md", "curriculos/base.md"):
             material = self.dados.carreira / relativo
             material.parent.mkdir(exist_ok=True)
             material.write_text("Material sintético de teste", encoding="utf-8")
@@ -155,9 +155,18 @@ class PainelTest(unittest.TestCase):
         expect(boas_vindas.get_by_text("Pandoc, pdflatex e pypdf", exact=False)).to_be_visible()
         expect(boas_vindas.get_by_text("uma conta conectada", exact=False)).to_be_visible()
         expect(boas_vindas.get_by_text("ferramenta de transcrição na sessão", exact=False)).to_be_visible()
+        curriculo = boas_vindas.get_by_role("button", name="Preparar currículo", exact=True)
+        curriculo.click()
+        expect(boas_vindas.locator("#configuracao-chat-status")).to_contain_text("Pedido enviado")
+        self.assertEqual(
+            self.mensagens[0]["content"][0]["text"],
+            "Use $posicionar-carreira:posicionar-carreira. "
+            "Ajude-me a escolher uma vaga e a preparar um currículo para ela. "
+            "Siga o ciclo de otimização por vaga e apresente o resumo da revisão.",
+        )
         boas_vindas.get_by_role("button", name="Revisar perfil e objetivos").click()
         expect(boas_vindas.locator("#configuracao-chat-status")).to_contain_text("Pedido enviado")
-        self.assertIn("revisar meu perfil e meus objetivos", self.mensagens[0]["content"][0]["text"])
+        self.assertIn("revisar meu perfil e meus objetivos", self.mensagens[1]["content"][0]["text"])
 
         campo = boas_vindas.get_by_label("Pasta de dados")
         campo.fill(str(outra_base))
@@ -215,6 +224,17 @@ class PainelTest(unittest.TestCase):
             "text": "Use $posicionar-carreira:posicionar-carreira para preparar a entrevista desta oportunidade.\n"
                     f"ID do processo: {self.vaga_id}\nArquivo oficial: {processo}",
         }])
+
+        curriculo = detalhe.get_by_role("button", name="Preparar currículo", exact=True)
+        curriculo.click()
+        expect(curriculo).to_be_disabled()
+        expect(detalhe.get_by_role("status")).to_have_text("O chat recebeu o contexto da vaga.")
+        self.assertEqual(self.mensagens[2], {"role": "user", "content": [{
+            "type": "text",
+            "text": "Use $posicionar-carreira:posicionar-carreira para preparar o currículo desta oportunidade. "
+                    "Siga o ciclo de otimização por vaga e apresente o resumo da revisão.\n"
+                    f"ID do processo: {self.vaga_id}\nArquivo oficial: {processo}",
+        }]})
 
     def test_abertura_independente_de_curriculos_do_dossie(self):
         primeiro_id = "empresa-exemplo/local-001"

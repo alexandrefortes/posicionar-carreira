@@ -64,7 +64,7 @@ Para montar ou atualizar o portfólio a partir de arquivos de projeto, apresenta
 |---|---|
 | Reconhecer entregas, competências, feedbacks ou pontos de atenção em outro projeto | [Evidências](references/evidencias.md): sugerir captura sem desviar a tarefa; registrar quando autorizado |
 | Buscar, triar ou avaliar vagas e empresas | [Busca e triagem](references/busca-e-triagem.md), [benchmark salarial](references/benchmark-salarial.md), [pesquisa de clima](references/clima-organizacional.md) e [scoring](references/scoring.md) quando houver informação suficiente |
-| Preparar currículo, apresentação, respostas, PDF ou formulário | [Candidaturas](references/candidaturas.md); [md-to-cv](../md-to-cv/SKILL.md) para gerar PDF |
+| Preparar currículo, apresentação, respostas, PDF ou formulário | [Candidaturas](references/candidaturas.md), com matriz antes da edição e resumo da revisão antes da entrega do currículo. [md-to-cv](../md-to-cv/SKILL.md) para gerar PDF |
 | Acompanhar candidaturas e retornos | [Continuidade](#continuidade) e [gestão de oportunidades](../../README.md#gestão-de-oportunidades) |
 | Desenvolver posicionamento ou preparar entrevistas | [Entrevistas](references/entrevistas.md) para planos por vaga, vínculo no mapa geral, perguntas, simulação, transcrição e feedback; [limites LinkedIn](references/linkedin-boundaries.md) para perfil e conteúdo público |
 

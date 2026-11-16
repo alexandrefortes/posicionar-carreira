@@ -285,6 +285,7 @@
       nao_verificado: "A verificar", ausente: "Ausente", rascunho: "Rascunho",
       indisponivel: "Indisponível", disponivel: "Encontrado",
     };
+    const orientacaoCurriculo = "Siga o ciclo de otimização por vaga e apresente o resumo da revisão.";
     const workflows = [
       ["gestao_de_vagas", "Gestão de vagas", "Cadastre vagas e registre eventos na base em uso.",
         "Abrir vagas na base em uso"],
@@ -295,7 +296,7 @@
       ["avaliacao", "Avaliação de vagas", "Confira a descrição da vaga e as evidências pertinentes.",
         "Escolher vaga para avaliar", "Ajude-me a escolher uma vaga para avaliar."],
       ["candidatura", "Currículo e candidatura", "A geração do PDF exige Pandoc, pdflatex e pypdf no Python.",
-        "Preparar currículo", "Ajude-me a escolher uma vaga e a preparar um currículo para ela."],
+        "Preparar currículo", `Ajude-me a escolher uma vaga e a preparar um currículo para ela. ${orientacaoCurriculo}`],
       ["entrevistas", "Entrevistas e transcrição", "Para transcrever uma entrevista, confirme se há uma ferramenta de transcrição na sessão.",
         "Preparar entrevista", "Ajude-me a escolher uma vaga e a preparar a entrevista."],
       ["portfolio", "Portfólio", "Revise os casos e confirme quais evidências podem ser divulgadas.",
@@ -374,8 +375,8 @@
       return `\nID do processo: ${vaga.id}\nArquivo oficial: ${vaga.processo}`;
     }
 
-    function prepare(vaga, button, feedback, action, fallback) {
-      const text = `Use $posicionar-carreira:posicionar-carreira para ${action} desta oportunidade.` + contextoVaga(vaga);
+    function prepare(vaga, button, feedback, action, fallback, orientacao = "") {
+      const text = `Use $posicionar-carreira:posicionar-carreira para ${action} desta oportunidade.${orientacao}` + contextoVaga(vaga);
       return enviarAoChat(text, button, feedback, "O chat recebeu o contexto da vaga.",
         `O chat não recebeu o contexto. Você pode pedir no chat: ${fallback} de ${vaga.id}.`);
     }
@@ -700,13 +701,13 @@
       const feedback = element("p", null, "secundario");
       feedback.setAttribute("role", "status");
       const actions = element("div", null, "botoes");
-      for (const [title, prompt, fallback] of [
+      for (const [title, prompt, fallback, orientacao] of [
         ["Preparar entrevista", "preparar a entrevista", "preparar entrevista"],
         ["Avaliar vaga", "avaliar a vaga", "avaliar vaga"],
-        ["Preparar currículo", "preparar o currículo", "preparar currículo"],
+        ["Preparar currículo", "preparar o currículo", "preparar currículo", ` ${orientacaoCurriculo}`],
         ["Preparar candidatura", "preparar a candidatura", "preparar candidatura"],
       ]) {
-        const button = actionButton(title, () => prepare(vaga, button, feedback, prompt, fallback),
+        const button = actionButton(title, () => prepare(vaga, button, feedback, prompt, fallback, orientacao),
           title !== "Preparar entrevista");
         actions.append(button);
       }
@@ -787,7 +788,7 @@
       }
       try {
         const result = await request("ui/initialize", {
-          appInfo: { name: "Posicionar Carreira", version: "0.6.0" },
+          appInfo: { name: "Posicionar Carreira", version: "0.6.2" },
           appCapabilities: {},
           protocolVersion: "2026-01-26",
         });

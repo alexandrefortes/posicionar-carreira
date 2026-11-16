@@ -87,6 +87,8 @@ Ao montar o dossiê ou usar **Avaliar vaga**, o agente também pesquisa o clima 
 
 Para preparar uma candidatura, peça a revisão das evidências, do currículo e da carta. O plugin pode gerar um PDF com nome descritivo, conferir o conteúdo e preparar as respostas para sua revisão. O envio requer sua autorização. [Fluxo de candidatura](plugins/posicionar-carreira/skills/posicionar-carreira/references/candidaturas.md)
 
+Para criar ou otimizar o currículo de uma vaga, use **Preparar currículo** no painel ou peça no chat. O agente mostra quais evidências sustentam os requisitos antes de editar, compara o resultado com a versão anterior e registra as lacunas e o motivo para encerrar. Se a versão atual já estiver adequada, a revisão pode terminar preservando o texto. [Ciclo de otimização](plugins/posicionar-carreira/skills/posicionar-carreira/references/candidaturas.md#ciclo-de-otimização-por-vaga)
+
 Você também pode pedir ao **Humanizer** que revise um texto mantendo a voz e os fatos do original. Para usar suas preferências de escrita, indique-as no pedido ou forneça uma amostra. [Humanizer](plugins/posicionar-carreira/skills/humanizer/SKILL.md)
 
 ## Preparar ou revisar entrevistas
