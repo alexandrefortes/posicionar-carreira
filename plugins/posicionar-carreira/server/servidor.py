@@ -11,7 +11,7 @@ from dados import detalhar, ler_processo, listar, resolver_carreira_root
 from gestao_vagas import DISPONIBILIDADES_INSCRICAO
 
 
-VERSION = "0.7.0"
+VERSION = "0.7.1"
 UI_URI = "ui://posicionar-carreira-local/painel-v5.html"
 WELCOME_URI = "ui://posicionar-carreira-local/boas-vindas.html"
 DASHBOARD_URI = "ui://posicionar-carreira-local/dashboard.html"
