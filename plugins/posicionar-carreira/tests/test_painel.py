@@ -488,7 +488,7 @@ class PainelTest(unittest.TestCase):
         self.assertEqual(novas[0]["etapa"], "identificada")
         self.assertEqual(self.mensagens, [])
         processo_novo = detalhar(self.dados.carreira, novas[0]["id"])
-        self.assertEqual(processo_novo["titulo_chat"], "candidatura empresa nova - identificada")
+        self.assertEqual(processo_novo["titulo_chat"], "candidatura - empresa nova | eng de teste - identificada")
         detalhe.get_by_role("button", name="Usar vaga neste chat", exact=True).click()
         expect(detalhe.get_by_role("status")).to_have_text("O chat recebeu o contexto da vaga.")
         self.assertEqual(self.mensagens[0]["content"][0]["text"],

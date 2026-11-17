@@ -11,6 +11,7 @@ import yaml
 PLUGIN = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PLUGIN / "server"))
 from dados import caminho_carreira_configurado, detalhar, listar, resolver_carreira_root
+from operacoes import atualizar_vaga, criar_vaga
 
 
 class DadosTest(unittest.TestCase):
@@ -89,11 +90,29 @@ class DadosTest(unittest.TestCase):
                 identificador = f"local-{numero:03}"
                 self.criar_processo(
                     identificador, "2026-10-12",
-                    empresa="  Empresa. Café–Norte - Exemplo  ",
+                    empresa="  Café.–Norte  ", titulo="Eng | Lead",
                     estado=estado, etapa=etapa, resultado=resultado,
                 )
                 detalhe = detalhar(self.carreira, f"empresa-exemplo/{identificador}")
-                self.assertEqual(detalhe["titulo_chat"], f"candidatura empresa café norte exemplo - {status}")
+                self.assertEqual(detalhe["titulo_chat"], f"candidatura - café norte | eng lead - {status}")
+
+    def test_titulo_chat_abrevia_cargo_e_recalcula_espaco_apos_mudanca_de_etapa(self):
+        cargo = "Engineering Lead Apps Core para Equipes Internacionais de Automação"
+        criada = criar_vaga(self.carreira, "Hyrule 🧪", cargo, "https://example.org/anuncio")
+        atualizada = atualizar_vaga(
+            self.carreira, criada["id"], criada["revisao"], "Entrevista confirmada",
+            "https://example.org/entrevista", {"etapa": "entrevista_tecnica"},
+        )
+        for vaga, status in ((criada, "identificada"), (atualizada, "entrevista técnica")):
+            with self.subTest(status=status):
+                titulo = vaga["titulo_chat"]
+                self.assertLessEqual(len(titulo.encode("utf-16-le")) // 2, 60)
+                self.assertTrue(titulo.startswith("candidatura - hyrule 🧪 | eng lead "))
+                self.assertTrue(titulo.endswith(f" - {status}"))
+                self.assertEqual(vaga["titulo"], cargo)
+        self.assertLess(len(atualizada["titulo_chat"].rsplit(" - ", 1)[0]),
+                        len(criada["titulo_chat"].rsplit(" - ", 1)[0]))
+        self.assertEqual(detalhar(self.carreira, criada["id"])["titulo_chat"], atualizada["titulo_chat"])
 
     def test_rejeita_id_inexistente_ou_caminho_arbitrario(self):
         for identificador in ("empresa-exemplo/local-999", "../carreira/AGENTS.md", str(self.primeiro)):

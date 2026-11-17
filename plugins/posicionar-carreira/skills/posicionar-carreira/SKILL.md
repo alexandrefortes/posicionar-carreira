@@ -66,9 +66,11 @@ Use um chat por vaga ao cadastrar, avaliar ou acompanhar uma oportunidade espec�
 
 Ao assumir a vaga no chat ou por um atalho do painel, consulte `detalhar_vaga`. Para um cadastro novo, use o retorno confirmado de `criar_vaga`. Use o campo `titulo_chat` como título do próprio chat do Codex. Chame a ferramenta nativa `set_thread_title` passando apenas `title`.
 
-O título segue `candidatura nome da empresa - status`, todo em minúsculas, com espaços no lugar de pontos ou traços no nome da empresa e um hífen simples antes do status. Use a etapa enquanto o processo estiver aberto, com `enviada` para `candidatura_enviada`. Use `pausado` durante uma pausa e o resultado confirmado após o encerramento. Quando estiver avaliando uma vaga específica de empresa confirmada que ainda não tem dossiê, use `em avaliação` até confirmar o registro.
+O título segue `candidatura - <empresa> | <cargo> - <status>`, todo em minúsculas, com espaços no lugar de pontos, traços e barras verticais que já venham nos nomes. Por exemplo, `candidatura - conselho | cartógrafa de rotas - em preparação`. Use a etapa enquanto o processo estiver aberto, com `enviada` para `candidatura_enviada`. Use `pausado` durante uma pausa e o resultado confirmado após o encerramento.
 
-Atualize o título do chat dedicado quando uma mudança confirmada alterar o `titulo_chat`. Uma prévia ou proposta não muda o título por si só. Preserve o título em buscas gerais, consultas de várias vagas ou quando a pessoa tiver pedido um título próprio. Se a ferramenta nativa estiver indisponível, informe o título para a pessoa aplicar.
+O Codex Desktop aceita até 60 unidades UTF-16 no título gravado, incluindo espaços e separadores. Preserve `candidatura - `, ` | ` e ` - <status>` por inteiro. Quando exceder o limite, abrevie apenas a empresa e o cargo, mantendo ambos reconhecíveis, como `engineering` para `eng`. Para avaliar uma vaga específica antes do cadastro, use a empresa e o cargo confirmados no anúncio e o status `em avaliação`, com a mesma regra de comprimento.
+
+Atualize o título do chat dedicado quando uma mudança confirmada alterar o `titulo_chat`. Use o novo valor retornado pelo MCP, que recalcula o espaço do miolo a partir do nome da empresa, do cargo original e do status atual. Uma prévia ou proposta não muda o título por si só. Preserve o título em buscas gerais, consultas de várias vagas ou quando a pessoa tiver pedido um título próprio. Se a ferramenta nativa estiver indisponível, informe o título para a pessoa aplicar.
 
 ## Modos de trabalho
 
@@ -79,6 +81,8 @@ Atualize o título do chat dedicado quando uma mudança confirmada alterar o `ti
 | Preparar currículo, apresentação, respostas, PDF ou formulário | [Candidaturas](references/candidaturas.md), com matriz antes da edição e resumo da revisão antes da entrega do currículo. [md-to-cv](../md-to-cv/SKILL.md) para gerar PDF |
 | Acompanhar candidaturas e retornos | [Continuidade](#continuidade) e [gestão de oportunidades](../../README.md#gestão-de-oportunidades) |
 | Desenvolver posicionamento ou preparar entrevistas | [Entrevistas](references/entrevistas.md) para planos por vaga, vínculo no mapa geral, perguntas, simulação, transcrição e feedback; [limites LinkedIn](references/linkedin-boundaries.md) para perfil e conteúdo público |
+
+Antes de criar ou otimizar um currículo pelo chat, pelo painel ou como parte de uma candidatura, leia `CARREIRA_DIR/estrategia/referencias-candidaturas.md`. Quando esse material faltar ou ainda for um modelo sem dados, consulte `CARREIRA_DIR/estrategia/objetivos.md`, se existir. Use as diretrizes da pessoa para escolher os destaques, inclusive a ênfase em liderança e trabalho técnico quando houver orientação sobre esses pontos. Se as fontes de estratégia estiverem indisponíveis, informe a lacuna e siga as preferências explícitas da conversa e as evidências disponíveis.
 
 Para candidaturas, siga a [ordem de trabalho](references/candidaturas.md). Consulte evidências, revise currículo e carta em Markdown, gere e confira o PDF, revise o formulário com a pessoa e registre o envio quando confirmado. Execute as etapas autorizadas e releia os materiais após edições manuais.
 

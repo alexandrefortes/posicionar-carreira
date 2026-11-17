@@ -8,6 +8,13 @@ from hashlib import sha256
 from pathlib import Path
 from urllib.parse import unquote
 
+# set_thread_title no Codex Desktop usa String.length (UTF-16).
+LIMITE_TITULO_CHAT = 60
+ABREVIACOES_CARGO = {
+    "engineering": "eng", "engenharia": "eng", "engenheiro": "eng", "engenheira": "eng",
+    "developer": "dev", "desenvolvedor": "dev", "desenvolvedora": "dev",
+    "manager": "mgr", "senior": "sr", "sênior": "sr", "junior": "jr", "júnior": "jr",
+}
 
 def _caminho_configurado(arquivo: Path) -> str:
     try:
@@ -122,9 +129,30 @@ def detalhar(carreira: Path, processo_id: str) -> dict:
     return formatar_detalhe(carreira, processo, conteudo)
 
 
+def _normalizar_titulo(texto: str) -> str:
+    return " ".join(re.sub(r"[.|\-‐‑‒–—−]+", " ", texto.lower()).split())
+
+
+def _tamanho_utf16(texto: str) -> int:
+    return len(texto.encode("utf-16-le")) // 2
+
+
+def _encurtar_titulo(texto: str, limite: int) -> str:
+    if _tamanho_utf16(texto) <= limite:
+        return texto
+    recorte = texto.encode("utf-16-le")[:2 * limite].decode("utf-16-le", errors="ignore")
+    if texto[len(recorte)] != " ":
+        recorte = recorte.rpartition(" ")[0] or recorte
+    palavras = recorte.split()
+    conectivos = {"and", "da", "das", "de", "do", "dos", "e", "em", "for", "of", "para", "to"}
+    while len(palavras) > 1 and palavras[-1] in conectivos:
+        palavras.pop()
+    return " ".join(palavras)
+
+
 def _titulo_chat(processo: dict) -> str:
-    empresa = re.sub(r"[.\-‐‑‒–—−]+", " ", processo["empresa"].lower())
-    empresa = " ".join(empresa.split()) or "empresa"
+    empresa = _normalizar_titulo(processo["empresa"]) or "empresa"
+    cargo = _normalizar_titulo(processo["titulo"]) or "vaga"
     status = processo["estado"]
     if status == "aberto":
         status = processo["etapa"]
@@ -139,7 +167,17 @@ def _titulo_chat(processo: dict) -> str:
         "desistencia": "desistência",
         "descartado_na_avaliacao": "descartado na avaliação",
     }
-    return f"candidatura {empresa} - {rotulos.get(status, status.replace('_', ' '))}"
+    prefixo = "candidatura - "
+    separador = " | "
+    sufixo = f" - {rotulos.get(status, status.replace('_', ' '))}"
+    disponivel = LIMITE_TITULO_CHAT - _tamanho_utf16(prefixo + separador + sufixo)
+    if _tamanho_utf16(empresa + cargo) > disponivel:
+        cargo = " ".join(ABREVIACOES_CARGO.get(palavra, palavra) for palavra in cargo.split())
+        # Reserve espaço para os dois nomes e devolva ao cargo o que a empresa não usar.
+        reserva_cargo = min(_tamanho_utf16(cargo), disponivel // 2)
+        empresa = _encurtar_titulo(empresa, disponivel - reserva_cargo)
+        cargo = _encurtar_titulo(cargo, disponivel - _tamanho_utf16(empresa))
+    return f"{prefixo}{empresa}{separador}{cargo}{sufixo}"
 
 
 def formatar_detalhe(carreira: Path, processo: dict, conteudo: bytes) -> dict:
