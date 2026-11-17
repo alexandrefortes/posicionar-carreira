@@ -17,8 +17,8 @@ from inicializar import inicializar
 from servidor import respond
 
 
-ID_EXEMPLO = "laboratorio-exemplo/local-001"
-PDF_EXEMPLO = "Marina_Exemplo_CV_Laboratorio_Exemplo_Analista_Dados.pdf"
+ID_EXEMPLO = "conselho-de-rotas-de-hyrule/local-001"
+PDF_EXEMPLO = "Zelda_de_Hyrule_CV_Conselho_de_Rotas_de_Hyrule_Cartografa_de_Rotas.pdf"
 
 
 class ExemploTest(unittest.TestCase):
@@ -48,10 +48,10 @@ class ExemploTest(unittest.TestCase):
         inicializar(self.carreira, com_exemplo=True)
         for relativo in (
             "perfil/perfil-profissional.md",
-            "perfil/evidencias/painel-indicadores-operacionais.md",
+            "perfil/evidencias/mapa-de-entregas-de-hyrule.md",
             "estrategia/objetivos.md",
             "curriculos/base.md",
-            "portfolio/painel-indicadores-operacionais.md",
+            "portfolio/mapa-de-entregas-de-hyrule.md",
         ):
             self.assertTrue((self.carreira / relativo).is_file(), relativo)
         curriculo = self.dossie / "curriculo.md"

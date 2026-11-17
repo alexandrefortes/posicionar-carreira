@@ -28,7 +28,7 @@ Retome da etapa pertinente quando já houver material revisado. Uma consulta ini
 
 - Use o idioma da vaga e destaque as contribuições mais pertinentes. Preserve datas, títulos, senioridade e nível de domínio confirmados. Estruture o currículo com contato, perfil, experiência, competências, formação e idiomas conforme o conteúdo comprovado e relevante.
 - Use a carta para explicar a contribuição para aquela oportunidade. Confira se currículo, carta e respostas coincidem em fatos, períodos e resultados. Releia os Markdown atuais antes de exportar ou copiar respostas.
-- Preserve o nome da fonte editável e gere o PDF com um [nome descritivo](../../md-to-cv/SKILL.md#nome-do-pdf), como `Marina_Exemplo_CV_Laboratorio_Exemplo_Analista_Dados.pdf`. Mantenha uma versão de trabalho identificável e atualize os links do dossiê ao renomeá-la. Preserve os arquivos históricos e enviados.
+- Preserve o nome da fonte editável e gere o PDF com um [nome descritivo](../../md-to-cv/SKILL.md#nome-do-pdf), como `Zelda_de_Hyrule_CV_Conselho_de_Rotas_de_Hyrule_Cartografa_de_Rotas.pdf`. Mantenha uma versão de trabalho identificável e atualize os links do dossiê ao renomeá-la. Preserve os arquivos históricos e enviados.
 - Use o modelo do conversor para manter a ordem de leitura e o texto selecionável. Priorize relevância e legibilidade. A extração de texto serve para conferir o arquivo. Palavras nos metadados devem corresponder a competências comprovadas.
 - Se o Markdown mudar após a exportação, atualize e reconfira o PDF de trabalho. Se uma resposta mudar após o preenchimento, reconfira o campo.
 

@@ -35,7 +35,7 @@ def inicializar(carreira: Path, *, com_exemplo: bool = False) -> Path:
     with TemporaryDirectory(dir=carreira.parent, prefix=".exemplo-") as temporario:
         base = Path(temporario) / "carreira"
         shutil.copytree(BASE, base)
-        shutil.copytree(MODELO, base / "oportunidades/laboratorio-exemplo/local-001")
+        shutil.copytree(MODELO, base / "oportunidades/conselho-de-rotas-de-hyrule/local-001")
         if oportunidades.exists():
             oportunidades.rmdir()
         if carreira.exists():

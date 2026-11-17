@@ -1,22 +1,22 @@
-# Laboratório Exemplo — Pessoa Analista de Dados
+# Conselho de Rotas de Hyrule — Cartógrafa de Rotas
 
 ## Descrição do anúncio fictício
 
-O Laboratório Exemplo procura uma pessoa analista para organizar dados de atendimento e acompanhar os indicadores da operação. A equipe precisa de uma visão semanal do volume e do tempo de atendimento para discutir os números com quem trabalha no serviço.
+O Conselho de Rotas de Hyrule procura uma pessoa para manter os mapas de abastecimento do reino e organizar os registros de viagem. A equipe precisa acompanhar quantas remessas partem por semana e o tempo de percurso das que chegam ao destino.
 
 ### Responsabilidades
 
-- Consolidar eventos de atendimento com SQL e investigar divergências nas contagens.
-- Manter um painel com indicadores semanais e explicar o que cada métrica representa.
-- Documentar as regras de cálculo e conferir os resultados com a equipe de operação.
+- Consolidar livros de remessas de diferentes postos e investigar divergências nas contagens.
+- Revisar mapas de rota com escrivães e mensageiros e preparar um quadro semanal de expedições e tempo de percurso.
+- Documentar os critérios usados e conferir os resultados com os postos.
 
 ### Requisitos e condições
 
-- Escrever consultas SQL com agregação e critérios de deduplicação.
-- Apresentar indicadores em um painel e explicar seus limites a um público que não trabalha com dados.
-- No exercício de seleção, escrever uma consulta SQL e apresentar as métricas escolhidas.
-- Localidade, modalidade, regime e remuneração não foram informados no anúncio.
+- Experiência em cartografia de rotas e conferência de livros de remessas.
+- Capacidade de explicar critérios de contagem a quem organiza os despachos.
+- No exercício de seleção, revisar uma folha de lançamentos, identificar remessas repetidas e explicar os indicadores escolhidos.
+- Localidade, frequência de viagens, regime e remuneração seguem em aberto.
 
 ## Fonte
 
-Anúncio fictício criado para demonstrar o dossiê. Requisição `local-001`, registro em 15/01/2025.
+[Anúncio fictício criado para a demonstração](https://example.org/hyrule/vagas/cartografa-de-rotas). Requisição `local-001` registrada em 15/01/2025.

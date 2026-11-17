@@ -1,32 +1,39 @@
 ---
-title: 'Marina Exemplo | Currículo base fictício'
-author: 'Marina Exemplo'
-keywords: 'SQL, indicadores operacionais, visualização de dados'
+title: 'Zelda de Hyrule | Currículo base fictício'
+author: 'Zelda de Hyrule'
+keywords: 'cartografia, registros de remessas, conferência de rotas'
 ---
 
-# Marina Exemplo
+# Zelda de Hyrule
 
-Analista de Dados | marina.exemplo@example.com
+Cartógrafa | zelda@example.com
 
 **Currículo base fictício.**
 
 ## Resumo
 
-Analista de dados com experiência em SQL, construção de painéis e documentação de indicadores. Trabalhou com dados de atendimento e conferiu métricas com a equipe de operações.
+Cartógrafa com experiência em mapas de rotas, conferência de livros de remessas e documentação de critérios de contagem. Trabalhou com postos de expedição do reino para registrar entregas e investigar divergências.
 
 ## Experiência
 
-### Analista de Dados | Observatório Horizonte (fictício)
+### Cartógrafa | Arquivo Real de Hyrule
 
 Janeiro de 2023 a dezembro de 2024
 
-- Escreveu consultas em SQL para consolidar registros de atendimento e manter a versão mais recente por identificador.
-- Construiu um painel piloto de volume semanal e mediana do tempo de atendimento. Documentou as definições e conferiu os resultados de teste com a equipe de operações.
+- Padronizou o registro de remessas dos postos de Vila Kakariko e Cidade Goron. Organizou as correções para manter o lançamento mais recente por número de despacho.
+- Preparou um mapa piloto com o volume semanal de expedições e a mediana do tempo de percurso. Conferiu as regras e os resultados de teste com os dois postos.
+
+### Auxiliar de mapas | Posto de Vila Kakariko
+
+Janeiro a dezembro de 2022
+
+- Atualizou mapas de trabalho com as referências de caminho que os mensageiros registravam ao voltar ao posto.
+- Organizou as correções em um caderno para identificar quais mapas precisavam de revisão.
 
 ## Projeto selecionado
 
-**Painel de indicadores operacionais.** A consulta retornou 10 eventos distintos em uma amostra sintética de 12 registros que incluía duas versões redundantes. O teste verificou a deduplicação no piloto.
+**Mapa de entregas de Hyrule.** A conferência recuperou 10 remessas distintas de 12 lançamentos fictícios. A amostra testou o tratamento de duas remessas com mais de uma versão no livro de expedição.
 
 ## Competências
 
-SQL, visualização de dados, deduplicação de eventos, definição de indicadores e documentação de regras de cálculo.
+Cartografia de rotas, controle de versões de mapas, consolidação de livros de remessas, verificação de contagens e documentação de critérios.

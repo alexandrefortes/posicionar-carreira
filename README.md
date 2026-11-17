@@ -28,11 +28,11 @@ Se a conversa não exibir a tela, peça **“Verifique a configuração da minha
 
 No painel **Vagas**, você pode filtrar os processos, usar **Nova vaga** para cadastrar uma oportunidade ou pedir ao agente para **Pesquisar vagas na web**. Ao selecionar uma vaga, você vê a etapa, a disponibilidade da inscrição, a próxima ação, o histórico e os materiais. Pelo detalhe, pode editar o processo, corrigir o título mantendo o mesmo dossiê, registrar um evento, preparar uma candidatura ou entrevista e abrir o currículo em Markdown ou PDF, quando disponível.
 
-Para experimentar, [instale a base fictícia](#ler-o-exemplo-da-marina) e abra **Laboratório Exemplo — Pessoa Analista de Dados**. Os botões do currículo abrem os arquivos fictícios nos aplicativos associados no Windows. Você também pode registrar um evento de teste.
+Para experimentar, [instale a base fictícia](#ler-o-exemplo-da-zelda) e abra **Conselho de Rotas de Hyrule — Cartógrafa de Rotas**. Os botões do currículo abrem os arquivos fictícios nos aplicativos associados no Windows. Você também pode registrar um evento de teste.
 
-Use um chat por vaga que quiser acompanhar. Depois de cadastrar uma vaga pelo painel, clique em **Usar vaga neste chat** para iniciar a conversa com ela. Ao trabalhar na vaga, o agente dá ao chat um título como `candidatura laboratório exemplo - identificada` e atualiza o status conforme o processo avança.
+Use um chat por vaga que quiser acompanhar. Depois de cadastrar uma vaga pelo painel, clique em **Usar vaga neste chat** para iniciar a conversa com ela. Ao trabalhar na vaga, o agente dá ao chat um título como `candidatura conselho de rotas de hyrule - em preparação` e atualiza o status conforme o processo avança.
 
-O painel depende do suporte a MCP Apps na conversa. Se a interface não aparecer, peça **“Liste minhas vagas”** ou **“Mostre os detalhes da vaga Laboratório Exemplo”** no chat. Para gerar novos PDFs, instale as dependências indicadas na [skill de conversão](plugins/posicionar-carreira/skills/md-to-cv/SKILL.md).
+O painel depende do suporte a MCP Apps na conversa. Se a interface não aparecer, peça **“Liste minhas vagas”** ou **“Mostre os detalhes da vaga de Cartógrafa de Rotas”** no chat. Para gerar novos PDFs, instale as dependências indicadas na [skill de conversão](plugins/posicionar-carreira/skills/md-to-cv/SKILL.md).
 
 ## Dashboard
 
@@ -71,17 +71,17 @@ Selecione **Posicionar Carreira** e peça **“Quero montar minha base de carrei
 
 O modelo de objetivos e preferências usa `estrategia/referencias-candidaturas.md`. Você também pode continuar usando o `estrategia/objetivos.md` da edição anterior. A conversa ajuda a organizar o conteúdo pessoal conforme você fornece e aprova os dados.
 
-## Ler o exemplo da Marina
+## Ler o exemplo da Zelda
 
 Para instalar a base fictícia, rode `python -B exemplo/inicializar.py --com-exemplo` com a base de destino vazia. Em uma primeira instalação, o exemplo fica em `~/PosicionarCarreira/carreira`. Se você já usa uma base, instale a demonstração em outra pasta vazia com `--carreira-root <pasta-do-exemplo>`. Para ver a demonstração no painel, configure essa pasta como indicado em [Usar uma pasta própria](#usar-uma-pasta-própria).
 
-Os documentos usam a mesma entrega fictícia, um painel de indicadores operacionais, para mostrar como reaproveitar evidências em cada etapa.
+Na demonstração, Zelda de Hyrule prepara uma candidatura a Cartógrafa de Rotas. Seu projeto no Arquivo Real organiza cadernos de remessas da Vila Kakariko e da Cidade Goron. Perfil, portfólio e currículo reaproveitam as evidências desse trabalho inventado. [Inspiração em The Legend of Zelda: Ocarina of Time](https://www.nintendo.com/pt-br/store/products/the-legend-of-zelda-ocarina-of-time-switch-2/)
 
 | Material | Como usar como referência |
 |---|---|
-| [Perfil profissional](exemplo/base/perfil/perfil-profissional.md) | Organize a trajetória, as competências e os projetos. Vincule a [evidência](exemplo/base/perfil/evidencias/painel-indicadores-operacionais.md) que sustenta cada afirmação relevante. |
+| [Perfil profissional](exemplo/base/perfil/perfil-profissional.md) | Organize a trajetória, as competências e os projetos. Vincule a [evidência](exemplo/base/perfil/evidencias/mapa-de-entregas-de-hyrule.md) que sustenta cada afirmação relevante. |
 | [Objetivos](exemplo/base/estrategia/objetivos.md) | Registre o que você busca, o que é requisito e o que ainda pode negociar. |
-| [Portfólio](exemplo/base/portfolio/painel-indicadores-operacionais.md) | Apresente o problema, sua contribuição, como você conferiu o resultado e quais limites permanecem. |
+| [Portfólio](exemplo/base/portfolio/mapa-de-entregas-de-hyrule.md) | Apresente o problema, sua contribuição, como você conferiu o resultado e quais limites permanecem. |
 | [Currículo base](exemplo/base/curriculos/base.md) | Selecione os fatos e as entregas que podem ser reaproveitados em candidaturas. |
 | [Dossiê da vaga](exemplo/modelo/processo.md) | Veja como o [anúncio](exemplo/modelo/vaga.md) orienta a [avaliação](exemplo/modelo/avaliacao.md), a [pesquisa salarial](exemplo/modelo/benchmark-salarial.md), o [currículo específico](exemplo/modelo/curriculo.md) e a [carta](exemplo/modelo/carta.md). |
 

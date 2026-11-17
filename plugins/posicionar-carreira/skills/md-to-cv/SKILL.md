@@ -10,7 +10,7 @@ Use o conversor para gerar um PDF de coluna única com texto selecionável. Reso
 Antes de gerar, confira o Markdown de trabalho da vaga. Preserve o conteúdo enviado em `envios/` e atualize apenas o PDF de trabalho autorizado. Conserve o vínculo do processo com a versão de trabalho.
 
 ```powershell
-python -B "<pasta-da-skill>/scripts/convert.py" "<caminho-do-dossie>/curriculo.md" --output "Marina_Exemplo_CV_Laboratorio_Exemplo_Analista_Dados.pdf"
+python -B "<pasta-da-skill>/scripts/convert.py" "<caminho-do-dossie>/curriculo.md" --output "Zelda_de_Hyrule_CV_Conselho_de_Rotas_de_Hyrule_Cartografa_de_Rotas.pdf"
 ```
 
 Passe o caminho absoluto ou relativo ao diretório atual. `--output` recebe só o nome do PDF. O conversor grava o arquivo ao lado do Markdown. Sem a opção, usa o nome da fonte com extensão `.pdf`.

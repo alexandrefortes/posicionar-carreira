@@ -1,13 +1,13 @@
 # Carta de candidatura
 
-Rascunho fictício para a vaga de Pessoa Analista de Dados no Laboratório Exemplo. Em revisão.
+Rascunho fictício para a vaga de Cartógrafa de Rotas no Conselho de Rotas de Hyrule. Em revisão.
 
-À equipe de seleção do Laboratório Exemplo,
+À equipe de seleção do Conselho de Rotas de Hyrule,
 
-Tenho interesse na vaga de Pessoa Analista de Dados porque ela reúne duas partes do trabalho que fiz no Observatório Horizonte: preparar os dados de atendimento e explicar, com a equipe de operação, o que os indicadores mostram.
+Tenho interesse na vaga porque ela reúne duas partes do trabalho que fiz no Arquivo Real de Hyrule. Eu conferia os livros de remessas com os postos e atualizava os mapas que as equipes usavam para orientar os despachos.
 
-Nesse projeto, escrevi consultas SQL para consolidar os eventos e manter o registro mais recente de cada identificador. Testei a regra em uma amostra sintética com 12 registros e duas duplicatas. A consulta retornou 10 eventos distintos. Também construí um painel piloto com os volumes semanais e a mediana do tempo de atendimento, documentei os cálculos e conferi as definições com a equipe de operação.
+No piloto do Mapa de entregas de Hyrule, organizei os lançamentos de Vila Kakariko e Cidade Goron pelo número de despacho e mantive a versão mais recente de cada remessa. A conferência de 12 lançamentos fictícios recuperou 10 remessas distintas. Também documentei com os postos como calcular o volume semanal de expedições e a mediana do tempo de percurso das remessas concluídas.
 
-Posso levar esse cuidado com a qualidade das contagens e a explicação dos indicadores para a rotina de análise do Laboratório Exemplo. Na conversa técnica, posso apresentar o teste de deduplicação e mostrar como conferi o resultado.
+Na conversa técnica, posso levar uma folha de conferência do piloto e mostrar como corrigíamos uma data de chegada preservando a contagem semanal. Gostaria de entender como os postos do Conselho compartilham atualizações de caminhos hoje.
 
-Marina Exemplo
+Zelda de Hyrule

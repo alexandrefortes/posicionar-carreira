@@ -1,31 +1,35 @@
-# Marina Exemplo
+# Zelda de Hyrule
 
-**Perfil fictício.** Este registro reúne os fatos que alimentam o currículo e o portfólio de demonstração.
+**Perfil fictício.** Este registro reúne os fatos inventados que alimentam o currículo e o portfólio de demonstração.
 
 ## Posicionamento
 
-Analista de dados com foco em indicadores operacionais. Atua desde a organização dos registros em SQL até a definição das métricas e a visualização no painel.
+Cartógrafa com foco em rotas de abastecimento. Organiza livros de remessas, confere os registros com os postos de expedição e transforma as contagens em informações legíveis no mapa.
 
 ## Experiência
 
-### Analista de Dados | Observatório Horizonte (fictício)
+### Cartógrafa | Arquivo Real de Hyrule
 
-**Janeiro de 2023 a dezembro de 2024.** Trabalhou com registros de atendimento usados pela equipe de operações. Escreveu consultas em SQL, preparou dados para análise e documentou como os indicadores deveriam ser calculados.
+**Janeiro de 2023 a dezembro de 2024.** Trabalhou com os registros de expedição de Vila Kakariko e Cidade Goron. Preparou mapas de trabalho e documentou os critérios de contagem usados no piloto.
 
-- Consolidou os eventos de atendimento com uma consulta que mantém o registro mais recente de cada identificador.
-- Montou um painel piloto com o volume semanal de eventos e a mediana do tempo de atendimento.
-- Conferiu com a equipe de operações a definição das métricas e os resultados de uma amostra de teste. A consulta retornou 10 eventos distintos a partir de 12 registros sintéticos. A amostra não mede impacto na operação.
+- Organizou os lançamentos por número de despacho e manteve a correção mais recente de cada remessa.
+- Desenhou um mapa piloto com o volume semanal de expedições e a mediana do tempo de percurso das remessas concluídas.
+- Conferiu com os postos os resultados de 12 lançamentos fictícios que representavam 10 remessas. A conferência validou a regra de contagem na amostra.
+
+### Auxiliar de mapas | Posto de Vila Kakariko
+
+**Janeiro a dezembro de 2022.** Atualizou mapas de trabalho com referências de caminho trazidas pelos mensageiros. Registrou as mudanças em um caderno para a equipe identificar quais mapas precisavam de revisão.
 
 ## Projetos e evidências
 
-- [Painel de indicadores operacionais](../portfolio/painel-indicadores-operacionais.md) descreve o problema, a decisão técnica e o estágio da entrega.
-- [Registro de evidência](evidencias/painel-indicadores-operacionais.md) detalha a amostra e o alcance da verificação.
+- [Mapa de entregas de Hyrule](../portfolio/mapa-de-entregas-de-hyrule.md) descreve o problema, as decisões e o resultado do piloto.
+- [Registro de evidência](evidencias/mapa-de-entregas-de-hyrule.md) detalha a amostra e o alcance da verificação.
 
 ## Competências
 
-- SQL para consolidação e deduplicação de registros.
-- Definição, documentação e verificação de indicadores operacionais.
-- Construção de painéis e apresentação dos critérios de cálculo à equipe de operações.
+- Cartografia e revisão de itinerários a partir de registros de viagem.
+- Consolidação de livros de remessas e conferência de contagens.
+- Definição de indicadores e revisão de critérios com os postos de expedição.
 
 ## Materiais derivados
 
