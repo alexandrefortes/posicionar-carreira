@@ -2,7 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-import test_dados  # configura o acesso aos módulos de server/
+import test_dados
 from curriculos import resolver_curriculos
 
 

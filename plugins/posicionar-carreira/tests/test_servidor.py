@@ -82,6 +82,17 @@ class ServidorTest(unittest.TestCase):
             self.assertEqual(atual[campo], valor)
         return atual
 
+    def test_mesmo_anuncio_identifica_dois_cargos(self):
+        for cargo in ("Gerência", "Coordenação"):
+            argumentos = {"empresa": "Empresa Nova", "titulo": cargo, "fonte": FONTE_ANUNCIO, "fonte_compartilhada": True}
+            resposta = self.mcp("tools/call", {"name": "criar_vaga", "arguments": argumentos})
+            self.assertFalse(resposta.get("isError"), resposta)
+            fato = resposta["structuredContent"]["eventos"][0]
+            self.assertIn(cargo, fato["descricao"])
+            self.assertEqual(fato["fonte"], FONTE_ANUNCIO)
+        repetida = self.mcp("tools/call", {"name": "criar_vaga", "arguments": argumentos})
+        self.assertTrue(repetida["isError"])
+
     def test_mcp_cadastra_e_registra_evento_com_responsavel_configurado(self):
         resposta = self.mcp("tools/call", {"name": "criar_vaga", "arguments": {
             "empresa": "Outra Empresa", "titulo": "Nova Vaga", "fonte": FONTE_ANUNCIO,

@@ -1,4 +1,3 @@
-"""Verificação e preparação opcional da pasta de dados de carreira."""
 from pathlib import Path
 
 from dados import resolver_carreira_root

@@ -107,6 +107,10 @@ Use apenas `final_score`, `label` e `disqualified` devolvidos pelo script. Guard
 
 ## Continuidade
 
+Ao identificar a vaga, passe a linha completa da pendência em `pendencia_triagem` a `registrar_evento` ou `atualizar_vaga`. Informe o fato e a fonte. Confira o evento no dossiê e o link de resolução na triagem. Se a associação continuar incerta, mantenha a pendência aberta.
+
+Quando uma fonte cobrir várias vagas, guarde um único original. Para cada vaga confirmada, registre o fato específico no dossiê e vincule a mesma fonte. Consulte os [locais dos originais e o procedimento de cadastro](../../README.md#gestão-de-oportunidades).
+
 Antes de agir, leia o processo existente e compare o alerta recebido com os eventos e fontes: um lembrete não prova nova pendência. Mensagem sem cargo e possível duplicação ficam em `monitoramento/triagem.md` até associação confirmada. Use IDs e caminhos permanentes; o mês não cria outra candidatura.
 
 Registre mudanças confirmadas e autorizadas pelo [MCP](#gestão-de-processos). O painel do plugin consulta os processos oficiais e usa `painel-vagas.md` como índice de ordem. Preserve a curadoria manual no Markdown. Consulte o [guia de gestão](../../README.md#validação-painel-markdown-e-relatórios) para validação e relatórios mensais.

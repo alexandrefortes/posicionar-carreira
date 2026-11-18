@@ -26,15 +26,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-MAX_PAGES = 2            # CV: mire em 1-2 paginas
-MIN_EXTRACT_CHARS = 200  # abaixo disso, a extracao pode ter falhado
+MAX_PAGES = 2
+MIN_EXTRACT_CHARS = 200
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
 TEMPLATE = SKILL_DIR / "scripts" / "template.tex"
 
 
 def find_tool(name: str, search_globs: tuple = ()) -> str:
-    """Acha o executavel no PATH ou nos locais conhecidos de instalacao (Windows)."""
     found = shutil.which(name)
     if found:
         return found
@@ -80,7 +79,6 @@ def extract_text(pdf_path: Path) -> str:
 
 
 def ats_check(pdf_path: Path) -> None:
-    """Teste de ATS: confirma que o texto e selecionavel e mostra o topo."""
     text = extract_text(pdf_path)
     chars = len(text.strip())
     print("\n--- Teste ATS (extracao de texto) ---")
@@ -134,8 +132,6 @@ def convert(md_path: Path, output_name: str | None = None) -> Path:
     run([
         pandoc,
         str(md_path),
-        # respeita as quebras de linha do .md (cabecalho, contato) sem depender
-        # de espacos no fim da linha, que editores costumam apagar ao salvar
         "--from", "markdown+hard_line_breaks",
         "--template", str(TEMPLATE),
         "--pdf-engine", pdflatex,

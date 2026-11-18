@@ -12,6 +12,8 @@ codex plugin marketplace add .
 codex plugin add posicionar-carreira@carreira-local
 ```
 
+Se já usa este marketplace, atualize a pasta registrada e execute novamente `codex plugin add posicionar-carreira@carreira-local`. A versão 0.9.0 encerra pendências na triagem ao registrar o fato e permite vincular uma fonte original a várias vagas. [Usar triagem e fontes compartilhadas](plugins/posicionar-carreira/README.md#gestão-de-oportunidades)
+
 ## Verificar e preparar a base
 
 1. No Codex desktop, abra uma conversa local e selecione **Posicionar Carreira** do catálogo **Carreira local**.

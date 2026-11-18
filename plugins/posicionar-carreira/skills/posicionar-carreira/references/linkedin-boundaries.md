@@ -2,22 +2,20 @@
 
 ## Escopo da plataforma
 
-Para o LinkedIn, usar snapshots, capturas, exportações fornecidas e leitura passiva de páginas públicas acessíveis por meios permitidos. Preparar textos de perfil, post, comentário, mensagem e candidatura não equivale a publicá-los ou enviá-los.
+Use capturas e exportações fornecidas pela pessoa ou faça leitura passiva de páginas públicas por meios permitidos. Prepare rascunhos de perfil, post, comentário, mensagem ou candidatura conforme o pedido. Publicar, enviar mensagens ou alterar o perfil exige autorização própria.
 
-Não fazer scraping, coleta em massa, paginação automatizada ou automação de atividades dentro do LinkedIn por navegador/extensão de terceiros. Não contornar autenticação, CAPTCHA, restrições de acesso ou bloqueios. Quando a operação necessária não for permitida, entregar texto e instrução para execução manual, mantendo o restante do trabalho autorizado.
+Não faça scraping, coleta em massa, paginação automatizada ou automação no LinkedIn com navegador ou extensão de terceiros. Respeite autenticação, CAPTCHA e bloqueios mesmo com autorização da pessoa. Se a operação for restrita, entregue o texto e as instruções para execução manual. Prossiga com as demais etapas autorizadas. [Política de atividade automatizada consultada em 07/09/2026](https://www.linkedin.com/help/linkedin/answer/a1340567/automated-activity-on-linkedin)
 
-A página oficial de [atividade automatizada](https://www.linkedin.com/help/linkedin/answer/a1340567/automated-activity-on-linkedin) descreve as restrições a software de terceiros que automatiza atividades no site. Siga as regras da plataforma nas ações que a pessoa autorizar.
-
-Essa fronteira não proíbe genericamente preparar ou preencher formulários externos de recrutamento. Para eles, verificar a ferramenta, as regras aplicáveis e a autorização, seguindo [candidaturas](candidaturas.md). Não transportar a autorização de preencher um formulário para envio de mensagens, publicações ou alteração pública do perfil.
+Para formulários externos de recrutamento, confira a ferramenta, as regras aplicáveis e a autorização de preenchimento. [Candidaturas](candidaturas.md)
 
 ## Posicionamento e confidencialidade
 
-- Comparar perfil publicado, objetivos atuais e evidências confirmadas. Preservar a voz e distinguir auditoria, proposta de texto e alteração efetiva.
-- Respeitar preferências de privacidade informadas pela pessoa. Ativar sinalização pública de busca exige autorização específica.
-- Usar palavras-chave que representem experiência real. Não prometer posição fixa em buscas, aprovação de ATS ou resultado de recrutamento.
-- Analisar métricas fornecidas em períodos comparáveis; não inferir posição universal em buscas personalizadas a partir de poucas observações.
-- Antes de divulgar uma evidência, conferir o escopo autorizado. Informação interna, dados sensíveis, contexto de saúde e motivos privados de transição não entram em conteúdo público por simples presença nos arquivos profissionais.
+- Compare perfil publicado, objetivos e evidências confirmadas. Preserve a voz da pessoa. Distinga o que analisou, propôs ou efetivamente alterou.
+- Respeite a preferência de discrição registrada. Peça autorização própria para ativar a sinalização pública de busca.
+- Use palavras-chave sustentadas pela experiência. Não prometa posição em buscas, aprovação de ATS ou resultado de recrutamento.
+- Compare métricas fornecidas para períodos equivalentes. Buscas personalizadas isoladas não sustentam conclusões sobre a posição geral.
+- Confira a autorização antes de divulgar evidências. Preserve informações internas, dados sensíveis, contexto de saúde e motivos privados de transição.
 
 ## Outras referências oficiais
 
-Confira as fontes oficiais antes de afirmar como um recurso, métrica ou política funciona. [Relevância da busca](https://www.linkedin.com/help/linkedin/answer/a524188/linkedin-search-relevance-people-search) · [Perfil](https://www.linkedin.com/help/linkedin/answer/a554351/how-do-i-create-a-good-linkedin-profile-) · [Analytics](https://www.linkedin.com/help/linkedin/answer/a712399)
+Em 28/08/2026 foram consultadas as orientações sobre [relevância da busca](https://www.linkedin.com/help/linkedin/answer/a524188/linkedin-search-relevance-people-search), [perfil](https://www.linkedin.com/help/linkedin/answer/a554351/how-do-i-create-a-good-linkedin-profile-) e [analytics](https://www.linkedin.com/help/linkedin/answer/a712399). Confira a fonte antes de afirmar como um recurso, métrica ou política funciona hoje.

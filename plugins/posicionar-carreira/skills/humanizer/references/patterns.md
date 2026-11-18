@@ -1,370 +1,183 @@
 # Pattern catalog and false-positive guide
 
-Read this reference when a candidate pattern is ambiguous or its boundary affects whether a rewrite is justified. The examples help classify prose; they do not create a requirement to edit.
+Use this guide when the context leaves a pattern in doubt. Apply the [rewrite criteria](../SKILL.md#decide-whether-to-rewrite) before editing. Examples illustrate local changes. Preserve every supported claim in the actual passage.
 
 ## Content patterns
 
 ### 1. Inflated claims about importance and legacy
-**Words to watch:** stands/serves as, is a testament/reminder, a vital/significant/crucial/pivotal/key role/moment, underscores/highlights its importance/significance, reflects broader, symbolizing its ongoing/enduring/lasting, contributing to the, setting the stage for, marking/shaping the, represents/marks a shift, key turning point, evolving landscape, focal point, indelible mark, deeply rooted
-**Problem:** AI writing often claims that ordinary details mark a major change, prove a legacy, or reflect a broad trend.
-**Before:**
-> The Statistical Institute of Catalonia was officially established in 1989, marking a pivotal moment in the evolution of regional statistics in Spain. This initiative was part of a broader movement across Spain to decentralize administrative functions and enhance regional governance.
-**After:**
-> The Statistical Institute of Catalonia was established in 1989, part of a wider decentralization of administrative functions in Spain.
+
+Look for *a pivotal moment*, *indelible mark*, *stands as a testament*, or claims that one event reflects a wider trend. Keep the event and any documented relationship. “The institute was established in 1989 as part of Spain's decentralization” gives a date and context without declaring its historical importance.
 
 ### 2. Name-dropping to prove importance
-**Words to watch:** independent coverage, local/regional/national media outlets, written by a leading expert, active social media presence
-**Problem:** AI writing often lists well-known publications or follower counts to prove that a person matters. The list usually gives no useful context.
-**Before:**
-> Her views have been cited in The New York Times, BBC, Financial Times, and The Hindu. She maintains an active social media presence with over 500,000 followers.
-**After:**
-> Her views have been cited in The New York Times and the BBC.
 
-If the source explains what the person said and where, keep that useful citation. Do not invent context for a shorter version.
+A list of outlets or followers establishes where someone appeared or how large an audience was. It cannot establish influence on its own. Keep relevant names, counts, and what the person said if the source supplies it.
 
 ### 3. Shallow analysis with -ing phrases
-**Words to watch:** highlighting/underscoring/emphasizing..., ensuring..., reflecting/symbolizing..., contributing to..., cultivating/fostering..., encompassing..., showcasing...
-**Problem:** AI writing often adds an -ing phrase to make a simple fact sound deeper than it is.
-**Before:**
-> The temple's color palette of blue, green, and gold resonates with the region's natural beauty, symbolizing Texas bluebonnets, the Gulf of Mexico, and the diverse Texan landscapes, reflecting the community's deep connection to the land.
-**After:**
-> The temple is painted blue, green, and gold, colors meant to evoke Texas bluebonnets and the Gulf of Mexico.
+
+Inspect chains of *highlighting*, *symbolizing*, *fostering*, or *showcasing*. Keep concrete relationships. “The blue and gold evoke the coast” states a design intention if the source supports it. A claim about “reflecting the community's deep connection” needs its own basis.
 
 ### 4. Sales language
-**Words to watch:** boasts a, vibrant, rich (figurative), profound, enhancing its, showcasing, exemplifies, commitment to, natural beauty, nestled, in the heart of, groundbreaking (figurative), renowned, breathtaking, must-visit, stunning
-**Problem:** AI writing often sounds like an advertisement, especially when it describes places, culture, products, or organizations.
-**Before:**
-> Nestled within the breathtaking region of Gonder in Ethiopia, Alamata Raya Kobo stands as a vibrant town with a rich cultural heritage and stunning natural beauty.
-**After:**
-> Alamata Raya Kobo is a town in the Gonder region of Ethiopia.
+
+Watch for *boasts*, *vibrant*, *nestled in*, *groundbreaking*, or *must-visit*, especially in descriptions of places, products, or organizations. “The town is in Gonder” gives the location. Retain any specific cultural or geographic feature the source describes.
 
 ### 5. Vague sources
-**Words to watch:** Industry reports, Observers have cited, Experts argue, Some critics argue, several sources/publications (when few cited)
-**Problem:** AI writing often assigns a claim to unnamed experts, critics, reports, or observers.
-**Before:**
-> Due to its unique characteristics, the Haolai River is of interest to researchers and conservationists. Experts believe it plays a crucial role in the regional ecosystem.
-**After:**
-> Researchers and conservationists study the Haolai River for its unusual characteristics.
 
-Name a real source when the source text provides one. Otherwise, remove the unsupported claim. Never invent a source.
+“Experts believe”, “industry reports show”, and “observers have noted” need a source. Name the source if supplied. Remove unsupported attribution rather than inventing an expert or presenting their supposed opinion as fact.
 
 ### 5a. Vague evaluation when exact evidence is available
-**Problem:** A passage may summarize a measured result with a loose adjective such as *large*, *strong*, *significant*, or an equivalent in the target language even though the source already provides the exact comparison. When the prose is meant to carry the evidence on its own, replace the vague evaluation with that supported measure. Do not add outside facts, repeat a number where the qualitative summary is deliberate, or weaken a personal opinion or self-assessment merely because it is strong.
+
+If a passage must convey a measured result on its own, use the comparison already in the source in place of *large*, *strong*, or *significant*. Keep deliberate qualitative summaries and the force of personal opinions and self-assessments.
 
 ### 6. Formulaic challenges and outlook sections
-**Words to watch:** Despite its... faces several challenges..., Despite these challenges, Challenges and Legacy, Future Outlook
-**Problem:** AI articles often add a stock section about challenges, future prospects, or continued growth. These sections usually repeat vague claims instead of adding facts.
-**Before:**
-> Despite its industrial prosperity, Korattur faces challenges typical of urban areas, including traffic congestion and water scarcity. Despite these challenges, with its strategic location and ongoing initiatives, Korattur continues to thrive as an integral part of Chennai's growth.
-**After:**
-> Korattur has recurring traffic congestion and water shortages.
 
-Add details such as dates or public actions only when they come from the source or the user.
+A heading such as “Future Outlook” often introduces generic adversity and optimism. Identify the actual issue, such as recurring traffic congestion and water shortages. Include dates, public action, or plans only when documented.
 
 ## Language and grammar patterns
 
 ### 7. Overused AI words
-**High-frequency AI words:** Actually, additionally, align with, crucial, delve, emphasizing, enduring, enhance, fostering, garner, gate/gated/gating (figurative; preserve established technical usage), highlight (verb), interplay, intricate/intricacies, key (adjective), landscape (abstract noun), pivotal, quietly, showcase, tapestry (abstract noun), testament, underscore (verb), valuable, vibrant
-**Problem:** AI writing uses these words much more often than most people do, especially in groups.
-**Before:**
-> Additionally, a distinctive feature of Somali cuisine is the incorporation of camel meat. An enduring testament to Italian colonial influence is the widespread adoption of pasta in the local culinary landscape, showcasing how these dishes have integrated into the traditional diet.
-**After:**
-> Somali cuisine also includes camel meat, which is considered a delicacy. Pasta dishes, introduced during Italian colonization, remain common, especially in the south.
+
+Watch for clusters of *actually, additionally, align with, crucial, delve, emphasize, enduring, enhance, foster, garner, gate, highlight, interplay, intricate, key, landscape, pivotal, quietly, showcase, tapestry, testament, underscore, valuable,* and *vibrant*. Figurative uses of *gate* or *landscape* differ from established technical meanings. A cluster matters when the words obscure the point or disrupt the writer's voice.
 
 ### 8. Avoiding is and are
-**Words to watch:** serves as/stands as/marks/represents [a], boasts/features/offers [a]
-**Problem:** AI writing often replaces simple verbs such as *is*, *are*, and *has* with longer phrases.
-**Before:**
-> Gallery 825 serves as LAAA's exhibition space for contemporary art. The gallery features four separate spaces and boasts over 3,000 square feet.
-**After:**
-> Gallery 825 is LAAA's exhibition space for contemporary art. The gallery has four rooms totaling 3,000 square feet.
+
+When *serves as*, *stands as*, *boasts*, or *features* carries no additional meaning, use the simple verb. “Gallery 825 is the exhibition space. It has four rooms.”
 
 ### 9. Not X but Y and clipped negative endings
-**Problem:** AI writing overuses forms such as "Not only...but..." and "It's not just X, it's Y."
-It also adds clipped endings such as "no guessing" instead of writing a clear clause.
-**Before:**
-> It's not just about the beat riding under the vocals; it's part of the aggression and atmosphere. It's not merely a song, it's a statement.
-**After:**
-> The heavy beat adds to the aggressive tone.
-**Before (tailing negation):**
-> The options come from the selected item, no guessing.
-**After:**
-> The options come from the selected item without forcing the user to guess.
+
+In formulas such as “It's not just X, it's Y”, identify both claims. Keep both when the distinction matters. A clipped “The options come from the selected item, no guessing” can become “The options come from the selected item, so the user does not have to guess.”
 
 ### 10. Forced groups of three
-**Problem:** AI writing often forces ideas into groups of three to sound complete.
-**Before:**
-> The event features keynote sessions, panel discussions, and networking opportunities. Attendees can expect innovation, inspiration, and industry insights.
-**After:**
-> The event includes talks and panels. There's also time for informal networking between sessions.
+
+Distinguish a real list from a trio added to sound complete. “Talks, panels, and time for networking” describes a program. “Innovation, inspiration, and insights” adds little unless the source says what attendees will learn.
 
 ### 11. Changing names and repeating sentence openings
-**Problem:** AI writing handles repetition by rule instead of by ear. It may keep renaming the same person or thing. It may also start several sentences with the same subject, often *she* or *he*.
-Use one clear name for the same subject. For repeated openings, merge sentences, change the subject when that helps, or begin with the action.
-**Before (synonym cycling):**
-> The protagonist faces many challenges. The main character must overcome obstacles. The central figure eventually triumphs. The hero returns home.
-**After:**
-> The protagonist faces many challenges but eventually triumphs and returns home.
-**Before (repeated openings):**
-> She noted the door. She noted the lock on it. She filed both away.
-**After:**
-> She noted the door and its lock, then filed both away.
 
-Do not ban the repeated word. Fix the repeated sentence pattern. The remaining sentence may still start with "She."
+Use one name for one subject. Switching between *protagonist*, *main character*, and *central figure* can imply different people. When repeated openings add no rhythm or meaning, combine actions or change the subject. “She noted the door. She noted the lock” becomes “She noted the door and its lock.”
 
 ### 12. False from X to Y ranges
-**Problem:** AI writing often uses "from X to Y" when X and Y do not form a real range.
-**Before:**
-> Our journey through the universe has taken us from the singularity of the Big Bang to the grand cosmic web, from the birth and death of stars to the enigmatic dance of dark matter.
-**After:**
-> The book covers the Big Bang, star formation, and current theories about dark matter.
+
+Use “from X to Y” for a real range. If the examples are separate subjects, list them directly. “The book covers the Big Bang, star formation, and dark matter.”
 
 ### 13. Passive voice, missing subjects, and vague referents
-**Problem:** AI writing often hides who acts, drops the subject, or uses a vague demonstrative such as *this*, *that*, *it*, or its equivalent in the target language to compress a concrete actor, action, or relationship. Use active voice or name the referent when doing so materially clarifies who does what or how two ideas relate. Do not replace a demonstrative whose referent is already immediate and unambiguous.
-**Before:**
-> No configuration file needed. The results are preserved automatically.
-**After:**
-> You do not need a configuration file. The system preserves the results automatically.
+
+Name the actor or referent when that resolves uncertainty. “The system saves the results” identifies who saves them. A pronoun or demonstrative that clearly refers to the preceding sentence needs no replacement.
 
 ## Style patterns
 
 ### 14. Em and en dashes
-**Rule:** An em dash (—), en dash (–), spaced dash (` — `), or double hyphen (` -- `) does not justify a rewrite by itself. When a passage needs rewriting for another supported reason, consider a period, comma, colon, or parentheses if it improves readability and fits the writer's style.
-**Before:**
-> The term is primarily promoted by Dutch institutions—not by the people themselves. You don't say "Netherlands, Europe" as an address—yet this mislabeling continues—even in official documents.
-**After:**
-> The term is primarily promoted by Dutch institutions, not by the people themselves. You don't say "Netherlands, Europe" as an address, yet this mislabeling continues in official documents.
-**Before:**
-> The new policy — announced without warning — affects thousands of workers. The changes -- long overdue according to critics -- will take effect immediately.
-**After:**
-> The new policy, announced without warning, affects thousands of workers. The changes, long overdue according to critics, will take effect immediately.
 
-Before returning rewritten prose, check whether the dashes in the changed passages suit the writer's style and the current instructions. Do not edit an otherwise acceptable passage solely to remove a dash.
+A dash alone never triggers a rewrite. When a passage needs editing for another reason, change its punctuation only if it improves readability and fits the writer’s voice.
 
 ### 15. Too much bold text
-**Problem:** AI chatbots often bold words and phrases without a clear reason.
-**Before:**
-> It blends **OKRs (Objectives and Key Results)**, **KPIs (Key Performance Indicators)**, and visual strategy tools such as the **Business Model Canvas (BMC)** and **Balanced Scorecard (BSC)**.
-**After:**
-> It blends OKRs, KPIs, and visual strategy tools like the Business Model Canvas and Balanced Scorecard.
+
+Reserve bold for meaningful emphasis. Several acronyms in one sentence rarely need every term and expansion in bold. Keep the expansions themselves.
 
 ### 16. Lists with bold mini-headings
-**Problem:** AI writing often uses vertical lists in which every item starts with a bold label and a colon.
-**Before:**
-> - **User Experience:** The user experience has been significantly improved with a new interface.
-> - **Performance:** Performance has been enhanced through optimized algorithms.
-> - **Security:** Security has been strengthened with end-to-end encryption.
-**After:**
-> The update improves the interface, speeds up load times through optimized algorithms, and adds end-to-end encryption.
+
+A label that repeats the following words can go. For example, “**Performance:** Performance improved through optimized algorithms” can become “Optimized algorithms improved performance.” Preserve labels when they help the reader find an item.
 
 ### 17. Title case in headings
-**Problem:** AI chatbots often capitalize every main word in a heading.
-**Before:**
-> ## Strategic Negotiations And Global Partnerships
-**After:**
-> ## Strategic negotiations and global partnerships
+
+Follow the publication's style. In sentence case, “Strategic Negotiations and Global Partnerships” becomes “Strategic negotiations and global partnerships.”
 
 ### 18. Emojis
-**Problem:** AI chatbots often add emojis to headings and list items as decoration.
-**Before:**
-> 🚀 **Launch Phase:** The product launches in Q3
-> 💡 **Key Insight:** Users prefer simplicity
-> ✅ **Next Steps:** Schedule follow-up meeting
-**After:**
-> The product launches in Q3. User research showed a preference for simplicity. Next step: schedule a follow-up meeting.
+
+Remove purely decorative icons from headings or lists when they conflict with the writer's style. “🚀 **Launch Phase:** The product launches in Q3” can become “The product launches in Q3.”
 
 ### 19. Curly quotation marks
-**Problem:** ChatGPT often uses curly quotes (“...”) where the writer or target format uses straight quotes ("...").
-**Before:**
-> He said “the project is on track” but others disagreed.
-**After:**
-> He said "the project is on track" but others disagreed.
+
+Match the writer or target format when editing a passage. Word processors and content management systems often supply curly quotes automatically.
 
 ## Chatbot patterns
 
 ### 20. Chatbot text left in the answer
-**Words to watch:** I hope this helps, Of course!, Certainly!, You're absolutely right!, Would you like..., Want me to...?, Want me to give examples?, Should I continue?, let me know, here is a...
-**Problem:** A chatbot's greeting, offer, or closing sometimes remains in text that should stand on its own.
-**Before:**
-> Here is an overview of the French Revolution. I hope this helps! Let me know if you'd like me to expand on any section.
-**After:**
-> The French Revolution began in 1789 when financial crisis and food shortages led to widespread unrest.
+
+Remove conversational leftovers from standalone material, including “Of course!”, “Here is an overview”, “I hope this helps”, or “Would you like more examples?” Start with the first fact the source actually gives.
 
 ### 21. Knowledge-limit disclaimers and guesses
-**Words to watch:** as of [date], Up to my last training update, While specific details are limited/scarce..., based on available information, not publicly available, maintains a low profile, keeps personal details private, prefers to stay out of the spotlight, likely [grew up/studied/began], it is believed that
-**Problem:** Older models may mention the date when their knowledge ends. A model may also explain that it could not find a source, then fill the gap with a plausible guess. State what the source does not show, or remove the sentence. Do not present a guess as a fact.
-**Before (cutoff disclaimer):**
-> While specific details about the company's founding are not extensively documented in readily available sources, it appears to have been established sometime in the 1990s.
-**After:**
-> The company's founding date is not documented in the available sources. (Or cut the sentence. State a date only if a source provides one.)
-**Before (speculative gap-fill):**
-> Information about her early life is not publicly available, suggesting she maintains a low profile and keeps personal details private. She likely grew up in a middle-class household, which shaped her later interest in education reform.
-**After:**
-> Her early life is not documented in the available sources. (Or omit the section.)
+
+Remove statements about the model's training cutoff. Where a gap matters, describe what the available sources document. “Her early life is undocumented” does not support claims that she preferred privacy or grew up in a middle-class household. Omit an empty section when the gap does not matter.
 
 ### 22. Overly agreeable tone
-**Problem:** AI assistants often praise the user or agree before giving the answer.
-**Before:**
-> Great question! You're absolutely right that this is a complex topic. That's an excellent point about the economic factors.
-**After:**
-> The economic factors you mentioned are relevant here.
+
+Delete automatic praise or assent, such as “Great question!” or “You're absolutely right!” Answer the substance. Keep a deliberate expression of agreement when it conveys the writer's position.
 
 ## Filler and hedging
 
 ### 23. Filler phrases
-**Before → After:**
-- "In order to achieve this goal" → "To achieve this"
-- "Due to the fact that it was raining" → "Because it was raining"
-- "At this point in time" → "Now"
-- "In the event that you need help" → "If you need help"
-- "The system has the ability to process" → "The system can process"
-- "It is important to note that the data shows" → "The data shows"
+
+| Wording | Shorter form |
+| --- | --- |
+| in order to | to |
+| due to the fact that | because |
+| at this point in time | now |
+| in the event that | if |
+| has the ability to | can |
+| it is important to note that the data shows | the data shows |
 
 ### 24. Too many qualifiers
-**Phrases to watch:** to be fair, it's also possible, could potentially, might arguably, in some cases it may, this is an inference
-**Problem:** Repeated editing can add one qualifier after another until every claim sounds uncertain. Keep a qualifier only when the source supports it and the meaning needs it. Remove caveats that only repair an earlier overstatement.
-**Before:**
-> It could potentially possibly be argued that the policy might have some effect on outcomes.
-**After:**
-> The policy may affect outcomes.
+
+Keep the uncertainty the source expresses. Stacked qualifiers (*could potentially*, *might arguably*, *in some cases it may*) can express the same uncertainty several times. “The policy may affect outcomes” retains uncertainty. Remove a caveat that only repairs an earlier overstatement.
 
 ### 25. Generic positive endings
-**Problem:** AI writing often ends with vague optimism instead of the last useful fact.
-**Before:**
-> The future looks bright for the company. Exciting times lie ahead as they continue their journey toward excellence. This represents a major step in the right direction.
-**After:**
-> (Cut the paragraph. End on the last concrete fact instead of a send-off. If the source states real plans, use those.)
+
+Drop send-offs such as “Exciting times lie ahead.” End on the last concrete fact or an actual plan the source gives.
 
 ### 26. Too many hyphenated word pairs
-**Words to watch:** third-party, cross-functional, client-facing, data-driven, decision-making, well-known, high-quality, real-time, long-term, end-to-end
-**Problem:** AI writing often hyphenates these pairs everywhere. Keep the hyphen before a noun when grammar needs it, as in `a high-quality report`. Drop it after the noun, as in `the report is high quality`.
-**Before:**
-> The cross-functional team delivered a high-quality, data-driven report. The team is cross-functional, the report is high-quality, and the methodology is data-driven.
-**After:**
-> The cross-functional team delivered a high-quality, data-driven report. The team is cross functional, the report is high quality, and the methodology is data driven.
+
+Follow the grammar of the phrase. Compare “a high-quality report” with “the report is high quality.” Combinations such as *client-facing*, *data-driven*, and *long-term* need a decision in context.
 
 ### 27. Pretending to reveal a deeper truth
-**Phrases to watch:** The real question is, at its core, in reality, what really matters, fundamentally, the deeper issue, the heart of the matter
-**Problem:** AI writing uses these phrases to make an ordinary point sound like a hidden truth.
-**Before:**
-> The real question is whether teams can adapt. At its core, what really matters is organizational readiness.
-**After:**
-> The question is whether teams can adapt. That mostly depends on whether the organization is ready to change its habits.
+
+“At its core”, “the real question”, and “what really matters” can announce a revelation where a direct claim suffices. “Teams need to change their habits” identifies the requirement.
 
 ### 28. Announcing the next point
-**Phrases to watch:** Let's dive in, let's explore, let's break this down, here's what you need to know, now let's look at, without further ado, heads up, quick note, before I forget
-**Problem:** AI writing often announces the next point instead of stating it. A casual phrase such as "one thing that bit me" can have the same problem. Remove the announcement, not just its formal tone.
-**Before:**
-> Let's dive into how caching works in Next.js. Here's what you need to know.
-**After:**
-> Next.js caches data at multiple layers, including request memoization, the data cache, and the router cache.
-**Before (casual register):**
-> One thing that bit me hard, so pay attention to this part: the webpack dev server doesn't send the CORS header by default.
-**After:**
-> The webpack dev server doesn't send the CORS header by default.
+
+Delete announcements such as “Let's dive into caching” or “Here's what you need to know.” Casual warnings can do the same thing. “One thing that bit me hard: the webpack dev server doesn't send the CORS header by default” can start at “The webpack dev server”.
 
 ### 29. A heading repeated in the first sentence
-**Signs to watch:** A heading followed by a one-line paragraph that simply restates the heading before the real content begins.
-**Problem:** AI writing often follows a heading with a sentence that only repeats the heading. Remove the repeated sentence.
-**Before:**
-> ## Performance
->
-> Speed matters.
->
-> When users hit a slow page, they leave.
-**After:**
-> ## Performance
->
-> When users hit a slow page, they leave.
+
+Under “Performance”, remove an empty “Speed matters” and start with the consequence the section explains, such as “When users hit a slow page, they leave.”
 
 ### 30. Writing about the previous version
-**Problem:** Documentation and comments should describe the current behavior. Mention the previous version only in change logs, release notes, migration guides, and other documents about change.
-**Before:**
-> This function was added to replace the previous approach of iterating through all items, which caused O(n²) performance.
-**After:**
-> This function uses a hash map for O(1) lookups, avoiding the O(n²) cost of naive iteration.
+
+Describe current behavior in reference documentation. “The function uses a hash map for O(1) lookups” is sufficient when the change itself is irrelevant. Keep history in release notes, change logs, migration guides, or other documents about a change.
 
 ### 31. Forced punchlines and dramatic fragments
-**Problem:** AI writing often turns each sentence into a dramatic closing line. One short sentence can add emphasis. A row of short fragments usually feels forced.
-**Before:**
-> Then AlphaEvolve arrived. It had no preference for symmetry. No aesthetic prior. No nostalgia for human taste. The old rules were gone.
-**After:**
-> AlphaEvolve changed the search because it did not favor symmetry or human-looking designs. That made some of the older assumptions less useful.
+
+One short sentence can carry emphasis. A series such as “No preference for symmetry. No aesthetic prior. No nostalgia for human taste” can express the connected observations as a sentence with a subject and verb.
 
 ### 32. Formulaic sayings
-**Words to watch:** X is the Y of Z, X becomes a trap, X is not a tool but a mirror, the language of, the currency of, the architecture of
-**Problem:** AI writing often turns an ordinary claim into a saying that sounds deep but adds no detail. Replace the saying with the specific claim.
-**Before:**
-> Symmetry is the language of trust. Efficiency becomes a trap when teams forget the human layer.
-**After:**
-> Symmetric layouts often feel more predictable to users. Teams can over-optimize workflows and miss how people actually use them.
+
+Look for slogans built around *the language of*, *the currency of*, or *X becomes a trap*. If the source means that symmetric layouts feel more predictable to users, state that claim directly.
 
 ### 33. Fake-candid openings
-**Phrases to watch:** Honestly?, Look, Here's the thing, The thing is, Let's be honest, Real talk, when used as standalone hooks or fake-candid pauses before an ordinary point.
-**Problem:** AI writing often starts with a staged pause or claim of honesty before making a routine point. State the point directly.
-**Before:**
-> Is it worth the price? Honestly? It depends on how often you'll use it.
-**After:**
-> Whether it's worth the price depends on how often you'll use it.
+
+“Honestly?”, “Real talk”, and “Here's the thing” can stage a pause before an ordinary point. “Whether it's worth the price depends on how often you'll use it” can stand alone. *Honestly* or *look* can be natural in conversation.
 
 ### 34. Answering objections no one raised
-**Phrases to watch:** This isn't (mainly/really) about, I'm not saying/arguing/trying to, To be clear, Don't get me wrong, This is not to say, You could argue/frame this differently but, Some might say... but
-**Problem:** AI writing may answer an objection that does not appear in the text. Watch for an unattributed statement about what the writer does not mean, especially when the topic appears nowhere else. A direct claim such as "the API is not thread-safe" is not this pattern.
-**Before:**
-> This isn't mainly about prompt length, and I'm not arguing that documentation doesn't matter. You could categorize the problem another way, but the issue is whether the agent can use the instruction when it acts.
-**After:**
-> The issue is whether the agent can use the instruction when it acts.
 
-Remove only the unsupported defense. If it contains a real claim, state that claim directly. Keep an objection when the text names its source or answers it in full.
+Phrases such as “Don't get me wrong” and “I'm not saying” may defend against an objection absent from the text. Keep a real claim, named objection, or fully developed reply. A direct limitation such as “the API is not thread-safe” conveys technical information.
 
 ### 35. Rejecting fake alternatives
-**Phrases to watch:** A tempting option/approach would be, One might be tempted to, An obvious approach would be, You might think... but, It would be easy to just, Some would suggest
-**Problem:** AI writing may introduce an option that no reader would consider, reject it in a clause, and never mention it again. This often leaves an old drafting idea in the final text. Remove the fake option and state the real constraint directly.
-**Before:**
-> Session tokens are rotated every 24 hours. A tempting approach would be to rotate them by restarting the auth service on a cron job, but that would drop every active session. Rotation happens in place, and clients refresh transparently.
-**After:**
-> Session tokens are rotated every 24 hours, in place, and clients refresh transparently.
 
-One rejected option may be valid. Several short, unrelated rejections are a stronger sign. Ask what new information each sentence adds. If it only records an earlier edit, rewrite the paragraph around its main point.
+Check what a rejected option contributes. “One might be tempted to restart the service” is expendable if no reader would consider that option and it never matters again. Several unrelated rejections often reflect earlier drafts. Keep real alternatives, tradeoffs, and constraints a reader needs to decide.
 
 ## Check for false positives
 
 ### What not to flag
 
-A person may use some of these patterns. Do not treat any item below as proof by itself:
-
-- **Perfect grammar and consistent style.** Many writers are professionals or have been edited. Polish does not equal AI.
-- **Mixed casual and formal styles.** This can reflect the writer's field, age, or personal habits.
-- **"Bland" or "robotic" prose.** AI prose has *specific* tells. Generic dryness without those tells is just dry writing.
-- **Formal or academic words.** §7 lists specific words that AI writing overuses. Do not simplify every formal word.
-- **Letter-style opening or closing on a comment.** Salutations and sign-offs predate ChatGPT by centuries.
-- **Common transition words in isolation.** *Additionally*, *moreover*, *consequently* are AI-coded only when piled up. One *however* is not a tell.
-- **Curly quotes alone.** macOS, Word, Google Docs, and most CMSes auto-curl by default. Curly quotes only count when stacked with other tells.
-- **Em dashes alone.** Many editors and journalists use them often. Em dashes are evidence only when paired with formulaic sales-y rhythm.
-- **One short sentence for emphasis.** Flag dramatic fragments only when several appear in a row.
-- **Deliberate repeated openings.** Writers may repeat an opening to build rhythm or pressure, as in "She came. She saw. She conquered." Change it only when the repetition adds nothing.
-- **"Honestly" or "look" mid-sentence.** These are ordinary in casual writing. The tell is the standalone theatrical opener, not the word itself.
-- **Useful limits and disclaimers.** Keep scope statements, legal and safety notices, real corrections, named objections, replies, and FAQ answers.
-- **Real alternatives.** Keep options that a reader may consider in a design document, tutorial, or argument. Remove only an unlikely option that the text dismisses and never uses again.
-- **Unsourced claims.** Most of the web is unsourced. Lack of citations doesn't prove anything.
-- **Correct, complex formatting.** Visual editors and templates produce clean output without any AI.
-- **Secondhand text.** Do not rewrite watched phrases inside quotations, titles, proper names, or examples where the phrase is being discussed rather than used.
-
-When unsure, look for several patterns together. One em dash proves nothing. Several stock patterns in the same passage are stronger evidence.
+- Polished grammar, dry prose, a mixed register, academic vocabulary, and precise formatting can all reflect a writer, editor, or template. Lack of citations alone establishes nothing about authorship.
+- Look for a pattern across the passage. A solitary transition, greeting, sign-off, short sentence, curly quote, or em dash is insufficient.
+- Repeated openings can create deliberate rhythm. “She came. She saw. She conquered.” Keep the repetition when it does that work.
+- Keep useful limits, legal and safety notices, real corrections, replies, FAQ answers, and options a reader would consider in a tutorial, argument, or design document.
+- Preserve watched phrases in quotations, titles, proper names, and examples that discuss those phrases.
 
 ### Human details to keep
 
-These details often carry the writer's voice. Keep them unless they hurt the meaning:
+Preserve unusual specifics, mixed feelings, unresolved tension, deliberate first person, varied sentence lengths, genuine asides, and self-corrections. “The lawyer who used to work upstairs from my dentist” conveys more of the writer than a generic “acquaintance”.
 
-- **Specific, unusual details.** Keep a real address, an odd quote, or a phrase such as "the lawyer who used to work upstairs from my dentist."
-- **Mixed feelings and unresolved tension.** Keep lines such as "I think this is mostly good, but it bothers me, and I can't fully explain why."
-- **Dated, era-bound references.** Slang, memes, or in-jokes that map to a specific year and subculture. Models lag by a year or more.
-- **Deliberate first-person choices.** Keep a cut or word choice when the writer can explain why it belongs.
-- **Variety in sentence length.** Real writing alternates short and long. AI writing tends toward an even, mid-length cadence.
-- **Genuine asides, parentheticals, or self-corrections.** "(I keep wanting to say 'almost' here, but it really was certain.)" Models rarely interrupt themselves like this.
-- **Edits made before November 30, 2022.** ChatGPT's public launch. Anything older than that is, with very rare exceptions, not AI-written.
-
----
+Keep slang, memes, and in-jokes tied to their era or community. Consider provenance when available. Text written before ChatGPT's public launch on November 30, 2022 rarely warrants an inference of ChatGPT authorship.
 
 ## Attribution
 

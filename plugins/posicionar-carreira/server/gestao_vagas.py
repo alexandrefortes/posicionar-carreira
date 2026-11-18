@@ -3,11 +3,13 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+from hashlib import sha256
 from pathlib import Path
 import re
 from urllib.parse import unquote
 
 from dados import _ordem_painel, resolver_carreira_root, responsavel_pessoal
+import triagem
 
 TRANSICOES_STATUS = {
     'identificada': ['candidatura-enviada', 'descartada', 'cancelada-pela-empresa'],
@@ -21,6 +23,7 @@ TRANSICOES_STATUS = {
 }
 STATUS_APOS_ENVIO = {'candidatura-enviada', 'entrevistas', 'oferta'}
 DISPONIBILIDADES_INSCRICAO = {'aberta_verificada', 'nao_confirmada', 'anuncio_expirado'}
+CAMPOS_FONTE = ('fonte_estado', 'fonte_candidatura', 'fonte_prazo', 'fonte_disponibilidade_inscricao')
 LINK = re.compile(r'\]\((<[^>]+>|[^)]+)\)')
 
 
@@ -53,6 +56,52 @@ def check_source(root, value, *, exigir_arquivo=True):
     target = (root / unquote(value.split('#', 1)[0])).resolve()
     if not target.is_relative_to(root.resolve()) or (exigir_arquivo and not target.is_file()):
         raise ValueError(f'Fonte local inexistente ou fora de carreira: {value}')
+
+
+def arquivo_original(root, fonte):
+    if fonte.startswith(('http://', 'https://')):
+        return None
+    arquivo = (root / unquote(fonte.split('#', 1)[0])).resolve()
+    partes = arquivo.relative_to(root.resolve()).parts
+    if len(partes) >= 5 and partes[0] == 'oportunidades' and partes[3] == 'envios':
+        return None
+    return arquivo
+
+
+def validar_originais(root, registros, novas=(), processo_id=None):
+    por_arquivo = {}
+    for registro in registros:
+        fontes = {evento['fonte'] for evento in registro['eventos']}
+        fontes.update(registro[campo] for campo in CAMPOS_FONTE if registro.get(campo))
+        for fonte in fontes:
+            arquivo = arquivo_original(root, fonte)
+            if arquivo:
+                por_arquivo.setdefault(arquivo, set()).add(registro['id'])
+    for arquivo in novas:
+        por_arquivo.setdefault(arquivo, set()).add(processo_id)
+    por_tamanho = {}
+    tamanhos_novos = {p.stat().st_size for p in novas}
+    for arquivo, ids in por_arquivo.items():
+        if arquivo.is_file():
+            tamanho = arquivo.stat().st_size
+            if not novas or tamanho in tamanhos_novos:
+                por_tamanho.setdefault(tamanho, []).append((arquivo, ids))
+    for grupo in por_tamanho.values():
+        if len(grupo) < 2:
+            continue
+        por_hash = {}
+        for arquivo, ids in grupo:
+            digest = sha256()
+            with arquivo.open('rb') as stream:
+                for bloco in iter(lambda: stream.read(1024 * 1024), b''):
+                    digest.update(bloco)
+            por_hash.setdefault(digest.digest(), []).append((arquivo, ids))
+        for iguais in por_hash.values():
+            if len(iguais) < 2 or (novas and not any(p in novas for p, _ in iguais)):
+                continue
+            if len(set.union(*(ids for _, ids in iguais))) > 1:
+                caminhos = ', '.join(p.relative_to(root.resolve()).as_posix() for p, _ in iguais)
+                raise ValueError(f'Fonte repetida entre vagas. Vincule cada fato ao mesmo original: {caminhos}')
 
 def process_path(root, processo_id):
     if (
@@ -160,7 +209,6 @@ def load_processes(root, *, exigir_arquivos=False):
 
 
 def validate_links(root, pending=()):
-    """Verifica arquivos Markdown operacionais e relatórios gerados."""
     paths = [root/'README.md', root/'AGENTS.md', root/'painel-vagas.md']
     for folder in ('oportunidades', 'empresas', 'monitoramento', 'estrategia'):
         paths.extend((root/folder).rglob('*.md'))
@@ -168,7 +216,6 @@ def validate_links(root, pending=()):
     for path in paths:
         if not path.exists():
             continue
-        # Entradas brutas são evidências imutáveis, não documentação operacional.
         if (root/'monitoramento/entradas') in path.parents:
             continue
         content = re.sub(r'```.*?```', '', path.read_text(encoding='utf-8'), flags=re.S)
@@ -309,6 +356,8 @@ def main():
     today=date(args.data,'data')
     root=resolver_carreira_root() if args.root is None else args.root.expanduser().resolve()
     records=load_processes(root, exigir_arquivos=True)
+    validar_originais(root, records)
+    triagem.validar(root, records)
     if not records:
         raise ValueError('Nenhum processo encontrado; painel não será substituído')
     pending = {(root/'painel-vagas.md').resolve()} if args.acao=='gerar' else set()

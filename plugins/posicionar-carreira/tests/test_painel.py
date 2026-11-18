@@ -297,7 +297,6 @@ class PainelTest(unittest.TestCase):
         markdown.click()
         expect(sucesso).to_be_visible()
 
-        # A abertura é revalidada se o arquivo desaparecer após abrir o detalhe.
         primeiro_md.unlink()
         markdown.click()
         conflito = detalhe.get_by_text("O currículo disponível mudou. Reabra o detalhe da vaga.", exact=True)
@@ -501,11 +500,16 @@ class PainelTest(unittest.TestCase):
 
         painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Reprovado").click()
         detalhe.get_by_role("button", name="Registrar evento").click()
+        triagem = self.dados.carreira / "monitoramento/triagem.md"
+        triagem.parent.mkdir(exist_ok=True)
+        triagem.write_text("- Mensagem a associar", encoding="utf-8")
         detalhe.get_by_label("Descrição do evento").fill("Retorno adicional")
+        detalhe.get_by_label("Pendência da triagem a encerrar").fill("- Mensagem a associar")
         detalhe.get_by_label("Fonte do evento").fill("https://example.org/retorno")
         detalhe.get_by_role("button", name="Salvar evento").click()
         expect(detalhe.get_by_text("Evento registrado.", exact=True)).to_be_visible()
         expect(detalhe.get_by_text("Data desconhecida · Retorno adicional")).to_be_visible()
+        self.assertIn(f"[Resolvida](../oportunidades/{self.vaga_id}/processo.md)", triagem.read_text(encoding="utf-8"))
 
         detalhe.get_by_role("button", name="Editar processo").click()
         status = detalhe.get_by_label("Status", exact=True)

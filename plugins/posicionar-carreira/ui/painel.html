@@ -547,6 +547,9 @@
     function eventFields(parent, title = "Descrição do evento") {
       field(parent, "descricao", title, { type: "textarea", required: true, wide: true });
       field(parent, "fonte", "Fonte do evento", { required: true, wide: true, placeholder: "URL ou caminho em carreira/" });
+      field(parent, "pendencia_triagem", "Pendência da triagem a encerrar (opcional)", {
+        wide: true, placeholder: "Cole a linha completa de monitoramento/triagem.md",
+      });
       field(parent, "data", "Data do evento", { type: "date" });
     }
 
@@ -622,12 +625,14 @@
         const { empresa, titulo, fonte, processo_id } = values;
         return callTool("criar_vaga", {
           empresa: empresa.trim(), titulo: titulo.trim(), fonte: fonte.trim(),
+          ...(values.fonte_compartilhada ? { fonte_compartilhada: true } : {}),
           ...(processo_id.trim() ? { processo_id: processo_id.trim() } : {}),
         });
       }, vaga => showSaved(vaga, "Vaga cadastrada.", true));
       field(fields, "empresa", "Empresa", { required: true, wide: true }).focus();
       field(fields, "titulo", "Título da vaga", { required: true, wide: true });
       field(fields, "fonte", "Fonte da vaga", { required: true, wide: true, placeholder: "URL ou caminho em carreira/" });
+      field(fields, "fonte_compartilhada", "Esta fonte identifica várias vagas", { type: "checkbox", value: "sim" });
       field(fields, "processo_id", "ID do processo (opcional)", { wide: true, placeholder: "empresa/plataforma-123" });
     }
 
@@ -635,6 +640,7 @@
       return {
         processo_id: vaga.id, revisao: vaga.revisao,
         descricao: values.descricao.trim(), fonte: values.fonte.trim(), data: values.data || null,
+        ...(values.pendencia_triagem?.trim() ? { pendencia_triagem: values.pendencia_triagem.trim() } : {}),
       };
     }
 
@@ -871,7 +877,7 @@
       }
       try {
         const result = await request("ui/initialize", {
-          appInfo: { name: "Posicionar Carreira", version: "0.8.0" },
+          appInfo: { name: "Posicionar Carreira", version: "0.9.0" },
           appCapabilities: {},
           protocolVersion: "2026-01-26",
         });

@@ -17,6 +17,8 @@ Construa buscas por famílias de funções e responsabilidades compatíveis com 
 
 Sem informação suficiente, registrar pista e lacunas, sem score. Não desqualificar apenas porque uma informação está ausente. Requisitos de anos, stack e modalidade devem ter o grau de certeza explicitado.
 
+Ao resolver uma associação, [registre o fato e encerre a pendência](../SKILL.md#continuidade). Para uma fonte comum a várias vagas, use o mesmo original em cada dossiê.
+
 ## Registro da descrição
 
 Salve a descrição da vaga na íntegra em `CARREIRA_DIR/oportunidades/<empresa>/<id>/vaga.md`, com a fonte (URL do anúncio ou identificação do material recebido) e a data de captura ou conferência. Preserve o texto, o idioma, os títulos, as listas e os links do anúncio, inclusive condições e benefícios quando presentes. Navegação do site e campos do formulário de candidatura não fazem parte da descrição.

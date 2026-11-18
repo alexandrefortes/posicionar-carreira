@@ -1,4 +1,3 @@
-"""Configuração e leitura local dos registros de carreira."""
 from __future__ import annotations
 
 import json
@@ -8,7 +7,6 @@ from hashlib import sha256
 from pathlib import Path
 from urllib.parse import unquote
 
-# set_thread_title no Codex Desktop usa String.length (UTF-16).
 LIMITE_TITULO_CHAT = 60
 ABREVIACOES_CARGO = {
     "engineering": "eng", "engenharia": "eng", "engenheiro": "eng", "engenheira": "eng",
@@ -161,7 +159,6 @@ def _titulo_chat(processo: dict) -> str:
     disponivel = LIMITE_TITULO_CHAT - _tamanho_utf16(prefixo + separador + sufixo)
     if _tamanho_utf16(empresa + cargo) > disponivel:
         cargo = " ".join(ABREVIACOES_CARGO.get(palavra, palavra) for palavra in cargo.split())
-        # Reserve espaço para os dois nomes e devolva ao cargo o que a empresa não usar.
         reserva_cargo = min(_tamanho_utf16(cargo), disponivel // 2)
         empresa = _encurtar_titulo(empresa, disponivel - reserva_cargo)
         cargo = _encurtar_titulo(cargo, disponivel - _tamanho_utf16(empresa))
@@ -201,7 +198,7 @@ def formatar_detalhe(carreira: Path, processo: dict, conteudo: bytes) -> dict:
         )},
         "eventos": [
             {campo: evento[campo] for campo in (
-                "data", "registrado_em", "descricao", "fonte", "alteracoes", "metadados_anteriores",
+                "data", "registrado_em", "descricao", "fonte", "alteracoes", "metadados_anteriores", "triagem",
             )
              if campo in evento}
             for evento in processo["eventos"]

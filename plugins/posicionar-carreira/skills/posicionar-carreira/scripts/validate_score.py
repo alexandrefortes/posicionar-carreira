@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""Valida e recalcula deterministicamente o score de uma oportunidade."""
-
 from __future__ import annotations
 
 import argparse

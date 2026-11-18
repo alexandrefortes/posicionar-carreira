@@ -1,11 +1,10 @@
-"""Operações de cadastro e acompanhamento compartilhadas pelo MCP e pelo terminal."""
 from __future__ import annotations
 
 import os
 import re
 import tempfile
 import unicodedata
-from contextlib import contextmanager
+from contextlib import contextmanager, ExitStack
 from datetime import date
 from hashlib import sha256
 from pathlib import Path
@@ -14,6 +13,7 @@ from urllib.parse import urlsplit
 import yaml
 
 import gestao_vagas
+import triagem
 from dados import formatar_detalhe, ler_processo, responsavel_pessoal
 
 
@@ -75,6 +75,11 @@ def gravar(path, registro, original=None):
     yaml_texto = yaml.safe_dump(registro, allow_unicode=True, sort_keys=False)
     prefixo = ("---\n" + yaml_texto + "---\n").encode("utf-8").replace(b"\n", quebra)
     conteudo = prefixo + corpo
+    gravar_bytes(path, conteudo, original)
+    return conteudo
+
+
+def gravar_bytes(path, conteudo, original):
     with tempfile.NamedTemporaryFile(dir=path.parent, prefix=".processo-", suffix=".tmp", delete=False) as saida:
         temporario = Path(saida.name)
         try:
@@ -91,7 +96,6 @@ def gravar(path, registro, original=None):
         finally:
             saida.close()
             temporario.unlink(missing_ok=True)
-    return conteudo
 
 
 def _slug(nome):
@@ -99,11 +103,12 @@ def _slug(nome):
     return re.sub(r"[^a-z0-9]+", "-", ascii_nome).strip("-")[:72].rstrip("-") or "empresa"
 
 
-def _criar(carreira, empresa, titulo, fonte, processo_id, previa):
-    entrada = evento(carreira, "Oportunidade cadastrada", fonte, None)
+def _criar(carreira, empresa, titulo, fonte, processo_id, previa, fonte_compartilhada):
+    descricao = f"A fonte identifica a vaga {titulo} em {empresa}." if fonte_compartilhada else "Oportunidade cadastrada"
+    entrada = evento(carreira, descricao, fonte, None)
     fonte = entrada["fonte"]
     existentes = gestao_vagas.load_processes(carreira)
-    urls = [fonte] if fonte.startswith(("http://", "https://")) else []
+    urls = [fonte] if not fonte_compartilhada and fonte.startswith(("http://", "https://")) else []
     if urls and any(fonte in r.get("urls", []) or
                     (r["eventos"] and r["eventos"][0]["fonte"] == fonte) for r in existentes):
         raise ValueError("Já existe um processo com esta URL. Abra o dossiê existente.")
@@ -133,6 +138,9 @@ def _criar(carreira, empresa, titulo, fonte, processo_id, previa):
         raise ValueError("O ID contém um nome reservado pelo sistema.")
     if path.parent.exists():
         raise ValueError("Já existe um dossiê com esse ID.")
+    arquivo = gestao_vagas.arquivo_original(carreira, fonte)
+    if arquivo:
+        gestao_vagas.validar_originais(carreira, existentes, {arquivo}, processo_id)
     registro = {
         "id": processo_id, "empresa": empresa, "titulo": titulo, "status": "identificada",
         "prioridade": "media",
@@ -155,14 +163,16 @@ def _criar(carreira, empresa, titulo, fonte, processo_id, previa):
     return formatar_detalhe(carreira, {**registro, "_path": path}, conteudo)
 
 
-def criar_vaga(carreira, empresa, titulo, fonte, processo_id=None, *, previa=False):
+def criar_vaga(carreira, empresa, titulo, fonte, processo_id=None, *, previa=False, fonte_compartilhada=False):
     carreira = carreira.resolve()
     empresa = texto(empresa, "a empresa")
     titulo = texto(titulo, "o título da vaga")
+    if not isinstance(fonte_compartilhada, bool):
+        raise ValueError("Indique se a fonte do cadastro é compartilhada.")
     if previa:
-        return _criar(carreira, empresa, titulo, fonte, processo_id, previa)
+        return _criar(carreira, empresa, titulo, fonte, processo_id, previa, fonte_compartilhada)
     with trava(carreira / "oportunidades", ".posicionar-carreira-cadastro.lock"):
-        return _criar(carreira, empresa, titulo, fonte, processo_id, previa)
+        return _criar(carreira, empresa, titulo, fonte, processo_id, previa, fonte_compartilhada)
 
 
 def _mudancas(carreira, registro, campos, entrada):
@@ -216,15 +226,25 @@ def _mudancas(carreira, registro, campos, entrada):
     return {campo: valor for campo, valor in mudancas.items() if registro.get(campo) != valor}
 
 
-def _editar(carreira, processo_id, revisao, entrada, campos, previa):
+def _editar(carreira, processo_id, revisao, entrada, campos, previa, triagem_id=None):
     registro, original = ler_processo(carreira, processo_id)
+    historico = registro["eventos"]
+    mesmas_chaves = ("data", "descricao", "fonte")
+    repetido = next((e for e in historico if all(e.get(k) == entrada[k] for k in mesmas_chaves)), None)
+    if repetido and triagem_id and campos is not None:
+        valores = {**registro, **{k: v["atual"] for k, v in repetido.get("alteracoes", {}).items()}}
+        if not campos or any(k not in CAMPOS_EDITAVEIS or valores.get(k) != v for k, v in campos.items()):
+            raise ValueError("A resolução anterior registrou outras alterações.")
+    if triagem_id and repetido and triagem_id in repetido.get("triagem", []):
+        if previa:
+            return {"id": processo_id, "revisao": sha256(original).hexdigest(), "evento": repetido}
+        return formatar_detalhe(carreira, registro, original)
     if sha256(original).hexdigest() != revisao:
         raise ValueError(CONFLITO)
-    historico = registro["eventos"]
-    if any(all(anterior.get(k) == entrada[k] for k in ("data", "descricao", "fonte")) for anterior in historico):
+    if repetido and not triagem_id:
         raise ValueError(EVENTO_REPETIDO)
-    mudancas = _mudancas(carreira, registro, campos, entrada) if campos is not None else {}
-    if campos is not None and not mudancas:
+    mudancas = _mudancas(carreira, registro, campos, entrada) if campos is not None and not repetido else {}
+    if campos is not None and not repetido and not mudancas:
         raise ValueError("Nenhum campo mudou. Use Registrar evento para acrescentar uma nota.")
     path = registro.pop("_path")
     registro.pop("_score")
@@ -235,7 +255,10 @@ def _editar(carreira, processo_id, revisao, entrada, campos, previa):
         }
     registro.update(mudancas)
     registro["atualizado_em"] = max(registro["atualizado_em"], entrada["registrado_em"])
-    historico.append(entrada)
+    if triagem_id:
+        (repetido or entrada).setdefault("triagem", []).append(triagem_id)
+    if not repetido:
+        historico.append(entrada)
     gestao_vagas.validate_process(carreira, path, registro)
     if previa:
         return {"id": processo_id, "revisao": revisao, "mudancas": mudancas, "evento": entrada}
@@ -243,26 +266,52 @@ def _editar(carreira, processo_id, revisao, entrada, campos, previa):
     return formatar_detalhe(carreira, {**registro, "_path": path}, conteudo)
 
 
-def _operar(carreira, processo_id, revisao, descricao, fonte, data, campos, previa):
+def _operar(carreira, processo_id, revisao, descricao, fonte, data, campos, previa, pendencia):
     carreira = carreira.resolve()
     entrada = evento(carreira, descricao, fonte, data)
-    if previa:
-        return _editar(carreira, processo_id, revisao, entrada, campos, previa)
     path = gestao_vagas.process_path(carreira, processo_id)
     if not path.is_file():
         raise ValueError("Processo não encontrado. Selecione um ID da lista de vagas.")
-    with trava(path.parent, ".posicionar-carreira.lock"):
-        return _editar(carreira, processo_id, revisao, entrada, campos, previa)
+    fontes = {entrada["fonte"]}
+    if campos:
+        fontes.update(fonte_valida(carreira, campos[k]) for k in gestao_vagas.CAMPOS_FONTE if campos.get(k))
+    arquivos = {gestao_vagas.arquivo_original(carreira, fonte) for fonte in fontes} - {None}
+    ident = None
+    with ExitStack() as locks:
+        if (arquivos or pendencia is not None) and not previa:
+            locks.enter_context(trava(carreira / "oportunidades", ".posicionar-carreira-cadastro.lock"))
+        if not previa:
+            locks.enter_context(trava(path.parent, ".posicionar-carreira.lock"))
+        if arquivos or pendencia is not None:
+            registros = gestao_vagas.load_processes(carreira)
+        if arquivos:
+            gestao_vagas.validar_originais(carreira, registros, arquivos, processo_id)
+        if pendencia is not None:
+            caminho, original, fechado = triagem.preparar(carreira, processo_id, pendencia)
+            ident = triagem.chave(pendencia.strip())
+            for r in registros:
+                for e in r["eventos"]:
+                    if ident in e.get("triagem", []) and (r["id"] != processo_id or any(
+                        e.get(k) != entrada[k] for k in ("data", "descricao", "fonte")
+                    )):
+                        raise ValueError("A pendência já está vinculada a outro fato. Confira o dossiê.")
+        resultado = _editar(carreira, processo_id, revisao, entrada, campos, previa, ident)
+        if pendencia is not None and not previa and fechado != original:
+            try:
+                gravar_bytes(caminho, fechado, original)
+            except (OSError, ValueError) as exc:
+                raise ValueError("Fato registrado. Confira a triagem e repita a resolução para encerrá-la.") from exc
+        return resultado
 
 
-def registrar_evento(carreira, processo_id, revisao, descricao, fonte, data=None, *, previa=False):
-    return _operar(carreira, processo_id, revisao, descricao, fonte, data, None, previa)
+def registrar_evento(carreira, processo_id, revisao, descricao, fonte, data=None, *, previa=False, pendencia_triagem=None):
+    return _operar(carreira, processo_id, revisao, descricao, fonte, data, None, previa, pendencia_triagem)
 
 
-def atualizar_vaga(carreira, processo_id, revisao, descricao, fonte, mudancas, data=None, *, previa=False):
+def atualizar_vaga(carreira, processo_id, revisao, descricao, fonte, mudancas, data=None, *, previa=False, pendencia_triagem=None):
     if not isinstance(mudancas, dict):
         raise ValueError("Informe os campos editáveis do processo.")
-    return _operar(carreira, processo_id, revisao, descricao, fonte, data, mudancas, previa)
+    return _operar(carreira, processo_id, revisao, descricao, fonte, data, mudancas, previa, pendencia_triagem)
 
 
 OPERACOES = {

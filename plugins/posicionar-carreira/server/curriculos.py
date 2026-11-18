@@ -1,4 +1,3 @@
-"""Identifica os currículos da vaga sem usar caminhos vindos do painel."""
 from __future__ import annotations
 
 import re
@@ -140,7 +139,6 @@ def _unico(candidatos) -> Path | None:
 
 
 def resolver_curriculos(processo: dict, conteudo: bytes) -> dict[str, Curriculo]:
-    """Retorna cada formato em separado, apenas se a versão for inequívoca."""
     dossie = processo["_path"].parent.resolve()
     referencias, historicos = _referencias(dossie, conteudo)
     escolhidos = {}

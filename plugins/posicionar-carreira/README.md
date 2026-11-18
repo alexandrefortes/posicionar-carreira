@@ -1,33 +1,46 @@
 # Posicionar Carreira
 
-Plugin local do Codex para cadastrar vagas e acompanhar processos seletivos. Abra uma vaga para consultar histórico, materiais e próximos passos, editar os campos oficiais, registrar um evento ou avançar o status. Os atalhos de avaliação, currículo, candidatura e entrevista levam o ID da vaga e o caminho do processo à conversa.
+Cadastre vagas, acompanhe processos e prepare currículos e entrevistas no Codex. Abra uma vaga para ver o histórico, os materiais e a próxima ação. Os atalhos enviam o ID e o caminho do dossiê ao chat.
 
 ## Instalar e abrir
 
-Use Python 3.10 ou posterior. Na pasta do plugin, instale a [dependência PyYAML](requirements-gestao-vagas.txt) com `python -m pip install -r requirements-gestao-vagas.txt`. O Codex precisa encontrar esse Python pelo comando `python`. Configure uma pasta de dados conforme [Fonte local](#fonte-local). Registre o diretório do marketplace distribuído e instale o plugin.
-
-Ao compartilhar o plugin, envie o marketplace e a pasta do plugin. Cada pessoa configura sua própria pasta de dados.
+1. Na pasta do plugin, instale o PyYAML com `python -m pip install -r requirements-gestao-vagas.txt`. O comando `python` deve usar a versão 3.10 ou posterior.
+2. [Configure a pasta de dados](#fonte-local).
+3. Registre a pasta do marketplace. Para instalar, use o nome do marketplace registrado. Neste repositório, é `carreira-local`.
 
 ```powershell
 codex plugin marketplace add "<pasta-do-marketplace>"
 codex plugin add posicionar-carreira@carreira-local
 ```
 
-Abra uma conversa local no Codex desktop, selecione **Posicionar Carreira** e peça **Abra as boas-vindas de Posicionar Carreira**. Essa tela orienta a verificação da base e o acesso ao painel. Se o cliente não exibir MCP Apps, peça **Verifique a configuração da minha carreira** e continue pelo texto. Quando a base estiver pronta, peça **Abra o painel de vagas** ou consulte a lista e os detalhes pelo chat.
+4. Em uma conversa local do Codex desktop, selecione **Posicionar Carreira** e peça **Abra as boas-vindas de Posicionar Carreira**.
+5. Confira a base na tela de boas-vindas. Quando estiver pronta, peça **Abra o painel de vagas**.
 
-O painel depende de MCP Apps habilitado na conversa e disponível na janela do desktop. O recurso experimental `enable_mcp_apps` do Codex pode variar por conversa. A consulta em texto está disponível pelas ferramentas `listar_vagas` e `detalhar_vaga`.
+Se o painel não aparecer, peça **Verifique a configuração da minha carreira**. A interface requer MCP Apps na janela e na conversa (`enable_mcp_apps`). Use `listar_vagas` e `detalhar_vaga` para consultar pelo chat.
+
+Para compartilhar o plugin, envie as pastas do marketplace e do plugin. Cada pessoa configura a própria base.
 
 ### Atualizar uma base anterior à versão 0.8.0
 
-Feche o plugin e guarde uma cópia da base. Nos `processo.md` em `oportunidades/`, substitua `estado`, `etapa` e `resultado` no cabeçalho YAML pelo `status` correspondente no [fluxo abaixo](#gestão-de-oportunidades). Guarde no histórico os valores anteriores e preserve as evidências, próximas ações, datas conhecidas e conteúdo do dossiê. Confira os dados com o [validador](#validação-painel-markdown-e-relatórios) e só então abra a versão 0.8.0. Bases novas já usam o formato atual.
+1. Feche o plugin e guarde uma cópia da base.
+2. Em cada `oportunidades/<empresa>/<id>/processo.md`, substitua `estado`, `etapa` e `resultado` no cabeçalho YAML por um único `status`. Guarde os valores anteriores no histórico. Preserve as evidências, próximas ações, datas conhecidas e demais conteúdos do dossiê.
+3. Escolha o status pela evidência de cada processo.
 
-Em vagas em andamento, reúna as fases anteriores ao envio em `identificada` e converta `candidatura_enviada` em `candidatura-enviada`. Use `entrevistas` e `oferta` quando esses marcos estiverem registrados. Se havia pausa ou triagem, confira o último marco sustentado pela evidência. Nos encerramentos, converta `vaga_cancelada` em `cancelada-pela-empresa` e `descartado_na_avaliacao` ou `desistencia` em `descartada`. `contratado` e `reprovado` viram o próprio status.
+| Registro anterior | Novo `status` |
+|---|---|
+| Em andamento, antes do envio | `identificada` |
+| `candidatura_enviada` | `candidatura-enviada` |
+| Entrevista ou oferta registrada | `entrevistas` ou `oferta`, conforme o último marco |
+| Pausa ou triagem | Último marco comprovado |
+| `vaga_cancelada` | `cancelada-pela-empresa` |
+| `descartado_na_avaliacao` ou `desistencia` | `descartada` |
+| `contratado` ou `reprovado` | Mantenha o valor |
+
+4. [Valide a base](#validação-painel-markdown-e-relatórios) antes de reabrir o plugin. Bases novas já usam o formato atual.
 
 ## Dashboard
 
-No chat do Codex, selecione **@Posicionar Carreira** e envie **Dashboard**. A visão geral mostra o total de vagas, a contagem por status e os grupos de vagas em andamento e encerradas.
-
-Use **Atualizar** para reler a base local. Para filtrar vagas, abrir dossiês ou editar processos, clique em **Ver vagas**. No painel detalhado, o botão **Dashboard** abre a visão geral.
+Peça **Dashboard** para ver o total de vagas e a contagem por status, em andamento ou encerradas. **Atualizar** relê a base. **Ver vagas** permite filtrar, consultar e editar dossiês. **Dashboard** volta à visão geral.
 
 ## Fonte local
 
@@ -42,49 +55,58 @@ Escolha uma pasta existente fora do plugin para guardar seus dados. Salve o cami
 
 Na atualização de uma edição anterior, use a mesma base e confirme a pasta em uso pelas boas-vindas ou com `python -B server/servidor.py --carreira-root`. O comando legado `--raiz` continua disponível para quem usava uma pasta que contém `carreira/`.
 
-`verificar_configuracao` consulta a base configurada ou recebe um caminho absoluto opcional em `pasta`. A ferramenta informa quais materiais e fluxos estão prontos. Se você autorizar a preparação de uma pasta, `inicializar_carreira` recebe seu caminho absoluto em `pasta` e cria `oportunidades/`, se necessário. Isso basta para cadastrar vagas. A inicialização preserva arquivos existentes e a configuração do caminho.
+`verificar_configuracao` mostra os materiais e fluxos disponíveis. Para conferir outra pasta, passe o caminho absoluto em `pasta`. Autorize `inicializar_carreira` a criar `oportunidades/` para começar a cadastrar vagas. Seus arquivos e a configuração do caminho são preservados.
 
-Quando quiser começar a reunir dados profissionais, solicite modelos iniciais. O campo opcional `modelos` aceita `perfil`, `preferencias`, `curriculo` e `portfolio`. Revise os rascunhos com seus próprios dados antes de usá-los. A verificação aceita `estrategia/objetivos.md` quando falta um arquivo preenchido de objetivos e preferências em `estrategia/referencias-candidaturas.md`. Evidências, currículos, objetivos e materiais de portfólio podem ser acrescentados à base conforme cada fluxo exigir.
+Para criar rascunhos, peça os `modelos` desejados: `perfil`, `preferencias`, `curriculo` ou `portfolio`. Revise-os com seus dados. A verificação também reconhece `estrategia/objetivos.md` de bases anteriores. Acrescente evidências e materiais conforme precisar.
 
-Para cadastrar vagas com seu nome como responsável, salve um `config.json` na pasta de dados com `{ "responsavel": "Pessoa Exemplo" }`, usando seu nome no lugar do exemplo. Sem esse campo, o cadastro usa `titular`. As opções `assistente` e `empresa` representam os outros responsáveis do processo.
+Para usar seu nome como responsável, salve `{ "responsavel": "Seu nome" }` em `config.json` na pasta de dados. O padrão é `titular`. Os outros responsáveis possíveis são `assistente` e `empresa`.
+
+Na pasta do plugin, confira qual base está em uso:
 
 ```powershell
 python -B server/dados.py
 ```
 
-O comando mostra a pasta de dados configurada. Se existir um `painel-vagas.md` nessa pasta, a lista segue a ordem de seus links. Vagas fora do índice aparecem ao final, por atualização. O painel do plugin lê o `status` do registro oficial e mantém intacto o Markdown de curadoria.
+Para testar outra base via `data-root.txt`, deixe as variáveis de ambiente de carreira sem definir. Guarde o arquivo anterior e informe o caminho de teste. Confira a pasta antes de reabrir o painel e cadastrar vagas. O plugin relê o caminho a cada consulta. Ao terminar, restaure o arquivo anterior ou remova o de teste.
 
-Para experimentar outra base pela configuração em arquivo, guarde uma cópia de `data-root.txt` se já existir e troque a linha pelo caminho absoluto de uma pasta de teste. Confira a pasta indicada pela verificação e reabra o painel antes de cadastrar qualquer vaga. O aplicativo pode permanecer aberto porque o plugin relê o arquivo a cada consulta. Ao terminar, restaure a cópia ou retire o arquivo criado só para o teste. A troca pelo arquivo funciona quando as variáveis de ambiente estão ausentes.
+## Encontrar e acompanhar vagas
 
-No detalhe, **Abrir currículo em Markdown** abre a fonte editável no aplicativo associado a `.md` pelo Windows. **Abrir currículo em PDF** abre o arquivo já gerado no visualizador padrão. Cada botão aparece quando o arquivo correspondente é identificado no dossiê. Se a única versão identificada estiver em `envios/`, o botão a identifica como enviada.
-
-**Monitorar novas vagas** leva ao chat a configuração de uma busca por e-mail conforme seus critérios. **Monitorar esta vaga** leva o ID do dossiê para acompanhar retornos daquele processo. Use a conta de e-mail conectada e o agendamento nativo do Codex. Tarefas com arquivos locais precisam do computador ligado e do aplicativo aberto. [Tarefas agendadas](https://learn.chatgpt.com/docs/automations)
-
-**Pesquisar vagas na web** pede ao agente que encontre oportunidades usando seus objetivos e perfil. Ele consulta portais relevantes e páginas de carreira. Pode abrir os anúncios no navegador para conferir os detalhes. Os resultados trazem links, aderência, situação da inscrição e pontos a esclarecer. Peça o cadastro das vagas que escolher. [Fluxo de pesquisa](skills/posicionar-carreira/references/busca-vagas.md)
-
-**Planejar busca no LinkedIn** prepara termos e filtros para configurar o alerta oficial por e-mail. [Alertas de vagas do LinkedIn](https://www.linkedin.com/help/linkedin/answer/a508396)
-
-Se já usa o Dot, peça ao plugin um texto copiável para atualizar o monitor e revise antes de colar na conversa do Dot. Informe o texto atual e o que quer mudar. Quando gostar de uma vaga do monitor, peça separadamente ao Dot para encaminhá-la a uma conversa local do Codex. [Dot e computadores conectados](https://learn.chatgpt.com/docs/dots/computers-and-apps#connect-your-computers)
+| No painel ou no chat | O que fazer |
+|---|---|
+| **Pesquisar vagas na web** | Informe seus objetivos. Confira links, aderência, situação da inscrição e dúvidas nos anúncios de portais e páginas de carreira. Peça o cadastro das vagas escolhidas. [Pesquisa de vagas](skills/posicionar-carreira/references/busca-vagas.md) |
+| **Planejar busca no LinkedIn** | Use os termos e filtros sugeridos para configurar o [alerta oficial por e-mail](https://www.linkedin.com/help/linkedin/answer/a508396). |
+| **Monitorar novas vagas** ou **Monitorar esta vaga** | O primeiro atalho prepara uma busca por e-mail com seus critérios. O segundo inclui o ID da vaga para acompanhar os retornos. Use a conta conectada e o agendamento do Codex. Tarefas com arquivos locais exigem computador ligado e aplicativo aberto. [Tarefas agendadas](https://learn.chatgpt.com/docs/automations) |
+| Monitor existente no Dot | Informe o texto atual e a mudança desejada. Revise a sugestão do plugin e cole-a no Dot. Para encaminhar uma vaga a uma conversa local do Codex, faça um pedido separado ao Dot. [Computadores conectados ao Dot](https://learn.chatgpt.com/docs/dots/computers-and-apps#connect-your-computers) |
 
 ## Montar ou atualizar o portfólio
 
-Coloque na pasta do projeto a apresentação, o vídeo, a captura ou o áudio exportado que quiser usar. No chat com o plugin, indique o material e peça para criar ou atualizar um caso. A skill confere o portfólio existente, usa as ferramentas disponíveis para examinar o material e referencia o slide, o trecho ou o arquivo que sustenta cada afirmação. O caso fica na base local e a publicação depende de pedido próprio.
-
-A geração de currículos em PDF usa os [requisitos da skill md-to-cv](skills/md-to-cv/SKILL.md). O [fluxo de entrevistas](skills/posicionar-carreira/references/entrevistas.md#entrevista-gravada) trabalha com gravações fornecidas pela pessoa quando houver meios de analisá-las ou transcrevê-las. Dossiês e materiais ficam na pasta de dados configurada.
+Coloque a apresentação, o vídeo, a captura ou o áudio exportado na pasta do projeto. Indique o arquivo no chat e peça para criar ou atualizar um caso no portfólio existente. Cada afirmação deve citar o slide, o trecho ou o arquivo que a sustenta. O caso fica na base local. Peça a publicação separadamente.
 
 ## Gestão de oportunidades
 
-O registro oficial é `oportunidades/<empresa>/<id>/processo.md` na pasta de dados. Mantenha o mesmo ID e dossiê ao mudar de mês, corrigir o título ou encerrar o processo. Compare IDs externos, URLs, empresa, cargo e escopo antes de cadastrar. Uma nova requisição comprovada pode ter seu próprio dossiê. Recibos sem associação segura ficam em `monitoramento/triagem.md`, com a entrada original preservada.
+Cada vaga tem um registro oficial em `oportunidades/<empresa>/<id>/processo.md`. Mantenha o ID e o caminho ao corrigir o título, mudar de mês ou encerrar o processo. Antes de cadastrar, compare IDs externos, URLs, empresa, cargo e escopo. Uma nova requisição comprovada pode ter outro dossiê. Guarde recibos de associação incerta em `monitoramento/triagem.md` e preserve a entrada original.
 
-No painel, use os formulários de cadastro, edição e eventos. Agentes usam exclusivamente as operações MCP abaixo para gravações autorizadas no registro oficial, inclusive quando trabalham em várias vagas.
+Use os formulários do painel ou peça ao agente uma das operações abaixo. O agente grava no registro oficial somente pelo MCP, com autorização, inclusive em lote.
 
-- `criar_vaga` cadastra uma oportunidade com empresa, título e fonte. O dossiê começa com `status: identificada`. Informe o ID externo quando confirmado ou deixe a ferramenta atribuir um ID local.
-- `atualizar_vaga` altera os campos aceitos em `mudancas` e registra seus valores anteriores e atuais no evento. Use `mudancas.status` para avançar no fluxo e `mudancas.titulo` para corrigir o título mantendo o mesmo ID e caminho.
-- `registrar_evento` acrescenta evidência ou uma nota ao histórico. Para corrigir informação anterior, registre a correção no histórico e ajuste os campos atuais quando aplicável.
+| Operação | Quando usar |
+|---|---|
+| `criar_vaga` | Informe empresa, título e fonte. O status inicial é `identificada`. Use o ID externo confirmado ou deixe a ferramenta atribuir um ID local. |
+| `atualizar_vaga` | Envie os campos em `mudancas`, como `mudancas.status` ou `mudancas.titulo`. O histórico guarda os valores anteriores e atuais. |
+| `registrar_evento` | Acrescente uma evidência, nota ou correção. Se a correção mudar um campo atual, atualize-o também. |
 
-Para atualizar ou registrar um evento, use o ID e a revisão retornados por `detalhar_vaga`. Informe descrição, fonte e data do acontecimento quando conhecida. Se houver conflito, recarregue e confira as mudanças antes de tentar novamente. Se o MCP ou a operação necessária estiver indisponível, informe a lacuna e deixe o registro oficial intacto. Descrições de vagas, avaliações, currículos e planos de entrevista são materiais editáveis do dossiê e aparecem no detalhe quando armazenados nele.
+**Resolver uma pendência.** Identifique a vaga antes de encerrar a triagem. Ao registrar o evento ou atualizar a vaga, cole a linha completa de `monitoramento/triagem.md` em **Pendência da triagem a encerrar** (`pendencia_triagem`). O plugin registra o fato e a fonte no dossiê e marca a linha como resolvida, com link para o processo. Se a gravação da triagem falhar, repita a operação com a mesma linha e os mesmos dados.
 
-O campo `status` no YAML de `processo.md` registra o andamento. Durante o levantamento de informações, a avaliação e a preparação dos materiais, a vaga fica em `identificada`. O plugin define e valida as transições abaixo. As consultas MCP informam as opções em `transicoes_status`.
+**Usar uma fonte em várias vagas.** Guarde o original uma vez, conforme o assunto: uma mensagem em `monitoramento/entradas/`, uma pesquisa da empresa em `empresas/<empresa>/pesquisas/` ou uma pesquisa de mercado em `estrategia/`. Se o original estiver na web, use a URL. Em cada dossiê, registre o que ele comprova para aquela vaga e use a mesma URL ou caminho em `fonte`. Ao cadastrar vagas com o mesmo anúncio, marque **Esta fonte identifica várias vagas** (`fonte_compartilhada`). Preserve em `envios/` as cópias exatas dos materiais submetidos.
+
+Para editar ou registrar um evento, obtenha o ID e a revisão em `detalhar_vaga`. Informe descrição, fonte e data conhecida do fato. Se houver conflito, confira a revisão atual antes de repetir. Se faltar a operação MCP, o agente informa a limitação e preserva o registro.
+
+Edite a descrição, a avaliação, o currículo e o plano de entrevista no dossiê. No Windows, **Abrir currículo em Markdown** e **Abrir currículo em PDF** usam o aplicativo padrão de cada formato disponível. O botão indica **enviado** quando a única versão identificada está em `envios/`.
+
+Para gerar o PDF, consulte os [requisitos de conversão](skills/md-to-cv/SKILL.md). Para analisar ou transcrever uma gravação fornecida por você, consulte os [materiais de entrevista](skills/posicionar-carreira/references/entrevistas.md#entrevista-gravada).
+
+### Status e evidência
+
+Durante a pesquisa, a avaliação e o preparo dos materiais, mantenha `identificada`. O plugin valida as mudanças de `status` no YAML. Consulte as opções em `transicoes_status`.
 
 | Status atual | Próximos status permitidos |
 |---|---|
@@ -92,27 +114,22 @@ O campo `status` no YAML de `processo.md` registra o andamento. Durante o levant
 | `candidatura-enviada` | `entrevistas`, `oferta`, `contratado`, `reprovado`, `cancelada-pela-empresa` |
 | `entrevistas` | `oferta`, `contratado`, `reprovado`, `cancelada-pela-empresa` |
 | `oferta` | `contratado`, `reprovado`, `cancelada-pela-empresa` |
-| `descartada`, `cancelada-pela-empresa`, `contratado`, `reprovado` | Fim do processo. Ainda é possível atualizar outros campos e acrescentar eventos ao histórico. |
+| `descartada`, `cancelada-pela-empresa`, `contratado`, `reprovado` | Fim do processo. Os demais campos e o histórico ainda aceitam atualizações. |
 
-Preserve no histórico o motivo da mudança e a etapa alcançada. Sem resposta ou com feedback positivo, mantenha o status sustentado pela evidência. Para registrar `candidatura-enviada`, confirme o envio e informe a fonte que o comprova. Preserve em `envios/` as versões exatas identificadas como submetidas.
-
-Use URLs ou caminhos de arquivos relativos à pasta de dados para as fontes. Envie datas conhecidas em `AAAA-MM-DD` e use `null` para datas desconhecidas. `registrado_em` indica quando o evento entrou no histórico. Prazo informado exige `fonte_prazo`. `revisar_em` sugere uma revisão local.
-
-Registre o fato observado e sua data no evento. Prefira a URL original ou uma evidência permanente no dossiê. Relatórios de lote podem complementar o registro com o contexto da revisão. A listagem e a edição de vagas continuam disponíveis quando um arquivo de evidência já referenciado muda de lugar. Fontes locais novas ou alteradas precisam existir na pasta de dados.
-
-A disponibilidade da inscrição tem fonte própria e admite `aberta_verificada`, `nao_confirmada` ou `anuncio_expirado`. Informe `fonte_disponibilidade_inscricao` ao definir ou mudar a disponibilidade. Envie `disponibilidade_inscricao: null` para limpar os dois campos. A disponibilidade pública descreve o anúncio e não comprova acesso autenticado, envio ou encerramento do processo pessoal.
-
-O painel Markdown mostra os grupos do plano atual para processos abertos sem envio confirmado. Os valores de `grupo_plano_atual` identificam as vagas a avaliar (`plano_modalidade_compativel`) e as que exigem esclarecimento (`plano_esclarecimento`). `lote_plano`, `fonte_plano` e os demais campos de evidência preservam a origem da classificação.
+- Registre o motivo e a etapa alcançada. Para passar de `identificada` a `candidatura-enviada`, informe `candidatura_confirmada: true` e a `fonte_candidatura` que comprova o envio. Guarde as versões exatas em `envios/`. Silêncio ou feedback positivo, por si só, não justificam mudar o status.
+- Use a URL original ou o caminho da evidência relativo à pasta de dados. Relatórios de lote podem acrescentar contexto. Uma fonte local nova ou alterada precisa existir. Se uma fonte antiga mudar de lugar, ainda é possível listar e editar a vaga.
+- Informe a data do fato em `AAAA-MM-DD` ou `null` quando desconhecida. `registrado_em` indica a data do registro. Um prazo exige `fonte_prazo`. `revisar_em` indica quando rever o processo.
+- Para registrar a disponibilidade pública do anúncio, informe `aberta_verificada`, `nao_confirmada` ou `anuncio_expirado` e a `fonte_disponibilidade_inscricao`. Envie `disponibilidade_inscricao: null` para limpar ambos os campos. A situação do anúncio não comprova acesso autenticado, envio ou encerramento do processo pessoal.
 
 ### Avaliação e remuneração
 
-O painel Markdown lê o score de `avaliacao-validada.json` sem recalcular. Mantenha esse resultado coerente com `avaliacao.md`, que reúne aderência, cultura, condições, recomendação e links para pesquisas datadas. Para reavaliar, siga a [avaliação determinística da skill](skills/posicionar-carreira/SKILL.md#avaliação-determinística). Para avaliar a empresa, siga o [roteiro de pesquisa de clima](skills/posicionar-carreira/references/clima-organizacional.md).
+O painel lê o score de `avaliacao-validada.json`. Mantenha `avaliacao.md` coerente com esse valor e registre aderência, cultura, condições, recomendação e fontes datadas. Para recalcular, siga a [avaliação determinística](skills/posicionar-carreira/SKILL.md#avaliação-determinística).
 
-Ao mapear uma vaga, siga o [procedimento de pesquisa salarial](skills/posicionar-carreira/references/benchmark-salarial.md). O painel Markdown mostra a síntese e o link para vagas em andamento e sinaliza pesquisa pendente quando o arquivo está ausente.
+Ao mapear uma vaga, siga a [pesquisa salarial](skills/posicionar-carreira/references/benchmark-salarial.md). Para vagas em andamento, o painel Markdown opcional mostra a síntese e o link ou indica pesquisa pendente.
 
 ### Validação, painel Markdown e relatórios
 
-A partir da pasta do plugin, use os comandos abaixo para ler os dossiês. O padrão é a pasta configurada em [Fonte local](#fonte-local). Para usar outra pasta, passe `--root <caminho-absoluto-da-pasta-de-dados>`.
+Na pasta do plugin, execute o comando desejado. Para usar outra base, acrescente `--root <caminho-absoluto-da-pasta-de-dados>`.
 
 ```powershell
 python -B server/gestao_vagas.py validar
@@ -120,19 +137,23 @@ python -B server/gestao_vagas.py gerar
 python -B server/gestao_vagas.py relatorio --mes AAAA-MM
 ```
 
-`validar` confere registros e destinos de links locais. A validação cobre os arquivos, e URLs externas e âncoras exigem conferência própria. `gerar` valida os registros e substitui apenas o painel Markdown derivado, preservando a seção **Revisões recebidas**. Use a geração deliberadamente, fora de uma sessão de curadoria manual. Os formulários e as ferramentas MCP atualizam a vista do plugin sem depender da geração do Markdown.
+- `validar` confere registros, arquivos citados e links locais. Verifique URLs externas e âncoras à parte.
+- `gerar` valida a base e cria ou substitui `painel-vagas.md`, preservando **Revisões recebidas**. Execute apenas se quiser esse arquivo, fora de uma edição manual. O painel do plugin lê os dossiês por atualização mais recente. Se houver índice, mostra primeiro as vagas na ordem dos links.
+- `relatorio` registra vagas identificadas, envios confirmados e eventos do mês. Use `--data AAAA-MM-DD` para definir a data de referência. Escolha um mês até essa data. Novas execuções no mesmo dia criam revisões `-r2`, `-r3` e seguintes. Envios confirmados sem data contam só no total histórico. Pistas e recibos sem associação ficam fora da contagem.
 
-`relatorio` cria uma fotografia datada com vagas identificadas, candidaturas confirmadas e eventos do mês. Repetições criam revisões `-r2`, `-r3` e seguintes. `--data AAAA-MM-DD` define a data de referência e o mês selecionado deve ser igual ou anterior a ela. Envios comprovados sem data conhecida entram no total histórico. As contagens mensais exigem data de envio. Pistas e recibos sem associação ficam fora dessas contagens.
+No Markdown, `grupo_plano_atual` separa vagas identificadas sem envio confirmado: `plano_modalidade_compativel` para avaliar e `plano_esclarecimento` para esclarecer. `lote_plano` e `fonte_plano` registram a origem da classificação.
 
 ## Manutenção humana em lote
 
-Para manutenção humana deliberada, `server/lote.py` usa o mesmo serviço de cadastro, alteração e histórico do MCP. Agentes usam o [fluxo MCP](#gestão-de-oportunidades), inclusive em lote. Na pasta do plugin, consulte a revisão de cada processo antes de montar uma entrada de manutenção.
+`server/lote.py` usa o mesmo serviço de gravação do MCP. Para agentes, siga o [fluxo de gestão de oportunidades](#gestão-de-oportunidades).
+
+1. Consulte a revisão de cada processo que você quer alterar.
 
 ```powershell
 python -B server/lote.py --detalhar empresa/local-001
 ```
 
-Monte um JSON com uma lista de operações. Use `criar_vaga` com empresa, título e fonte. Para `registrar_evento` ou `atualizar_vaga`, use o ID e a revisão retornados pelo detalhe. Informe a descrição do evento, a fonte e a data quando conhecida. `atualizar_vaga` também recebe os campos que mudam em `mudancas`.
+2. Salve em `entrada.json` uma lista de operações com os campos do [fluxo de gestão](#gestão-de-oportunidades). Neste exemplo, uma vaga com candidatura enviada avança para entrevistas.
 
 ```json
 [
@@ -149,20 +170,29 @@ Monte um JSON com uma lista de operações. Use `criar_vaga` com empresa, títul
 ]
 ```
 
+3. Confira a prévia sem gravar. Os IDs de novos cadastros são provisórios.
+
 ```powershell
 python -B server/lote.py entrada.json
+```
+
+4. Depois de revisar cada item, aplique o lote e guarde o resultado.
+
+```powershell
 python -B server/lote.py entrada.json --aplicar > resultado.json
+```
+
+5. Confira as operações aplicadas, repetidas, com conflito ou com erro. Para tentar de novo, revise `falhas` no relatório. Consulte as revisões atuais dos processos em conflito e reconcilie as mudanças. A execução usa as revisões que você fornecer.
+6. Confira a prévia das falhas. Acrescente `--aplicar` quando estiver correta.
+
+```powershell
 python -B server/lote.py resultado.json --somente-falhas
 ```
 
-A primeira execução mostra a prévia sem gravar. Aplique após revisar cada item. O relatório identifica operações aplicadas, repetidas, com conflito ou com erro. Para repetir apenas as falhas, revise a lista `falhas` no relatório, consulte de novo os processos em conflito e reconcilie a alteração. Execute com `--somente-falhas --aplicar` quando a prévia das falhas estiver correta. A execução preserva as revisões fornecidas. IDs gerados na prévia de cadastros são provisórios.
-
 ## Testes locais
 
-Execute na pasta do plugin.
+Na pasta do plugin, execute os testes de operações MCP, validação, painel e relatórios. A suíte usa dossiês fictícios. Para testar a interface do servidor MCP e a mensagem da vaga selecionada, instale Playwright para Python e Chrome.
 
 ```powershell
 python -X utf8 -B -m unittest discover -s tests -v
 ```
-
-Os testes usam dossiês sintéticos para operações MCP, validação, geração do painel e relatórios. O teste do painel usa Playwright para Python e Chrome. O navegador executa a interface entregue pelo servidor MCP e um host de teste recebe a mensagem da vaga selecionada.

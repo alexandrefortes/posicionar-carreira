@@ -3,10 +3,12 @@ from datetime import date, timedelta
 from hashlib import sha256
 from threading import Barrier
 import unittest
+from unittest.mock import patch
 
 import test_dados
 from dados import detalhar, listar
-from gestao_vagas import metadata
+from gestao_vagas import load_processes, metadata, validar_originais
+import triagem
 from operacoes import atualizar_vaga, criar_vaga, registrar_evento
 
 
@@ -33,6 +35,82 @@ class OperacoesTest(unittest.TestCase):
             self.carreira, processo_id, self.atual(processo_id)["revisao"], descricao,
             FONTE, mudancas,
         )
+
+    def test_triagem_preserva_original_e_retomada_nao_repete_evento(self):
+        pasta = self.carreira / "monitoramento"
+        pasta.mkdir()
+        arquivo = pasta / "triagem.md"
+        linha = "- [ ] Mensagem M1"
+        original = b"\xef\xbb\xbf# Triagem\r\n\r\n" + linha.encode() + b"\r\n- Outra pendencia\r\n"
+        arquivo.write_bytes(original)
+        args = (self.carreira, PRIMEIRO_ID, self.atual()["revisao"], "Entrevista confirmada", FONTE)
+        registrar_evento(*args, pendencia_triagem=linha, previa=True)
+        self.assertEqual(arquivo.read_bytes(), original)
+        self.assertEqual(self.atual()["revisao"], args[2])
+        import operacoes
+        gravar_original = operacoes.gravar_bytes
+        def simular_falha(path, conteudo, anterior):
+            if path == arquivo:
+                raise OSError("Falha na triagem")
+            gravar_original(path, conteudo, anterior)
+        with patch.object(operacoes, "gravar_bytes", simular_falha):
+            with self.assertRaisesRegex(ValueError, "Fato registrado"):
+                registrar_evento(*args, pendencia_triagem=linha)
+        self.assertEqual(arquivo.read_bytes(), original)
+        with self.assertRaisesRegex(ValueError, "pendência aberta"):
+            triagem.validar(self.carreira, load_processes(self.carreira))
+        with self.assertRaisesRegex(ValueError, "outro fato"):
+            registrar_evento(self.carreira, SEGUNDO_ID, self.atual(SEGUNDO_ID)["revisao"],
+                             "Outro fato", FONTE, pendencia_triagem=linha)
+        atual = registrar_evento(*args, pendencia_triagem=linha)
+        self.assertEqual(atual, registrar_evento(*args, pendencia_triagem=linha))
+        link = f"- [x] [Resolvida](../oportunidades/{PRIMEIRO_ID}/processo.md) · Mensagem M1"
+        self.assertEqual(arquivo.read_bytes(), original.replace(linha.encode(), link.encode()))
+        self.assertEqual(sum(e["descricao"] == args[3] for e in atual["eventos"]), 1)
+        triagem.validar(self.carreira, load_processes(self.carreira))
+
+    def test_triagem_linha_ambigua_e_evento_preexistente(self):
+        pasta = self.carreira / "monitoramento"
+        pasta.mkdir()
+        arquivo = pasta / "triagem.md"
+        linha = "| Mensagem M2 | A identificar |"
+        arquivo.write_text(linha + "\n" + linha, encoding="utf-8")
+        args = (self.carreira, PRIMEIRO_ID, self.atual()["revisao"], "Recebido retorno", FONTE)
+        with self.assertRaisesRegex(ValueError, "ambígua"):
+            registrar_evento(*args, pendencia_triagem=linha)
+        self.assertEqual(self.atual()["revisao"], args[2])
+        arquivo.write_text(linha, encoding="utf-8")
+        registrado = registrar_evento(*args)
+        resolvido = registrar_evento(self.carreira, PRIMEIRO_ID, registrado["revisao"], args[3],
+                                    FONTE, pendencia_triagem=linha)
+        self.assertEqual(len(registrado["eventos"]), len(resolvido["eventos"]))
+        self.assertTrue(arquivo.read_text(encoding="utf-8").startswith("| [Resolvida]"))
+        triagem.validar(self.carreira, load_processes(self.carreira))
+
+    def test_fatos_por_vaga_reutilizam_original_e_rejeitam_copias(self):
+        fonte = self.carreira / "comunicado.md"
+        fonte.write_text("Uma mensagem para dois cargos.", encoding="utf-8")
+        copia = self.segundo.parent / "copia.md"
+        copia.write_bytes(fonte.read_bytes())
+        registrar_evento(self.carreira, PRIMEIRO_ID, self.atual()["revisao"], "Cargo A: agendamento", fonte.name)
+        args = (self.carreira, SEGUNDO_ID, self.atual(SEGUNDO_ID)["revisao"], "Cargo B: cancelamento")
+        with self.assertRaisesRegex(ValueError, "Fonte repetida"):
+            registrar_evento(*args, copia.relative_to(self.carreira).as_posix())
+        with self.assertRaisesRegex(ValueError, "Fonte repetida"):
+            self.atualizar({"disponibilidade_inscricao": "nao_confirmada",
+                            "fonte_disponibilidade_inscricao": copia.relative_to(self.carreira).as_posix()}, SEGUNDO_ID)
+        atual = registrar_evento(*args, fonte.name + "#cargo-b")
+        self.assertEqual(atual["eventos"][-1]["descricao"], args[3])
+        self.assertEqual(atual["eventos"][-1]["fonte"], "comunicado.md#cargo-b")
+        registros = load_processes(self.carreira)
+        validar_originais(self.carreira, registros)
+        next(r for r in registros if r["id"] == SEGUNDO_ID)["eventos"][-1]["fonte"] = copia.relative_to(self.carreira).as_posix()
+        with self.assertRaisesRegex(ValueError, "Fonte repetida"):
+            validar_originais(self.carreira, registros)
+        enviado = self.segundo.parent / "envios" / "material-enviado.md"
+        enviado.parent.mkdir(exist_ok=True)
+        enviado.write_bytes(fonte.read_bytes())
+        registrar_evento(self.carreira, SEGUNDO_ID, atual["revisao"], "Anexo enviado", enviado.relative_to(self.carreira).as_posix())
 
     def test_grava_status_e_historico_seguindo_o_fluxo(self):
         for proibido in ("entrevistas", "oferta", "reprovado", "pausado"):

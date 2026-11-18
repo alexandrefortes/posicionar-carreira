@@ -1,4 +1,3 @@
-"""Servidor MCP de gestão dos dossiês de carreira, por stdio."""
 from __future__ import annotations
 
 import json
@@ -11,8 +10,8 @@ from dados import detalhar, ler_processo, listar, resolver_carreira_root
 from gestao_vagas import DISPONIBILIDADES_INSCRICAO, TRANSICOES_STATUS
 
 
-VERSION = "0.8.0"
-UI_URI = "ui://posicionar-carreira-local/painel-v6.html"
+VERSION = "0.9.0"
+UI_URI = "ui://posicionar-carreira-local/painel-v7.html"
 WELCOME_URI = "ui://posicionar-carreira-local/boas-vindas.html"
 DASHBOARD_URI = "ui://posicionar-carreira-local/dashboard.html"
 UI_MIME = "text/html;profile=mcp-app"
@@ -92,6 +91,8 @@ NULLABLE = {"type": ["string", "null"]}
 EVENT_INPUT = {
     "processo_id": STRING, "revisao": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "descricao": STRING, "fonte": STRING, "data": OPTIONAL_DATE,
+    "pendencia_triagem": {**STRING, "description": "Linha completa de monitoramento/triagem.md. "
+                         "Ao confirmar a associação, registre o fato e encerre essa pendência."},
 }
 EDIT_INPUT = {
     "titulo": STRING,
@@ -107,12 +108,15 @@ for name, title, description, props, required in (
     (
         "criar_vaga", "Cadastrar vaga",
         "Cria o dossiê local com status identificada. Use a URL do anúncio ou uma fonte relativa à pasta carreira.",
-        {"empresa": STRING, "titulo": STRING, "fonte": STRING, "processo_id": STRING},
+        {"empresa": STRING, "titulo": STRING, "fonte": STRING, "processo_id": STRING,
+         "fonte_compartilhada": {"type": "boolean", "description": "O original identifica várias vagas. "
+                                "Reutilize sua URL ou caminho em cada dossiê."}},
         ["empresa", "titulo", "fonte"],
     ),
     (
         "registrar_evento", "Registrar evento",
-        "Acrescenta uma nota ou retorno ao processo. Use a revisão de detalhar_vaga e informe data conhecida e fonte.",
+        "Registra o fato comprovado para esta vaga. Use a revisão de detalhar_vaga e a fonte original. "
+        "Se a fonte cobrir várias vagas, use o mesmo link em cada evento.",
         EVENT_INPUT, ["processo_id", "revisao", "descricao", "fonte"],
     ),
     (
