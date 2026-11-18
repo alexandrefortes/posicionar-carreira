@@ -58,6 +58,14 @@ class ServidorTest(unittest.TestCase):
             "name": "detalhar_vaga", "arguments": {"processo_id": processo_id},
         })["structuredContent"]
 
+    def test_lint_exposto_como_leitura_e_retorna_relatorio(self):
+        ferramentas = {f['name']: f for f in self.mcp('tools/list')['tools']}
+        self.assertTrue(ferramentas['lint']['annotations']['readOnlyHint'])
+        self.assertNotIn('validar', ferramentas)
+        resposta = self.mcp('tools/call', {'name': 'lint'})
+        self.assertEqual(resposta['structuredContent']['dossies'], 2)
+        self.assertIn('Dossiês examinados: 2', resposta['content'][0]['text'])
+
     def atualizar(self, atual, mudancas, descricao, *, fonte=FONTE_EVENTO):
         return self.mcp("tools/call", {"name": "atualizar_vaga", "arguments": {
             "processo_id": atual["id"], "revisao": atual["revisao"], "mudancas": mudancas,

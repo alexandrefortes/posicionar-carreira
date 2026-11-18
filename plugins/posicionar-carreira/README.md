@@ -132,12 +132,12 @@ Ao mapear uma vaga, siga a [pesquisa salarial](skills/posicionar-carreira/refere
 Na pasta do plugin, execute o comando desejado. Para usar outra base, acrescente `--root <caminho-absoluto-da-pasta-de-dados>`.
 
 ```powershell
-python -B server/gestao_vagas.py validar
+python -B server/gestao_vagas.py lint
 python -B server/gestao_vagas.py gerar
 python -B server/gestao_vagas.py relatorio --mes AAAA-MM
 ```
 
-- `validar` confere registros, arquivos citados e links locais. Verifique URLs externas e âncoras à parte.
+- Peça **rode o lint da base** para examinar os dossiês, a triagem, as fontes compartilhadas e os links locais. Cada erro ou aviso indica o arquivo e sugere uma correção. O lint apenas lê a base. No terminal, erros retornam código 1 e avisos isolados retornam 0. Verifique URLs externas e âncoras à parte.
 - `gerar` valida a base e cria ou substitui `painel-vagas.md`, preservando **Revisões recebidas**. Execute apenas se quiser esse arquivo, fora de uma edição manual. O painel do plugin lê os dossiês por atualização mais recente. Se houver índice, mostra primeiro as vagas na ordem dos links.
 - `relatorio` registra vagas identificadas, envios confirmados e eventos do mês. Use `--data AAAA-MM-DD` para definir a data de referência. Escolha um mês até essa data. Novas execuções no mesmo dia criam revisões `-r2`, `-r3` e seguintes. Envios confirmados sem data contam só no total histórico. Pistas e recibos sem associação ficam fora da contagem.
 

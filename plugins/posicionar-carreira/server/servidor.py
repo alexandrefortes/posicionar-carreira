@@ -7,11 +7,12 @@ from pathlib import Path
 
 from configuracao import MODELOS, inicializar_carreira, verificar_configuracao
 from dados import detalhar, ler_processo, listar, resolver_carreira_root
-from gestao_vagas import DISPONIBILIDADES_INSCRICAO, TRANSICOES_STATUS
+from gestao_vagas import DISPONIBILIDADES_INSCRICAO, TRANSICOES_STATUS, lint
+from diagnosticos import formatar_lint
 
 
-VERSION = "0.9.0"
-UI_URI = "ui://posicionar-carreira-local/painel-v7.html"
+VERSION = "0.10.0"
+UI_URI = "ui://posicionar-carreira-local/painel-v8.html"
 WELCOME_URI = "ui://posicionar-carreira-local/boas-vindas.html"
 DASHBOARD_URI = "ui://posicionar-carreira-local/dashboard.html"
 UI_MIME = "text/html;profile=mcp-app"
@@ -54,6 +55,12 @@ TOOLS = [
             "ui": {"resourceUri": DASHBOARD_URI, "visibility": ["model"], "preferredModelDisplayMode": "inline"},
             "openai/ui": {"entrypoints": [{"type": "thread"}]},
         },
+    },
+    {
+        "name": "lint",
+        "title": "Conferir a base de vagas",
+        "description": "Examina os dossiês, a triagem, as fontes e os links locais. Retorna erros e avisos com arquivo e sugestão de correção.",
+        "inputSchema": EMPTY_INPUT,
     },
     {
         "name": "listar_vagas",
@@ -246,6 +253,9 @@ def call_tool(params):
         if name == "inicializar_carreira":
             return tool_result(inicializar_carreira(**arguments))
         root = resolver_carreira_root()
+        if name == "lint":
+            resultado = lint(root)
+            return tool_result(resultado, message=formatar_lint(resultado))
         if name == "listar_vagas":
             return tool_result({"vagas": listar(root), "transicoes_status": TRANSICOES_STATUS})
         if name == "detalhar_vaga":

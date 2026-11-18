@@ -32,6 +32,85 @@ class GestaoTests(unittest.TestCase):
     def test_duplicate_id(self):
         self.save(); self.save(folder='empresa/local-002')
         with self.assertRaisesRegex(ValueError,'ID duplicado'): g.load_processes(self.root)
+
+    def test_lint_reune_erros_independentes_sem_gravar(self):
+        self.data.update(status='legado', prazo='amanhã', fonte_estado='ausente.pdf')
+        self.save()
+        outro = self.root / 'oportunidades/outra/local-002/processo.md'
+        outro.parent.mkdir(parents=True)
+        outro.write_text('---\ninvalido: [\n---\n', encoding='utf-8')
+        (self.root / 'README.md').write_text('[A](a.md) e [B](b.md)', encoding='utf-8')
+        def arquivos():
+            return {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
+        antes = arquivos()
+        resultado = g.lint(self.root)
+        self.assertEqual(resultado['dossies'], 2)
+        self.assertEqual(len(resultado['erros']), 7)
+        self.assertEqual({Path(e['arquivo']).name for e in resultado['erros']}, {'processo.md', 'README.md'})
+        self.assertTrue(all(e['sugestao'] for e in resultado['erros']))
+        self.assertEqual(arquivos(), antes)
+
+    def test_lint_fontes_compartilhadas_e_material_arquivado(self):
+        self.data['eventos'][0]['descricao'] = 'Recebido e-mail'
+        self.save()
+        outro = copy.deepcopy(self.data)
+        outro.update(id='empresa/local-002', ids_externos=[])
+        outro['eventos'][0]['descricao'] = 'Entrevista de arquitetura confirmada para sexta-feira'
+        self.save(outro, folder=outro['id'])
+        arquivo = self.root / 'archive/anuncio.md'
+        arquivo.parent.mkdir()
+        arquivo.write_text('Anúncio original', encoding='utf-8')
+        vaga = self.root / 'oportunidades' / self.data['id'] / 'vaga.md'
+        vaga.write_text('# Vaga\n\n[Anúncio](../../../archive/anuncio.md)\n', encoding='utf-8')
+        historico = self.root / 'oportunidades' / outro['id'] / 'vaga.md'
+        historico.write_text('# Vaga\nDescrição atual.\n[Pesquisa histórica](../../../archive/anuncio.md)', encoding='utf-8')
+        resultado = g.lint(self.root)
+        self.assertEqual(resultado['erros'], [])
+        self.assertEqual(len(resultado['avisos']), 2)
+        self.assertEqual({Path(a['arquivo']) for a in resultado['avisos']}, {vaga.parent / 'processo.md'})
+        self.data.update(status='reprovado')
+        self.save()
+        self.assertEqual(len(g.lint(self.root)['avisos']), 1)
+
+    def test_cli_lint_erros_avisos_e_nome_do_comando(self):
+        self.save()
+        def rodar(acao):
+            return subprocess.run([sys.executable, '-X', 'utf8', '-B', str(SERVER/'gestao_vagas.py'),
+                                   acao, '--root', str(self.root)], capture_output=True, encoding='utf-8', timeout=10)
+        arquivo = self.root / 'archive/oportunidades/empresa/local-001/vaga.md'
+        arquivo.parent.mkdir(parents=True)
+        arquivo.write_text('Anúncio', encoding='utf-8')
+        aviso = rodar('lint')
+        self.assertEqual(aviso.returncode, 0, aviso.stderr)
+        self.assertIn('Erros: 0. Avisos: 1.', aviso.stdout)
+        self.data['prazo'] = 'ontem'
+        self.save()
+        erro = rodar('lint')
+        self.assertEqual(erro.returncode, 1, erro.stdout + erro.stderr)
+        self.assertIn('Avisos: 1.', erro.stdout)
+        self.assertEqual(rodar('validar').returncode, 2)
+
+    def test_lint_mostra_cada_grupo_de_originais_e_pendencias(self):
+        outro = copy.deepcopy(self.data)
+        outro.update(id='empresa/local-002', ids_externos=[])
+        for i, evento in enumerate(self.data['eventos']):
+            a, b = f'original-{i}.md', f'copia-{i}.md'
+            for nome in (a, b):
+                (self.root / nome).write_text(f'Comprovante {i}', encoding='utf-8')
+            evento.update(fonte=a, triagem=[g.triagem.chave(f'- Mensagem {i}')])
+            outro['eventos'][i]['fonte'] = b
+        self.save()
+        self.save(outro, folder=outro['id'])
+        triagem = self.root / 'monitoramento/triagem.md'
+        triagem.parent.mkdir()
+        triagem.write_text('- [Resolvida](../oportunidades/empresa/local-002/processo.md) · Mensagem 0\n'
+                           '- Mensagem 1\n- Mensagem ainda ambígua\n', encoding='utf-8')
+        erros = g.lint(self.root)['erros']
+        self.assertEqual(len(erros), 4)
+        self.assertEqual(sum('Fonte repetida' in e['problema'] for e in erros), 2)
+        self.assertTrue(any('pendência aberta' in e['problema'] for e in erros))
+        self.assertTrue(any('evento está em empresa/local-001' in e['problema'] and
+                            Path(e['arquivo']) == triagem for e in erros))
     def test_rejects_unknown_status_and_legacy_fields(self):
         self.data['status']='encerrado'; self.save()
         with self.assertRaisesRegex(ValueError,'status inválido'): g.load_processes(self.root)
@@ -175,7 +254,7 @@ class GestaoTests(unittest.TestCase):
         run('gerar', '--root', str(self.root))
         self.assertIn('consulte Gestão de oportunidades no guia do Posicionar Carreira',
                       painel.read_text(encoding='utf-8'))
-        self.assertIn('1 processos validados', run('validar'))
+        self.assertIn('Dossiês examinados: 1. Erros: 0. Avisos: 0.', run('lint'))
         self.assertFalse((self.root/'scripts').exists())
         run('relatorio','--mes','2026-09')
         first=self.root/'relatorios/2026-09/acompanhamento-gerado-2026-10-06.md'

@@ -1,6 +1,7 @@
 import re
 from hashlib import sha256
 from urllib.parse import quote, unquote
+from diagnosticos import falhar
 
 
 PREFIXO = r"(?:\|[ \t]*|(?:[-*+]|\d+[.)])[ \t]+(?:\[[ xX]\][ \t]+)?)?"
@@ -37,25 +38,46 @@ def preparar(carreira, processo_id, pendencia):
     return caminho, original, "".join(linhas).encode(encoding)
 
 
-def validar(carreira, registros):
+def validar(carreira, registros, *, erro=falhar, sem_leitura=()):
     vinculados = {}
     for processo in registros:
-        for evento in processo["eventos"]:
+        eventos = processo.get("eventos")
+        if not isinstance(eventos, list):
+            continue
+        caminho = processo["_path"]
+        for evento in eventos:
+            if not isinstance(evento, dict):
+                continue
             pendencias = evento.get("triagem", [])
             if not isinstance(pendencias, list):
-                raise ValueError(f"Vínculo de triagem inválido em {processo['id']}.")
+                erro(caminho, "Vínculo de triagem inválido", "Confira a pendência vinculada ao evento.")
+                continue
             for ident in pendencias:
                 if not isinstance(ident, str) or not re.fullmatch(r"[0-9a-f]{64}", ident) or ident in vinculados:
-                    raise ValueError(f"Vínculo de triagem inválido ou duplicado em {processo['id']}.")
-                vinculados[ident] = processo["id"]
+                    erro(caminho, "Vínculo de triagem inválido ou duplicado", "Confira qual evento resolveu a pendência.")
+                    continue
+                vinculados[ident] = caminho
     arquivo = carreira / "monitoramento" / "triagem.md"
-    linhas = arquivo.read_text(encoding="utf-8-sig").splitlines() if arquivo.is_file() else []
-    for linha in linhas:
+    try:
+        linhas = arquivo.read_text(encoding="utf-8-sig").splitlines() if arquivo.is_file() else []
+    except (OSError, UnicodeError) as exc:
+        erro(arquivo, str(exc), "Confira a leitura da triagem em UTF-8.")
+        return
+    for numero, linha in enumerate(linhas, 1):
         marca = RESOLVIDA.match(linha.strip())
         if marca:
             prefixo, destino, corpo = marca.groups()
             ident = chave(prefixo.replace("[x]", "[ ]") + corpo)
-            if vinculados.pop(ident, None) != unquote(destino):
-                raise ValueError(f"Pendência marcada como resolvida sem evento correspondente: {destino}.")
-    if vinculados:
-        raise ValueError(f"Evento registrado com pendência aberta ou ausente na triagem: {next(iter(vinculados.values()))}.")
+            caminho = vinculados.pop(ident, None)
+            destino = unquote(destino)
+            if caminho is not None:
+                oficial = caminho.parent.relative_to(carreira / "oportunidades").as_posix()
+                if oficial != destino:
+                    erro(arquivo, f"Linha {numero} aponta para {destino}, mas o evento está em {oficial}",
+                         "Confira a vaga e corrija o vínculo.")
+            elif destino not in sem_leitura:
+                erro(arquivo, f"Linha {numero} marcada como resolvida sem evento correspondente em {destino}",
+                     "Confira o fato no dossiê e o link de resolução.")
+    for ident, caminho in vinculados.items():
+        erro(caminho, f"Evento registrado com pendência aberta ou ausente na triagem ({ident})",
+             "Confira a linha original em monitoramento/triagem.md e conclua a resolução.")

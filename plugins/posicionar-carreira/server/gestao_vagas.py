@@ -9,6 +9,7 @@ import re
 from urllib.parse import unquote
 
 from dados import _ordem_painel, resolver_carreira_root, responsavel_pessoal
+from diagnosticos import avisos_contexto, destino_fonte, falhar, formatar_lint
 import triagem
 
 TRANSICOES_STATUS = {
@@ -53,55 +54,65 @@ def check_source(root, value, *, exigir_arquivo=True):
         raise ValueError('Fonte de evidência ausente')
     if value.startswith(('https://', 'http://')):
         return
-    target = (root / unquote(value.split('#', 1)[0])).resolve()
-    if not target.is_relative_to(root.resolve()) or (exigir_arquivo and not target.is_file()):
+    target = destino_fonte(root.resolve(), value)
+    if target is None or (exigir_arquivo and not target.is_file()):
         raise ValueError(f'Fonte local inexistente ou fora de carreira: {value}')
 
 
 def arquivo_original(root, fonte):
-    if fonte.startswith(('http://', 'https://')):
+    arquivo = destino_fonte(root.resolve(), fonte)
+    if not isinstance(arquivo, Path):
         return None
-    arquivo = (root / unquote(fonte.split('#', 1)[0])).resolve()
     partes = arquivo.relative_to(root.resolve()).parts
     if len(partes) >= 5 and partes[0] == 'oportunidades' and partes[3] == 'envios':
         return None
     return arquivo
 
 
-def validar_originais(root, registros, novas=(), processo_id=None):
+def validar_originais(root, registros, novas=(), processo_id=None, *, erro=falhar):
     por_arquivo = {}
     for registro in registros:
-        fontes = {evento['fonte'] for evento in registro['eventos']}
-        fontes.update(registro[campo] for campo in CAMPOS_FONTE if registro.get(campo))
-        for fonte in fontes:
+        eventos = registro.get('eventos')
+        fontes = [e.get('fonte') for e in eventos if isinstance(e, dict)] if isinstance(eventos, list) else []
+        fontes.extend(registro.get(campo) for campo in CAMPOS_FONTE)
+        for fonte in sorted({s for s in fontes if isinstance(s, str) and s.strip()}):
             arquivo = arquivo_original(root, fonte)
             if arquivo:
-                por_arquivo.setdefault(arquivo, set()).add(registro['id'])
+                dossie = registro['_path'].parent.relative_to(root / 'oportunidades').as_posix()
+                por_arquivo.setdefault(arquivo, set()).add(dossie)
     for arquivo in novas:
         por_arquivo.setdefault(arquivo, set()).add(processo_id)
     por_tamanho = {}
     tamanhos_novos = {p.stat().st_size for p in novas}
     for arquivo, ids in por_arquivo.items():
-        if arquivo.is_file():
-            tamanho = arquivo.stat().st_size
-            if not novas or tamanho in tamanhos_novos:
-                por_tamanho.setdefault(tamanho, []).append((arquivo, ids))
+        try:
+            if arquivo.is_file():
+                tamanho = arquivo.stat().st_size
+                if not novas or tamanho in tamanhos_novos:
+                    por_tamanho.setdefault(tamanho, []).append((arquivo, ids))
+        except OSError as exc:
+            erro(arquivo, str(exc), 'Confira o acesso ao original.')
     for grupo in por_tamanho.values():
         if len(grupo) < 2:
             continue
         por_hash = {}
         for arquivo, ids in grupo:
             digest = sha256()
-            with arquivo.open('rb') as stream:
-                for bloco in iter(lambda: stream.read(1024 * 1024), b''):
-                    digest.update(bloco)
+            try:
+                with arquivo.open('rb') as stream:
+                    for bloco in iter(lambda: stream.read(1024 * 1024), b''):
+                        digest.update(bloco)
+            except OSError as exc:
+                erro(arquivo, str(exc), 'Confira o acesso ao original.')
+                continue
             por_hash.setdefault(digest.digest(), []).append((arquivo, ids))
         for iguais in por_hash.values():
             if len(iguais) < 2 or (novas and not any(p in novas for p, _ in iguais)):
                 continue
             if len(set.union(*(ids for _, ids in iguais))) > 1:
-                caminhos = ', '.join(p.relative_to(root.resolve()).as_posix() for p, _ in iguais)
-                raise ValueError(f'Fonte repetida entre vagas. Vincule cada fato ao mesmo original: {caminhos}')
+                caminhos = ', '.join(sorted(p.relative_to(root.resolve()).as_posix() for p, _ in iguais))
+                erro(iguais[0][0], f'Fonte repetida entre vagas: {caminhos}',
+                     'Vincule cada fato ao mesmo original.')
 
 def process_path(root, processo_id):
     if (
@@ -117,70 +128,105 @@ def process_path(root, processo_id):
     return path
 
 
-def validate_process(root, path, d, *, exigir_arquivos=False):
+def validate_process(root, path, d, *, exigir_arquivos=False, erro=falhar):
+    def problema(texto, sugestao):
+        erro(path, texto, sugestao)
+
     if d.keys() & {'estado', 'etapa', 'resultado'}:
-        raise ValueError(f'{path}: migre o cabeçalho YAML para um único campo status')
-    for key in ('id', 'empresa', 'titulo', 'status', 'prioridade',
-                'proxima_acao', 'responsavel', 'fonte_estado'):
+        problema('Campos de status antigos no YAML', 'Migre o cabeçalho para um único campo status.')
+    for key in ('id', 'empresa', 'titulo', 'status', 'prioridade', 'proxima_acao', 'responsavel', 'fonte_estado'):
         if not isinstance(d.get(key), str) or not d[key].strip():
-            raise ValueError(f'{path}: campo obrigatório {key}')
+            problema(f'Campo obrigatório {key}', f'Preencha {key} no cabeçalho YAML.')
     expected = path.parent.relative_to(root / 'oportunidades').as_posix()
-    if d['id'] != expected:
-        raise ValueError(f'ID não corresponde à pasta: {d["id"]} / {expected}')
-    if d['status'] not in TRANSICOES_STATUS:
-        raise ValueError(f'{path}: status inválido')
-    if d['prioridade'] not in {'alta', 'media', 'baixa'}:
-        raise ValueError(f'{path}: prioridade inválida')
-    if d['responsavel'] not in {'titular', 'candidato', 'assistente', 'empresa'} and d['responsavel'] != responsavel_pessoal(root):
-        raise ValueError(f'{path}: responsável inválido')
-    if TRANSICOES_STATUS[d['status']] and d.get('encerrada_em') is not None:
-        raise ValueError(f'{path}: processo em andamento com data de encerramento')
+    if d.get('id') != expected:
+        problema(f'ID não corresponde à pasta: {d.get("id")}', f'Confira o ID oficial {expected}.')
+    status = d.get('status')
+    if not isinstance(status, str) or status not in TRANSICOES_STATUS:
+        problema('status inválido', 'Use um dos status oficiais: ' + ', '.join(TRANSICOES_STATUS) + '.')
+    elif TRANSICOES_STATUS[status] and d.get('encerrada_em') is not None:
+        problema('Processo em andamento com data de encerramento', 'Confira o status e a data de encerramento.')
+    if d.get('prioridade') not in ('alta', 'media', 'baixa'):
+        problema('Prioridade inválida', 'Use alta, media ou baixa.')
+    if d.get('responsavel') not in ('titular', 'candidato', 'assistente', 'empresa'):
+        try:
+            titular = responsavel_pessoal(root)
+        except (OSError, ValueError) as exc:
+            erro(root / 'config.json', str(exc), 'Confira o responsável na configuração da base.')
+        else:
+            if d.get('responsavel') != titular:
+                problema('responsável inválido', 'Informe quem deve executar a próxima ação.')
     if not isinstance(d.get('candidatura_confirmada'), bool):
-        raise ValueError(f'{path}: candidatura_confirmada deve ser booleano')
-    for field in ('identificada_em', 'candidatura_em', 'atualizado_em', 'encerrada_em', 'prazo', 'revisar_em'):
-        date(d.get(field), field)
+        problema('candidatura_confirmada deve ser booleano', 'Informe true ou false conforme a evidência.')
+
+    def conferir_data(valor, campo):
+        try:
+            return date(valor, campo)
+        except ValueError:
+            problema(f'{campo}: data inválida', 'Use uma data existente em AAAA-MM-DD entre aspas, ou null.')
+
+    datas = {campo: conferir_data(d.get(campo), campo) for campo in
+             ('identificada_em', 'candidatura_em', 'atualizado_em', 'encerrada_em', 'prazo', 'revisar_em')}
     if not d.get('atualizado_em'):
-        raise ValueError(f'{path}: atualização ausente')
-    check_source(root, d['fonte_estado'], exigir_arquivo=exigir_arquivos)
+        problema('Data de atualização ausente', 'Informe atualizado_em.')
+
+    def conferir_fonte(valor, campo):
+        try:
+            check_source(root, valor, exigir_arquivo=exigir_arquivos)
+        except (ValueError, OSError) as exc:
+            problema(f'{campo}: {exc}', 'Informe a URL original ou o caminho do arquivo relativo à base.')
+
+    conferir_fonte(d.get('fonte_estado'), 'fonte_estado')
     if d.get('disponibilidade_inscricao'):
-        if d['disponibilidade_inscricao'] not in DISPONIBILIDADES_INSCRICAO:
-            raise ValueError(f'{path}: disponibilidade de inscrição inválida')
-        check_source(root, d.get('fonte_disponibilidade_inscricao'), exigir_arquivo=exigir_arquivos)
-    if d['candidatura_confirmada']:
-        check_source(root, d.get('fonte_candidatura'), exigir_arquivo=exigir_arquivos)
-    elif d['status'] in STATUS_APOS_ENVIO:
-        raise ValueError(f'{path}: status exige candidatura confirmada')
+        if d['disponibilidade_inscricao'] not in tuple(DISPONIBILIDADES_INSCRICAO):
+            problema('Disponibilidade de inscrição inválida', 'Confira a disponibilidade no anúncio.')
+        conferir_fonte(d.get('fonte_disponibilidade_inscricao'), 'fonte_disponibilidade_inscricao')
+    if d.get('candidatura_confirmada') is True:
+        conferir_fonte(d.get('fonte_candidatura'), 'fonte_candidatura')
+    elif isinstance(status, str) and status in STATUS_APOS_ENVIO:
+        problema('Status exige candidatura confirmada', 'Confira o comprovante de envio e o status.')
     elif d.get('candidatura_em') or d.get('fonte_candidatura'):
-        raise ValueError(f'{path}: data/fonte de envio sem confirmação')
+        problema('Data/fonte de envio sem confirmação', 'Confira a confirmação do envio.')
     if d.get('prazo'):
-        check_source(root, d.get('fonte_prazo'), exigir_arquivo=exigir_arquivos)
-    for field in ('identificada_em', 'candidatura_em', 'encerrada_em'):
-        if d.get(field) and d[field] > d['atualizado_em']:
-            raise ValueError(f'{path}: {field} posterior à atualização')
-    if d.get('candidatura_em') and d.get('encerrada_em') and d['encerrada_em'] < d['candidatura_em']:
-        raise ValueError(f'{path}: encerramento anterior ao envio')
+        conferir_fonte(d.get('fonte_prazo'), 'fonte_prazo')
+    for campo in ('identificada_em', 'candidatura_em', 'encerrada_em'):
+        if datas[campo] and datas['atualizado_em'] and datas[campo] > datas['atualizado_em']:
+            problema(f'{campo} posterior à atualização', 'Confira as datas do fato e da atualização.')
+    if datas['candidatura_em'] and datas['encerrada_em'] and datas['encerrada_em'] < datas['candidatura_em']:
+        problema('Encerramento anterior ao envio', 'Confira as datas de candidatura e encerramento.')
+    aliases = d.get('ids_externos', [])
+    if not isinstance(aliases, list) or any(not isinstance(alias, str) for alias in aliases):
+        problema('ids_externos inválidos', 'Use uma lista de identificadores externos.')
     events = d.get('eventos')
     if not isinstance(events, list) or not events:
-        raise ValueError(f'{path}: histórico de eventos ausente')
-    for event in events:
-        date(event.get('data'), 'evento.data')
-        date(event.get('registrado_em'), 'evento.registrado_em')
-        if not event.get('registrado_em') or not event.get('descricao'):
-            raise ValueError(f'{path}: evento incompleto')
-        check_source(root, event.get('fonte'), exigir_arquivo=exigir_arquivos)
+        problema('Histórico de eventos ausente', 'Registre os fatos com data, descrição e fonte.')
+        return
+    for indice, event in enumerate(events, 1):
+        if not isinstance(event, dict):
+            problema(f'Evento {indice} inválido', 'Use um registro com data, descrição e fonte.')
+            continue
+        conferir_data(event.get('data'), f'Evento {indice}, data')
+        conferir_data(event.get('registrado_em'), f'Evento {indice}, registrado_em')
+        if not event.get('registrado_em') or not isinstance(event.get('descricao'), str) or not event['descricao'].strip():
+            problema(f'Evento {indice} incompleto', 'Preencha registrado_em e descreva o fato.')
+        conferir_fonte(event.get('fonte'), f'Evento {indice}, fonte')
 
 
-def _load_process(root, path, d, *, exigir_arquivos=False):
-    validate_process(root, path, d, exigir_arquivos=exigir_arquivos)
+def _load_process(root, path, d, *, exigir_arquivos=False, erro=falhar):
+    validate_process(root, path, d, exigir_arquivos=exigir_arquivos, erro=erro)
     d['_path'] = path
     d['_score'] = None
     scorefile = path.parent / 'avaliacao-validada.json'
     if scorefile.exists():
-        score = json.loads(scorefile.read_text(encoding='utf-8'))
-        if score.get('status') == 'scored':
-            if not isinstance(score.get('final_score'), (float, int)) or not 0 <= score['final_score'] <= 10:
-                raise ValueError(f'{scorefile}: score inválido')
-            d['_score'] = score['final_score']
+        try:
+            score = json.loads(scorefile.read_text(encoding='utf-8'))
+            if not isinstance(score, dict):
+                raise ValueError('Avaliação inválida')
+            if score.get('status') == 'scored':
+                if not isinstance(score.get('final_score'), (float, int)) or not 0 <= score['final_score'] <= 10:
+                    raise ValueError('score inválido')
+                d['_score'] = score['final_score']
+        except (OSError, ValueError) as exc:
+            erro(scorefile, str(exc), 'Confira o JSON e a nota da avaliação.')
     return d
 
 
@@ -192,40 +238,87 @@ def load_process(root, processo_id, *, text=None):
     return _load_process(root, path, metadata(path, text=text))
 
 
-def load_processes(root, *, exigir_arquivos=False):
-    records, ids, aliases = [], set(), set()
-    for path in sorted((root / 'oportunidades').glob('*/*/processo.md')):
-        d = metadata(path)
+def load_processes(root, *, exigir_arquivos=False, erro=falhar, caminhos=None):
+    import yaml
+
+    records, ids, aliases = [], {}, {}
+    if caminhos is None:
+        caminhos = sorted((root / 'oportunidades').glob('*/*/processo.md'))
+    for path in caminhos:
+        try:
+            d = metadata(path)
+        except (OSError, ValueError, yaml.YAMLError) as exc:
+            erro(path, str(exc), 'Confira a leitura do arquivo e o cabeçalho YAML.')
+            continue
         processo_id = d.get('id')
-        if isinstance(processo_id, str) and processo_id in ids:
-            raise ValueError(f'ID duplicado: {processo_id}')
-        records.append(_load_process(root, path, d, exigir_arquivos=exigir_arquivos))
-        ids.add(processo_id)
-        for alias in d.get('ids_externos', []):
-            if alias in aliases:
-                raise ValueError(f'ID externo duplicado: {alias}')
-            aliases.add(alias)
+        if isinstance(processo_id, str):
+            if processo_id in ids:
+                erro(path, f'ID duplicado: {processo_id}', f'Confira o ID também em {ids[processo_id]}.')
+            ids.setdefault(processo_id, path.relative_to(root))
+        registro = _load_process(root, path, d, exigir_arquivos=exigir_arquivos, erro=erro)
+        records.append(registro)
+        externos = d.get('ids_externos')
+        if isinstance(externos, list):
+            for alias in externos:
+                if isinstance(alias, str):
+                    if alias in aliases:
+                        erro(path, f'ID externo duplicado: {alias}', f'Confira o ID também em {aliases[alias]}.')
+                    aliases.setdefault(alias, path.relative_to(root))
     return records
 
 
-def validate_links(root, pending=()):
+def validate_links(root, pending=(), *, erro=falhar):
     paths = [root/'README.md', root/'AGENTS.md', root/'painel-vagas.md']
     for folder in ('oportunidades', 'empresas', 'monitoramento', 'estrategia'):
-        paths.extend((root/folder).rglob('*.md'))
-    paths.extend((root/'relatorios').glob('*/acompanhamento-gerado-*.md'))
+        paths.extend(sorted((root/folder).rglob('*.md')))
+    paths.extend(sorted((root/'relatorios').glob('*/acompanhamento-gerado-*.md')))
     for path in paths:
-        if not path.exists():
+        if not path.exists() or (root/'monitoramento/entradas') in path.parents:
             continue
-        if (root/'monitoramento/entradas') in path.parents:
+        try:
+            content = re.sub(r'```.*?```', '', path.read_text(encoding='utf-8'), flags=re.S)
+        except (OSError, UnicodeError) as exc:
+            erro(path, str(exc), 'Confira a leitura do arquivo Markdown em UTF-8.')
             continue
-        content = re.sub(r'```.*?```', '', path.read_text(encoding='utf-8'), flags=re.S)
         for link in LINK.findall(content):
             target = link.strip('<>')
             if re.match(r'^[a-zA-Z][\w+.-]*:', target) or target.startswith('#'):
                 continue
             filepart = unquote(target.split('#', 1)[0])
-            if filepart and (path.parent/filepart).resolve() not in pending and not (path.parent/filepart).exists():
-                raise ValueError(f'Link quebrado em {path}: {target}')
+            if not filepart:
+                continue
+            try:
+                valido = (path.parent/filepart).resolve() in pending or (path.parent/filepart).exists()
+            except (OSError, ValueError, RuntimeError):
+                valido = False
+            if not valido:
+                erro(path, f'Link quebrado: {target}', 'Atualize o destino ou restaure o arquivo citado.')
+
+
+def lint(root):
+    root = root.resolve()
+    oportunidades = root / 'oportunidades'
+    caminhos = sorted(oportunidades.glob('*/*/processo.md'))
+    resultado = {'dossies': len(caminhos), 'erros': [], 'avisos': []}
+
+    def erro(arquivo, problema, sugestao):
+        resultado['erros'].append(dict(arquivo=str(arquivo), problema=problema, sugestao=sugestao))
+
+    def aviso(arquivo, problema, sugestao):
+        resultado['avisos'].append(dict(arquivo=str(arquivo), problema=problema, sugestao=sugestao))
+
+    if not oportunidades.is_dir():
+        erro(oportunidades, 'Pasta de oportunidades ausente', 'Confira a pasta de dados configurada.')
+        return resultado
+    registros = load_processes(root, exigir_arquivos=True, erro=erro, caminhos=caminhos)
+    sem_leitura = set(caminhos) - {r['_path'] for r in registros}
+    triagem.validar(root, registros, erro=erro, sem_leitura={
+        p.parent.relative_to(oportunidades).as_posix() for p in sem_leitura})
+    validar_originais(root, registros, erro=erro)
+    validate_links(root, erro=erro)
+    avisos_contexto(root, registros, TRANSICOES_STATUS, aviso)
+    return resultado
+
 
 def clean(value):
     return str(value).replace('|', '\\|').replace('\n', ' ')
@@ -348,13 +441,17 @@ def monthly(root, records, month, today):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('acao',choices=['validar','gerar','relatorio'])
+    parser.add_argument('acao',choices=['lint','gerar','relatorio'])
     parser.add_argument('--root',type=Path,help='Diretório de dados de carreira; usa CARREIRA_ROOT ou a configuração local quando omitido.')
     parser.add_argument('--mes')
     parser.add_argument('--data',default=dt.date.today().isoformat(),help='Data de referência, AAAA-MM-DD')
     args=parser.parse_args()
     today=date(args.data,'data')
     root=resolver_carreira_root() if args.root is None else args.root.expanduser().resolve()
+    if args.acao == 'lint':
+        resultado = lint(root)
+        print(formatar_lint(resultado))
+        raise SystemExit(1 if resultado['erros'] else 0)
     records=load_processes(root, exigir_arquivos=True)
     validar_originais(root, records)
     triagem.validar(root, records)

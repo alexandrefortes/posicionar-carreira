@@ -12,7 +12,7 @@ codex plugin marketplace add .
 codex plugin add posicionar-carreira@carreira-local
 ```
 
-Se já usa este marketplace, atualize a pasta registrada e execute novamente `codex plugin add posicionar-carreira@carreira-local`. A versão 0.9.0 encerra pendências na triagem ao registrar o fato e permite vincular uma fonte original a várias vagas. [Usar triagem e fontes compartilhadas](plugins/posicionar-carreira/README.md#gestão-de-oportunidades)
+Se já usa este marketplace, atualize a pasta registrada e execute novamente `codex plugin add posicionar-carreira@carreira-local`.
 
 ## Verificar e preparar a base
 
@@ -133,17 +133,17 @@ No painel, use **Planejar busca no LinkedIn** para obter termos e filtros de aco
 
 Se você já usa o Dot, peça **“Gere um bloco para copiar e atualizar meu monitor de vagas no Dot.”** Informe o texto atual e o ajuste que quer fazer. A skill usa os critérios confirmados e entrega o texto para você revisar e colar na conversa do Dot. Uma vaga de interesse pode ser encaminhada em um pedido separado ao Dot, se o computador com o Codex estiver conectado. [Dot e computadores conectados](https://learn.chatgpt.com/docs/dots/computers-and-apps#connect-your-computers)
 
-## Validar, gerar painel Markdown e criar relatórios
+## Conferir a base, gerar painel Markdown e criar relatórios
 
 Com a base configurada, rode os comandos abaixo a partir da raiz do repositório. Use `--root <pasta-de-dados>` se quiser apontar diretamente para outra base.
 
 ```powershell
-python -B plugins/posicionar-carreira/server/gestao_vagas.py validar
+python -B plugins/posicionar-carreira/server/gestao_vagas.py lint
 python -B plugins/posicionar-carreira/server/gestao_vagas.py gerar
 python -B plugins/posicionar-carreira/server/gestao_vagas.py relatorio --mes AAAA-MM
 ```
 
-`validar` confere os processos e links locais. `gerar` atualiza o arquivo `painel-vagas.md` e preserva a seção **Revisões recebidas**. `relatorio` cria uma fotografia mensal com candidaturas e eventos. [Regras dos relatórios](plugins/posicionar-carreira/README.md#validação-painel-markdown-e-relatórios)
+Peça **rode o lint da base** para ver os erros e avisos de todos os dossiês no chat. `gerar` atualiza o arquivo `painel-vagas.md` e preserva a seção **Revisões recebidas**. `relatorio` cria uma fotografia mensal com candidaturas e eventos. [Regras dos relatórios](plugins/posicionar-carreira/README.md#validação-painel-markdown-e-relatórios)
 
 ## Operações locais em lote
 
