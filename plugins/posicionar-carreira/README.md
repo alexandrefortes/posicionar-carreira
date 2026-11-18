@@ -1,6 +1,6 @@
 # Posicionar Carreira
 
-Plugin local do Codex para cadastrar vagas e acompanhar processos seletivos. Abra uma vaga para consultar histórico, materiais e próximos passos, editar os campos oficiais, registrar um evento, encerrar ou reabrir o processo. Os atalhos de avaliação, currículo, candidatura e entrevista levam o ID da vaga e o caminho do processo à conversa.
+Plugin local do Codex para cadastrar vagas e acompanhar processos seletivos. Abra uma vaga para consultar histórico, materiais e próximos passos, editar os campos oficiais, registrar um evento ou avançar o status. Os atalhos de avaliação, currículo, candidatura e entrevista levam o ID da vaga e o caminho do processo à conversa.
 
 ## Instalar e abrir
 
@@ -17,9 +17,15 @@ Abra uma conversa local no Codex desktop, selecione **Posicionar Carreira** e pe
 
 O painel depende de MCP Apps habilitado na conversa e disponível na janela do desktop. O recurso experimental `enable_mcp_apps` do Codex pode variar por conversa. A consulta em texto está disponível pelas ferramentas `listar_vagas` e `detalhar_vaga`.
 
+### Atualizar uma base anterior à versão 0.8.0
+
+Feche o plugin e guarde uma cópia da base. Nos `processo.md` em `oportunidades/`, substitua `estado`, `etapa` e `resultado` no cabeçalho YAML pelo `status` correspondente no [fluxo abaixo](#gestão-de-oportunidades). Guarde no histórico os valores anteriores e preserve as evidências, próximas ações, datas conhecidas e conteúdo do dossiê. Confira os dados com o [validador](#validação-painel-markdown-e-relatórios) e só então abra a versão 0.8.0. Bases novas já usam o formato atual.
+
+Em vagas em andamento, reúna as fases anteriores ao envio em `identificada` e converta `candidatura_enviada` em `candidatura-enviada`. Use `entrevistas` e `oferta` quando esses marcos estiverem registrados. Se havia pausa ou triagem, confira o último marco sustentado pela evidência. Nos encerramentos, converta `vaga_cancelada` em `cancelada-pela-empresa` e `descartado_na_avaliacao` ou `desistencia` em `descartada`. `contratado` e `reprovado` viram o próprio status.
+
 ## Dashboard
 
-No chat do Codex, selecione **@Posicionar Carreira** e envie **Dashboard**. A visão geral mostra o total de vagas, quantas estão abertas, pausadas ou encerradas, as etapas das abertas e pausadas e os resultados dos processos encerrados.
+No chat do Codex, selecione **@Posicionar Carreira** e envie **Dashboard**. A visão geral mostra o total de vagas, a contagem por status e os grupos de vagas em andamento e encerradas.
 
 Use **Atualizar** para reler a base local. Para filtrar vagas, abrir dossiês ou editar processos, clique em **Ver vagas**. No painel detalhado, o botão **Dashboard** abre a visão geral.
 
@@ -46,7 +52,7 @@ Para cadastrar vagas com seu nome como responsável, salve um `config.json` na p
 python -B server/dados.py
 ```
 
-O comando mostra a pasta de dados configurada. Se existir um `painel-vagas.md` nessa pasta, a lista segue a ordem de seus links. Vagas fora do índice aparecem ao final, por atualização. O painel do plugin lê estado, etapa e resultado do registro oficial e mantém intacto o Markdown de curadoria.
+O comando mostra a pasta de dados configurada. Se existir um `painel-vagas.md` nessa pasta, a lista segue a ordem de seus links. Vagas fora do índice aparecem ao final, por atualização. O painel do plugin lê o `status` do registro oficial e mantém intacto o Markdown de curadoria.
 
 Para experimentar outra base pela configuração em arquivo, guarde uma cópia de `data-root.txt` se já existir e troque a linha pelo caminho absoluto de uma pasta de teste. Confira a pasta indicada pela verificação e reabra o painel antes de cadastrar qualquer vaga. O aplicativo pode permanecer aberto porque o plugin relê o arquivo a cada consulta. Ao terminar, restaure a cópia ou retire o arquivo criado só para o teste. A troca pelo arquivo funciona quando as variáveis de ambiente estão ausentes.
 
@@ -72,17 +78,29 @@ O registro oficial é `oportunidades/<empresa>/<id>/processo.md` na pasta de dad
 
 No painel, use os formulários de cadastro, edição e eventos. Agentes usam exclusivamente as operações MCP abaixo para gravações autorizadas no registro oficial, inclusive quando trabalham em várias vagas.
 
-- `criar_vaga` cadastra uma oportunidade com empresa, título e fonte. Informe o ID externo quando confirmado ou deixe a ferramenta atribuir um ID local.
-- `atualizar_vaga` altera os campos aceitos em `mudancas` e registra seus valores anteriores e atuais no evento. Use `mudancas.titulo` para corrigir o título mantendo o mesmo ID e caminho.
+- `criar_vaga` cadastra uma oportunidade com empresa, título e fonte. O dossiê começa com `status: identificada`. Informe o ID externo quando confirmado ou deixe a ferramenta atribuir um ID local.
+- `atualizar_vaga` altera os campos aceitos em `mudancas` e registra seus valores anteriores e atuais no evento. Use `mudancas.status` para avançar no fluxo e `mudancas.titulo` para corrigir o título mantendo o mesmo ID e caminho.
 - `registrar_evento` acrescenta evidência ou uma nota ao histórico. Para corrigir informação anterior, registre a correção no histórico e ajuste os campos atuais quando aplicável.
 
 Para atualizar ou registrar um evento, use o ID e a revisão retornados por `detalhar_vaga`. Informe descrição, fonte e data do acontecimento quando conhecida. Se houver conflito, recarregue e confira as mudanças antes de tentar novamente. Se o MCP ou a operação necessária estiver indisponível, informe a lacuna e deixe o registro oficial intacto. Descrições de vagas, avaliações, currículos e planos de entrevista são materiais editáveis do dossiê e aparecem no detalhe quando armazenados nele.
 
-Estado indica se o processo está aberto, pausado ou encerrado. Etapa registra o avanço real e resultado é obrigatório ao encerrar. Preserve a etapa alcançada e o histórico. Sem resposta ou com feedback positivo, mantenha o estado sustentado pela evidência. Confirme candidatura só com evidência de envio e preserve em `envios/` as versões exatas identificadas como submetidas.
+O campo `status` no YAML de `processo.md` registra o andamento. Durante o levantamento de informações, a avaliação e a preparação dos materiais, a vaga fica em `identificada`. O plugin define e valida as transições abaixo. As consultas MCP informam as opções em `transicoes_status`.
+
+| Status atual | Próximos status permitidos |
+|---|---|
+| `identificada` | `candidatura-enviada`, `descartada`, `cancelada-pela-empresa` |
+| `candidatura-enviada` | `entrevistas`, `oferta`, `contratado`, `reprovado`, `cancelada-pela-empresa` |
+| `entrevistas` | `oferta`, `contratado`, `reprovado`, `cancelada-pela-empresa` |
+| `oferta` | `contratado`, `reprovado`, `cancelada-pela-empresa` |
+| `descartada`, `cancelada-pela-empresa`, `contratado`, `reprovado` | Fim do processo. Ainda é possível atualizar outros campos e acrescentar eventos ao histórico. |
+
+Preserve no histórico o motivo da mudança e a etapa alcançada. Sem resposta ou com feedback positivo, mantenha o status sustentado pela evidência. Para registrar `candidatura-enviada`, confirme o envio e informe a fonte que o comprova. Preserve em `envios/` as versões exatas identificadas como submetidas.
 
 Use URLs ou caminhos de arquivos relativos à pasta de dados para as fontes. Envie datas conhecidas em `AAAA-MM-DD` e use `null` para datas desconhecidas. `registrado_em` indica quando o evento entrou no histórico. Prazo informado exige `fonte_prazo`. `revisar_em` sugere uma revisão local.
 
-A disponibilidade da inscrição tem fonte própria e admite `aberta_verificada`, `nao_confirmada` ou `anuncio_expirado`. Informe `fonte_disponibilidade_inscricao` ao definir ou mudar esse status. Envie `disponibilidade_inscricao: null` para limpar os dois campos. A disponibilidade pública descreve o anúncio e não comprova acesso autenticado, envio ou encerramento do processo pessoal.
+Registre o fato observado e sua data no evento. Prefira a URL original ou uma evidência permanente no dossiê. Relatórios de lote podem complementar o registro com o contexto da revisão. A listagem e a edição de vagas continuam disponíveis quando um arquivo de evidência já referenciado muda de lugar. Fontes locais novas ou alteradas precisam existir na pasta de dados.
+
+A disponibilidade da inscrição tem fonte própria e admite `aberta_verificada`, `nao_confirmada` ou `anuncio_expirado`. Informe `fonte_disponibilidade_inscricao` ao definir ou mudar a disponibilidade. Envie `disponibilidade_inscricao: null` para limpar os dois campos. A disponibilidade pública descreve o anúncio e não comprova acesso autenticado, envio ou encerramento do processo pessoal.
 
 O painel Markdown mostra os grupos do plano atual para processos abertos sem envio confirmado. Os valores de `grupo_plano_atual` identificam as vagas a avaliar (`plano_modalidade_compativel`) e as que exigem esclarecimento (`plano_esclarecimento`). `lote_plano`, `fonte_plano` e os demais campos de evidência preservam a origem da classificação.
 
@@ -90,7 +108,7 @@ O painel Markdown mostra os grupos do plano atual para processos abertos sem env
 
 O painel Markdown lê o score de `avaliacao-validada.json` sem recalcular. Mantenha esse resultado coerente com `avaliacao.md`, que reúne aderência, cultura, condições, recomendação e links para pesquisas datadas. Para reavaliar, siga a [avaliação determinística da skill](skills/posicionar-carreira/SKILL.md#avaliação-determinística). Para avaliar a empresa, siga o [roteiro de pesquisa de clima](skills/posicionar-carreira/references/clima-organizacional.md).
 
-Ao mapear uma vaga, siga o [procedimento de pesquisa salarial](skills/posicionar-carreira/references/benchmark-salarial.md). O painel Markdown mostra a síntese e o link para vagas abertas e pausadas e sinaliza pesquisa pendente quando o arquivo está ausente.
+Ao mapear uma vaga, siga o [procedimento de pesquisa salarial](skills/posicionar-carreira/references/benchmark-salarial.md). O painel Markdown mostra a síntese e o link para vagas em andamento e sinaliza pesquisa pendente quando o arquivo está ausente.
 
 ### Validação, painel Markdown e relatórios
 
@@ -125,7 +143,7 @@ Monte um JSON com uma lista de operações. Use `criar_vaga` com empresa, títul
       "revisao": "<revisao retornada pelo detalhe>",
       "descricao": "Empresa informou a data da entrevista",
       "fonte": "https://example.org/confirmacao",
-      "mudancas": { "etapa": "entrevista_tecnica", "proxima_acao": "Preparar entrevista" }
+      "mudancas": { "status": "entrevistas", "proxima_acao": "Preparar entrevista" }
     }
   }
 ]

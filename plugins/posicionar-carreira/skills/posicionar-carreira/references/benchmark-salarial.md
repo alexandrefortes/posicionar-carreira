@@ -13,7 +13,7 @@ Ao mapear uma vaga, pesquise a remuneração mesmo quando o anúncio não divulg
 
 1. Use `pesquisado_em: 'AAAA-MM-DD'` e `resumo` textual no cabeçalho YAML. Na síntese, informe a unidade e a origem do valor. No corpo, registre escopo, fontes, comparáveis, lacunas e confiança.
 2. Separe a faixa divulgada pela empresa da referência de mercado e da pretensão pessoal, quando a pessoa a informar. Se os comparáveis forem insuficientes, registre `informacao_insuficiente`, as fontes tentadas, as lacunas e uma pergunta concreta para a empresa. Se o cargo ainda não estiver identificado, aguarde a confirmação antes de atribuir uma faixa.
-3. Vincule a pesquisa à avaliação e ao plano de entrevista existente, quando pertinentes. O painel lista `benchmark-salarial.md` nos materiais do dossiê. Mantenha estado, etapa, resultado e nota de aderência ao registrar ou atualizar a pesquisa.
+3. Vincule a pesquisa à avaliação e ao plano de entrevista existente, quando pertinentes. O painel lista `benchmark-salarial.md` nos materiais do dossiê. Mantenha o status e a nota de aderência ao registrar ou atualizar a pesquisa.
 4. Antes de negociar, confira se os comparáveis ainda servem ao escopo, localidade, vínculo e período. Atualize quando houver informação nova. Preserve ofertas e conclusões anteriores com suas respectivas fontes.
 
 O pacote não adota piso salarial. Leve preferências informadas à decisão da pessoa. Valor baixo ou desconhecido permanece como informação para conversa e [não reduz a nota de aderência](scoring.md#dimensões).

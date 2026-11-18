@@ -133,33 +133,36 @@ class PainelTest(unittest.TestCase):
         expect(painel.locator("html")).to_have_attribute("data-theme", "dark")
         return painel, painel.get_by_role("region", name="Detalhes da vaga")
 
-    def test_dashboard_conta_etapas_e_resultados_e_volta_as_vagas(self):
-        self.dados.criar_processo("local-003", "2026-10-13", estado="pausado")
+    def test_dashboard_conta_status_e_volta_as_vagas(self):
+        self.dados.criar_processo(
+            "local-003", "2026-10-13", status="entrevistas",
+            candidatura_confirmada=True, fonte_candidatura="https://example.org/comprovante",
+        )
         painel, _ = self.abrir_painel(nome="abrir_dashboard")
         dashboard = painel.get_by_role("region", name="Dashboard", exact=True)
         resumo = dashboard.locator('dl[aria-label="Resumo dos processos"]')
-        for rotulo, total in (("Total", "3"), ("Abertas", "1"), ("Pausadas", "1"), ("Encerradas", "1")):
+        for rotulo, total in (("Total", "3"), ("Em andamento", "2"), ("Encerradas", "1")):
             cartao = resumo.get_by_text(rotulo, exact=True).locator("..")
             expect(cartao.get_by_text(total, exact=True)).to_be_visible()
-        etapas = dashboard.get_by_role("region", name="Abertas e pausadas por etapa")
-        triagem = etapas.get_by_role("rowheader", name="Triagem", exact=True).locator("..")
-        expect(triagem.get_by_role("cell", name="2", exact=True)).to_be_visible()
-        entrevista = etapas.get_by_role("rowheader", name="Entrevista técnica", exact=True).locator("..")
-        expect(entrevista.get_by_role("cell", name="0", exact=True)).to_be_visible()
-        resultados = dashboard.get_by_role("region", name="Resultados dos processos encerrados")
-        reprovado = resultados.get_by_role("rowheader", name="Reprovado", exact=True).locator("..")
+        andamento = dashboard.get_by_role("region", name="Em andamento por status")
+        identificada = andamento.get_by_role("rowheader", name="Identificada", exact=True).locator("..")
+        expect(identificada.get_by_role("cell", name="1", exact=True)).to_be_visible()
+        entrevista = andamento.get_by_role("rowheader", name="Entrevistas", exact=True).locator("..")
+        expect(entrevista.get_by_role("cell", name="1", exact=True)).to_be_visible()
+        encerradas = dashboard.get_by_role("region", name="Encerradas por status")
+        reprovado = encerradas.get_by_role("rowheader", name="Reprovado", exact=True).locator("..")
         expect(reprovado.get_by_role("cell", name="1", exact=True)).to_be_visible()
 
         self.dados.criar_processo("local-004", "2026-10-14")
         painel.get_by_role("button", name="Atualizar", exact=True).click()
-        expect(triagem.get_by_role("cell", name="3", exact=True)).to_be_visible()
+        expect(identificada.get_by_role("cell", name="2", exact=True)).to_be_visible()
 
         painel.get_by_role("button", name="Ver vagas", exact=True).click()
         expect(painel.get_by_role("region", name="Lista de vagas")).to_be_visible()
         expect(painel.get_by_text("4 vagas", exact=True)).to_be_visible()
         expect(dashboard).to_be_hidden()
         painel.get_by_role("button", name="Dashboard", exact=True).click()
-        expect(triagem.get_by_role("cell", name="3", exact=True)).to_be_visible()
+        expect(identificada.get_by_role("cell", name="2", exact=True)).to_be_visible()
         expect(painel.get_by_role("region", name="Lista de vagas")).to_be_hidden()
 
     def test_dashboard_de_base_vazia(self):
@@ -169,7 +172,7 @@ class PainelTest(unittest.TestCase):
         dashboard = painel.get_by_role("region", name="Dashboard", exact=True)
         expect(dashboard.get_by_text("Nenhuma vaga cadastrada.", exact=True)).to_be_visible()
         resumo = dashboard.locator('dl[aria-label="Resumo dos processos"]')
-        expect(resumo.get_by_text("0", exact=True)).to_have_count(4)
+        expect(resumo.get_by_text("0", exact=True)).to_have_count(3)
         expect(dashboard.get_by_role("table")).to_have_count(0)
 
     def test_boas_vindas_verifica_pastas_e_orienta_no_chat(self):
@@ -237,9 +240,9 @@ class PainelTest(unittest.TestCase):
     def test_selecao_e_contexto_da_vaga(self):
         self.recusar_primeira = True
         painel, detalhe = self.abrir_painel()
-        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Triagem · Aberto").click()
+        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Identificada").click()
         expect(detalhe.get_by_text("Empresa Exemplo · empresa-exemplo/local-001")).to_be_visible()
-        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Entrevista técnica · Encerrado").click()
+        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Reprovado").click()
         expect(detalhe.get_by_text(f"Empresa Exemplo · {self.vaga_id}")).to_be_visible()
         expect(detalhe.get_by_text("Reprovado", exact=True)).to_be_visible()
         expect(detalhe.get_by_text("Aguardar retorno")).to_be_visible()
@@ -280,8 +283,8 @@ class PainelTest(unittest.TestCase):
         primeiro_md = self.dados.primeiro / "curriculo.md"
         primeiro_md.write_text("# Fonte fictícia", encoding="utf-8")
         painel, detalhe = self.abrir_painel()
-        primeiro = painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Triagem · Aberto")
-        segundo = painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Entrevista técnica · Encerrado")
+        primeiro = painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Identificada")
+        segundo = painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Reprovado")
         markdown = detalhe.get_by_role("button", name="Abrir currículo em Markdown", exact=True)
         pdf = detalhe.get_by_role("button", name="Abrir currículo em PDF", exact=True)
         pdf_enviado = detalhe.get_by_role("button", name="Abrir currículo enviado em PDF", exact=True)
@@ -342,7 +345,7 @@ class PainelTest(unittest.TestCase):
             "Pedido enviado. Continue a configuração no chat."
         )
         painel.get_by_role(
-            "button", name="Vaga de exemplo Empresa Exemplo · Entrevista técnica · Encerrado"
+            "button", name="Vaga de exemplo Empresa Exemplo · Reprovado"
         ).click()
         detalhe.get_by_role("button", name="Monitorar esta vaga", exact=True).click()
         expect(detalhe.get_by_role("status")).to_have_text(
@@ -405,7 +408,7 @@ class PainelTest(unittest.TestCase):
         vaga = detalhar(self.dados.carreira, self.vaga_id)
         corrigido = "Engenharia de Dados"
         fonte = "https://example.org/correcao"
-        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Entrevista técnica · Encerrado").click()
+        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Reprovado").click()
         detalhe.get_by_role("button", name="Editar processo").click()
         titulo = detalhe.get_by_label("Título da vaga")
         salvar = detalhe.get_by_role("button", name="Salvar alterações")
@@ -423,7 +426,7 @@ class PainelTest(unittest.TestCase):
         salvar.click()
         expect(detalhe.get_by_text("Processo atualizado.", exact=True)).to_be_visible()
         expect(detalhe.get_by_role("heading", name=corrigido)).to_be_visible()
-        expect(painel.get_by_role("button", name=f"{corrigido} Empresa Exemplo · Entrevista técnica · Encerrado")).to_be_visible()
+        expect(painel.get_by_role("button", name=f"{corrigido} Empresa Exemplo · Reprovado")).to_be_visible()
         vigente = detalhar(self.dados.carreira, self.vaga_id)
         self.assertEqual(vigente["id"], vaga["id"])
         self.assertEqual(vigente["processo"], vaga["processo"])
@@ -435,7 +438,7 @@ class PainelTest(unittest.TestCase):
 
     def test_editar_e_remover_disponibilidade_de_inscricao(self):
         painel, detalhe = self.abrir_painel()
-        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Triagem · Aberto").click()
+        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Identificada").click()
         editar = detalhe.get_by_role("button", name="Editar processo")
         salvar = detalhe.get_by_role("button", name="Salvar alterações")
         disponibilidade = detalhe.get_by_label("Disponibilidade de inscrição")
@@ -485,7 +488,7 @@ class PainelTest(unittest.TestCase):
         expect(painel.get_by_text("3 vagas", exact=True)).to_be_visible()
         novas = [vaga for vaga in listar(self.dados.carreira) if vaga["empresa"] == "Empresa Nova"]
         self.assertEqual(len(novas), 1)
-        self.assertEqual(novas[0]["etapa"], "identificada")
+        self.assertEqual(novas[0]["status"], "identificada")
         self.assertEqual(self.mensagens, [])
         processo_novo = detalhar(self.dados.carreira, novas[0]["id"])
         self.assertEqual(processo_novo["titulo_chat"], "candidatura - empresa nova | eng de teste - identificada")
@@ -496,7 +499,7 @@ class PainelTest(unittest.TestCase):
                          "desta oportunidade. Ajuste o título do chat.\n"
                          f"ID do processo: {processo_novo['id']}\nArquivo oficial: {processo_novo['processo']}")
 
-        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Entrevista técnica · Encerrado").click()
+        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Reprovado").click()
         detalhe.get_by_role("button", name="Registrar evento").click()
         detalhe.get_by_label("Descrição do evento").fill("Retorno adicional")
         detalhe.get_by_label("Fonte do evento").fill("https://example.org/retorno")
@@ -504,39 +507,28 @@ class PainelTest(unittest.TestCase):
         expect(detalhe.get_by_text("Evento registrado.", exact=True)).to_be_visible()
         expect(detalhe.get_by_text("Data desconhecida · Retorno adicional")).to_be_visible()
 
-        detalhe.get_by_role("button", name="Reabrir processo").click()
-        expect(detalhe.get_by_label("Estado", exact=True)).to_have_value("aberto")
+        detalhe.get_by_role("button", name="Editar processo").click()
+        status = detalhe.get_by_label("Status", exact=True)
+        expect(status).to_have_value("reprovado")
+        expect(status.locator("option")).to_have_text(["Reprovado"])
         detalhe.get_by_label("Prioridade", exact=True).select_option("alta")
-        detalhe.get_by_label("Próxima ação").fill("Aguardar confirmação da entrevista")
+        detalhe.get_by_label("Próxima ação").fill("Revisar feedback da empresa")
         responsavel = detalhe.get_by_label("Responsável")
         expect(responsavel).to_have_value("empresa")
         self.assertCountEqual(responsavel.locator("option").all_text_contents(), ["Pessoa Exemplo", "Assistente", "Empresa"])
         responsavel.select_option("Pessoa Exemplo")
         detalhe.get_by_label("Prazo", exact=True).fill("2026-12-15")
         detalhe.get_by_label("Fonte do prazo").fill("https://example.org/prazo")
-        detalhe.get_by_label("Descrição do evento").fill("Mesmo processo retomado")
-        detalhe.get_by_label("Fonte do evento").fill("https://example.org/reabertura")
+        detalhe.get_by_label("Descrição do evento").fill("Organizar revisão de feedback")
+        detalhe.get_by_label("Fonte do evento").fill("https://example.org/feedback")
         detalhe.get_by_role("button", name="Salvar alterações").click()
         expect(detalhe.get_by_text("Processo atualizado.", exact=True)).to_be_visible()
-        retomada = detalhar(self.dados.carreira, self.vaga_id)
-        self.assertEqual(retomada["estado"], "aberto")
-        self.assertIsNone(retomada["resultado"])
-        self.assertEqual(retomada["prioridade"], "alta")
-        self.assertEqual(retomada["responsavel"], "Pessoa Exemplo")
-        self.assertEqual(retomada["prazo"], "2026-12-15")
-        self.assertEqual(retomada["fonte_prazo"], "https://example.org/prazo")
-
-        detalhe.get_by_role("button", name="Encerrar processo").click()
-        expect(detalhe.get_by_label("Estado", exact=True)).to_have_value("encerrado")
-        detalhe.get_by_label("Resultado", exact=True).select_option("reprovado")
-        encerrada_em = date.today().isoformat()
-        detalhe.get_by_label("Data de encerramento").fill(encerrada_em)
-        detalhe.get_by_label("Descrição do evento").fill("Encerramento confirmado")
-        detalhe.get_by_label("Fonte do evento").fill("https://example.org/encerramento")
-        detalhe.get_by_role("button", name="Salvar alterações").click()
-        expect(detalhe.get_by_text("Processo atualizado.", exact=True)).to_be_visible()
-        expect(detalhe.get_by_text("Reprovado", exact=True)).to_be_visible()
-        self.assertEqual(detalhar(self.dados.carreira, self.vaga_id)["encerrada_em"], encerrada_em)
+        encerrada = detalhar(self.dados.carreira, self.vaga_id)
+        self.assertEqual(encerrada["status"], "reprovado")
+        self.assertEqual(encerrada["prioridade"], "alta")
+        self.assertEqual(encerrada["responsavel"], "Pessoa Exemplo")
+        self.assertEqual(encerrada["prazo"], "2026-12-15")
+        self.assertEqual(encerrada["fonte_prazo"], "https://example.org/prazo")
 
         detalhe.get_by_role("button", name="Registrar evento").click()
         detalhe.get_by_label("Descrição do evento").fill("Rascunho durante edição externa")
@@ -552,24 +544,48 @@ class PainelTest(unittest.TestCase):
         detalhe.get_by_role("button", name="Recarregar processo").click()
         expect(detalhe.get_by_text("Reprovado", exact=True)).to_be_visible()
 
-        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Triagem · Aberto").click()
+        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Identificada").click()
+        identificada_id = "empresa-exemplo/local-001"
         detalhe.get_by_role("button", name="Editar processo").click()
-        detalhe.get_by_label("Etapa", exact=True).select_option("candidatura_enviada")
+        expect(status.locator("option")).to_have_count(4)
+        self.assertCountEqual(status.locator("option").all_text_contents(), [
+            "Identificada", "Candidatura enviada", "Descartada", "Cancelada pela empresa",
+        ])
+        status.select_option("candidatura-enviada")
+        expect(detalhe.get_by_label("Data de encerramento")).to_be_hidden()
         detalhe.get_by_label("Descrição do evento").fill("Recebido comprovante de envio")
         detalhe.get_by_label("Fonte do evento").fill("https://example.org/recibo")
         detalhe.get_by_role("button", name="Salvar alterações").click()
         expect(detalhe.get_by_role("heading", name="Editar processo")).to_be_visible()
-        self.assertFalse(detalhar(self.dados.carreira, "empresa-exemplo/local-001")["candidatura_confirmada"])
+        self.assertFalse(detalhar(self.dados.carreira, identificada_id)["candidatura_confirmada"])
         detalhe.get_by_label("Confirmo que a candidatura foi enviada").check()
         detalhe.get_by_label("Fonte do envio").fill("https://example.org/comprovante")
         detalhe.get_by_role("button", name="Salvar alterações").click()
         expect(detalhe.get_by_text("Processo atualizado.", exact=True)).to_be_visible()
-        self.assertTrue(detalhar(self.dados.carreira, "empresa-exemplo/local-001")["candidatura_confirmada"])
-        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Entrevista técnica · Encerrado").click()
+        enviada = detalhar(self.dados.carreira, identificada_id)
+        self.assertEqual(enviada["status"], "candidatura-enviada")
+        self.assertTrue(enviada["candidatura_confirmada"])
+        self.assertEqual(enviada["fonte_candidatura"], "https://example.org/comprovante")
+
+        detalhe.get_by_role("button", name="Editar processo").click()
+        status.select_option("cancelada-pela-empresa")
+        encerrada_em = date.today().isoformat()
+        detalhe.get_by_label("Data de encerramento").fill(encerrada_em)
+        detalhe.get_by_label("Descrição do evento").fill("Encerramento confirmado")
+        detalhe.get_by_label("Fonte do evento").fill("https://example.org/encerramento")
+        detalhe.get_by_role("button", name="Salvar alterações").click()
+        expect(detalhe.get_by_text("Processo atualizado.", exact=True)).to_be_visible()
+        expect(detalhe.get_by_text("Cancelada pela empresa", exact=True)).to_be_visible()
+        cancelada = detalhar(self.dados.carreira, identificada_id)
+        self.assertEqual(cancelada["encerrada_em"], encerrada_em)
+        self.assertEqual(cancelada["eventos"][-1]["alteracoes"]["status"], {
+            "anterior": "candidatura-enviada", "atual": "cancelada-pela-empresa",
+        })
+
+        painel.get_by_role("button", name="Vaga de exemplo Empresa Exemplo · Reprovado").click()
 
         painel.get_by_text("Filtros", exact=True).click()
-        painel.get_by_label("Filtrar por estado").select_option("encerrado")
-        painel.get_by_label("Filtrar por resultado").select_option("reprovado")
+        painel.get_by_label("Filtrar por status").select_option("reprovado")
         expect(painel.get_by_text("1 de 3", exact=True)).to_be_visible()
         for titulo, acao in [
             ("Avaliar vaga", "avaliar a vaga"),

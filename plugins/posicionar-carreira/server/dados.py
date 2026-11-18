@@ -67,7 +67,7 @@ def responsavel_pessoal(carreira: Path) -> str:
 
 
 def _resumo(processo: dict) -> dict:
-    campos = ("id", "empresa", "titulo", "estado", "etapa", "resultado", "atualizado_em")
+    campos = ("id", "empresa", "titulo", "status", "atualizado_em")
     return {campo: processo.get(campo) for campo in campos}
 
 
@@ -153,23 +153,11 @@ def _encurtar_titulo(texto: str, limite: int) -> str:
 def _titulo_chat(processo: dict) -> str:
     empresa = _normalizar_titulo(processo["empresa"]) or "empresa"
     cargo = _normalizar_titulo(processo["titulo"]) or "vaga"
-    status = processo["estado"]
-    if status == "aberto":
-        status = processo["etapa"]
-    elif status == "encerrado":
-        status = processo.get("resultado") or status
-    rotulos = {
-        "em_avaliacao": "em avaliação",
-        "em_preparacao": "em preparação",
-        "candidatura_enviada": "enviada",
-        "entrevista_tecnica": "entrevista técnica",
-        "entrevista_gestao": "entrevista de gestão",
-        "desistencia": "desistência",
-        "descartado_na_avaliacao": "descartado na avaliação",
-    }
+    status = processo["status"]
+    rotulo = "enviada" if status == "candidatura-enviada" else status.replace("-", " ")
     prefixo = "candidatura - "
     separador = " | "
-    sufixo = f" - {rotulos.get(status, status.replace('_', ' '))}"
+    sufixo = f" - {rotulo}"
     disponivel = LIMITE_TITULO_CHAT - _tamanho_utf16(prefixo + separador + sufixo)
     if _tamanho_utf16(empresa + cargo) > disponivel:
         cargo = " ".join(ABREVIACOES_CARGO.get(palavra, palavra) for palavra in cargo.split())
@@ -182,6 +170,7 @@ def _titulo_chat(processo: dict) -> str:
 
 def formatar_detalhe(carreira: Path, processo: dict, conteudo: bytes) -> dict:
     from curriculos import resolver_curriculos
+    from gestao_vagas import TRANSICOES_STATUS
 
     arquivo = processo["_path"]
     dossie = arquivo.parent
@@ -200,6 +189,7 @@ def formatar_detalhe(carreira: Path, processo: dict, conteudo: bytes) -> dict:
 
     return {
         **_resumo(processo),
+        "transicoes_status": TRANSICOES_STATUS,
         "titulo_chat": _titulo_chat(processo),
         "processo": str(arquivo),
         "revisao": sha256(conteudo).hexdigest(),
@@ -210,7 +200,9 @@ def formatar_detalhe(carreira: Path, processo: dict, conteudo: bytes) -> dict:
             "disponibilidade_inscricao", "fonte_disponibilidade_inscricao",
         )},
         "eventos": [
-            {campo: evento[campo] for campo in ("data", "registrado_em", "descricao", "fonte", "alteracoes")
+            {campo: evento[campo] for campo in (
+                "data", "registrado_em", "descricao", "fonte", "alteracoes", "metadados_anteriores",
+            )
              if campo in evento}
             for evento in processo["eventos"]
         ],

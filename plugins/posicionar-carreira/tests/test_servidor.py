@@ -88,6 +88,7 @@ class ServidorTest(unittest.TestCase):
         }})
         self.assertFalse(resposta.get("isError"), resposta)
         vaga = resposta["structuredContent"]
+        self.assertEqual(vaga["status"], "identificada")
         self.assertEqual(vaga["responsavel"], "Pessoa Exemplo")
         self.assertEqual(vaga["responsaveis"], ["Pessoa Exemplo", "assistente", "empresa"])
         resposta = self.mcp("tools/call", {"name": "registrar_evento", "arguments": {
@@ -98,6 +99,35 @@ class ServidorTest(unittest.TestCase):
         registrada = self.detalhe(vaga["id"])
         self.assertEqual(registrada["eventos"][-1]["fonte"], FONTE_EVENTO)
         self.assertEqual(registrada["eventos"][:-1], vaga["eventos"])
+
+    def test_mcp_publica_e_grava_status_unico(self):
+        ferramenta = next(tool for tool in self.mcp("tools/list")["tools"]
+                          if tool["name"] == "atualizar_vaga")
+        campos = ferramenta["inputSchema"]["properties"]["mudancas"]["properties"]
+        legados = {"estado", "etapa", "resultado"}
+        self.assertFalse(legados & campos.keys())
+        self.assertEqual(set(campos["status"]["enum"]), {
+            "identificada", "candidatura-enviada", "entrevistas", "oferta",
+            "descartada", "cancelada-pela-empresa", "contratado", "reprovado",
+        })
+
+        anterior = self.detalhe()
+        original = self.processo.read_bytes()
+        for mudancas in ({"etapa": "entrevistas"}, {"status": "entrevistas"}):
+            resposta = self.atualizar(anterior, mudancas, "Tentativa com status inválido")
+            self.assertTrue(resposta.get("isError"), resposta)
+            self.assertEqual(self.processo.read_bytes(), original)
+
+        mudancas = {"status": "candidatura-enviada", "candidatura_confirmada": True,
+                    "fonte_candidatura": FONTE_ANUNCIO}
+        enviado = self.verificar_mudanca(anterior, mudancas, mudancas, "Envio confirmado")
+        self.assertTrue(enviado["titulo_chat"].endswith(" - enviada"))
+        self.assertFalse(legados & enviado.keys())
+        lista = self.mcp("tools/call", {"name": "listar_vagas"})["structuredContent"]
+        self.assertEqual(lista["transicoes_status"], enviado["transicoes_status"])
+        resumo = next(vaga for vaga in lista["vagas"] if vaga["id"] == enviado["id"])
+        self.assertEqual(resumo["status"], "candidatura-enviada")
+        self.assertFalse(legados & resumo.keys())
 
     def test_mcp_publica_campos_e_grava_par_com_historico_e_revisao(self):
         ferramenta = next(tool for tool in self.mcp("tools/list")["tools"]

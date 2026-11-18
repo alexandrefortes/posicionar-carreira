@@ -37,4 +37,4 @@ Na remuneração, distinguir salário atual, pretensão aprovada, faixa publicad
 
 Prioridade considera objetivos, cultura, condições e viabilidade, além da nota. Se uma interpretação nova divergir de avaliação anterior, explicar o motivo e, quando pertinente, reavaliar com o validador; não substituir silenciosamente um score por adjetivos de um alerta.
 
-Use um dossiê por oportunidade e pesquisa compartilhada por empresa. Para mudar o estado ou a próxima ação, siga o [fluxo MCP](../SKILL.md#painel-no-chat). Na avaliação, aponte para o processo oficial. Quando o pedido for analisar opções, limite o trabalho à análise.
+Use um dossiê por oportunidade e pesquisa compartilhada por empresa. Para mudar o status ou a próxima ação, siga o [fluxo MCP](../SKILL.md#painel-no-chat). Na avaliação, aponte para o processo oficial. Quando o pedido for analisar opções, limite o trabalho à análise.

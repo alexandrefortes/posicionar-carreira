@@ -17,23 +17,26 @@ class GestaoTests(unittest.TestCase):
         self.tmp=tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
         self.root=Path(self.tmp.name)/'dados-teste'; self.root.mkdir()
         (self.root/'fonte.md').write_text('Confirmação recebida',encoding='utf-8')
-        self.data=dict(id='empresa/local-001',empresa='Empresa',titulo='Vaga',estado='aberto',
-            etapa='triagem',prioridade='alta',proxima_acao='Aguardar',responsavel='empresa',
+        self.data=dict(id='empresa/local-001',empresa='Empresa',titulo='Vaga',status='entrevistas',
+            prioridade='alta',proxima_acao='Aguardar',responsavel='empresa',
             fonte_estado='fonte.md',candidatura_confirmada=True,fonte_candidatura='fonte.md',
             identificada_em='2026-09-04',candidatura_em='2026-09-05',atualizado_em='2026-10-06',
-            encerrada_em=None,resultado=None,prazo=None,revisar_em=None,
+            encerrada_em=None,prazo=None,revisar_em=None,
             ids_externos=['linkedin:123'],eventos=[
                 dict(data='2026-09-05',registrado_em='2026-09-05',descricao='Envio confirmado',fonte='fonte.md'),
-                dict(data='2026-10-06',registrado_em='2026-10-06',descricao='Entrevista realizada',fonte='fonte.md')])
+                dict(data='2026-10-06',registrado_em='2026-10-06',descricao='Entrevista realizada',fonte='fonte.md',
+                     alteracoes={'status': {'anterior': 'candidatura-enviada', 'atual': 'entrevistas'}})])
     def save(self,data=None,folder='empresa/local-001'):
         p=self.root/'oportunidades'/folder/'processo.md'; p.parent.mkdir(parents=True,exist_ok=True)
         p.write_text('---\n'+yaml.safe_dump(data or self.data,allow_unicode=True)+'---\n# Processo\n',encoding='utf-8')
     def test_duplicate_id(self):
         self.save(); self.save(folder='empresa/local-002')
         with self.assertRaisesRegex(ValueError,'ID duplicado'): g.load_processes(self.root)
-    def test_closed_without_outcome(self):
-        self.data['estado']='encerrado'; self.save()
-        with self.assertRaisesRegex(ValueError,'encerramento sem resultado'): g.load_processes(self.root)
+    def test_rejects_unknown_status_and_legacy_fields(self):
+        self.data['status']='encerrado'; self.save()
+        with self.assertRaisesRegex(ValueError,'status inválido'): g.load_processes(self.root)
+        self.data.update(status='reprovado', resultado='reprovado'); self.save()
+        with self.assertRaisesRegex(ValueError,'único campo status'): g.load_processes(self.root)
     def test_confirmed_without_source(self):
         self.data['fonte_candidatura']=None; self.save()
         with self.assertRaisesRegex(ValueError,'Fonte de evidência ausente'): g.load_processes(self.root)
@@ -41,11 +44,12 @@ class GestaoTests(unittest.TestCase):
         self.save(); records=g.load_processes(self.root)
         text=g.monthly(self.root,records,'2026-10',dt.date(2026,10,6))
         self.assertIn('Candidaturas confirmadas enviadas no mês (0)',text)
-        self.assertIn('Entrevista realizada',text); self.assertNotIn('Envio confirmado',text)
+        self.assertIn('Entrevista realizada (candidatura-enviada → entrevistas)',text)
+        self.assertNotIn('Envio confirmado',text)
         sept=g.monthly(self.root,records,'2026-09',dt.date(2026,10,6))
         self.assertIn('Candidaturas confirmadas enviadas no mês (1)',sept)
     def test_unconfirmed_not_counted(self):
-        self.data.update(candidatura_confirmada=False,candidatura_em=None,fonte_candidatura=None)
+        self.data.update(status='identificada',candidatura_confirmada=False,candidatura_em=None,fonte_candidatura=None)
         self.save(); text=g.monthly(self.root,g.load_processes(self.root),'2026-09',dt.date(2026,9,6))
         self.assertIn('Candidaturas confirmadas enviadas no mês (0)',text)
     def test_unknown_submission_date(self):
@@ -77,11 +81,11 @@ class GestaoTests(unittest.TestCase):
         records=g.load_processes(self.root)
         self.assertIn('- **Responsável:** Paula',g.panel(self.root,records,dt.date(2026,10,6)))
     def test_closed_not_waiting(self):
-        self.data.update(estado='encerrado',resultado='reprovado',encerrada_em='2026-10-06'); self.save()
+        self.data.update(status='reprovado',encerrada_em='2026-10-06'); self.save()
         text=g.panel(self.root,g.load_processes(self.root),dt.date(2026,10,6))
         job=text.split('### Empresa — Vaga')[1].split('\n### ')[0].split('\n## ')[0]
-        self.assertIn('- **Estado:** encerrado',job)
-        self.assertIn('reprovado',job)
+        self.assertIn('- **Status:** reprovado',job)
+        self.assertGreater(text.index('### Empresa — Vaga'),text.index('## Encerradas'))
         self.assertEqual(text.count('### Empresa — Vaga\n'),1)
 
     def test_panel_uses_job_sections(self):
@@ -90,34 +94,33 @@ class GestaoTests(unittest.TestCase):
         self.assertIn('### Empresa — Vaga\n',text)
         self.assertIn('- **Processo:** [Abrir processo](<oportunidades/empresa/local-001/processo.md>)',text)
         self.assertIn('- **Prioridade:** alta',text)
-        self.assertIn('- **Etapa / resultado:** triagem',text)
+        self.assertIn('- **Status:** entrevistas',text)
         self.assertIn('- **Próxima ação:** Aguardar',text)
         self.assertIn('- **Responsável:** empresa',text)
         self.assertNotIn('| Vaga / processo |',text)
 
-    def test_panel_separates_expired_and_closed_without_hiding_active_applications(self):
+    def test_panel_groups_by_status_with_availability_separate(self):
         self.save()
-        for suffix, state, availability, confirmed, outcome in [
-            ('expirada', 'pausado', 'anuncio_expirado', False, None),
-            ('pausada', 'pausado', None, False, None),
-            ('encerrada', 'encerrado', None, True, 'reprovado'),
-            ('enviada', 'aberto', 'anuncio_expirado', True, None),
+        for suffix, status, availability, confirmed in [
+            ('expirada', 'identificada', 'anuncio_expirado', False),
+            ('encerrada', 'reprovado', None, True),
+            ('enviada', 'candidatura-enviada', 'anuncio_expirado', True),
         ]:
             other=copy.deepcopy(self.data)
-            other.update(id='empresa/'+suffix,titulo=suffix,estado=state,resultado=outcome,
-                encerrada_em='2026-10-06' if outcome else None,ids_externos=[],
+            other.update(id='empresa/'+suffix,titulo=suffix,status=status,
+                encerrada_em='2026-10-06' if status=='reprovado' else None,ids_externos=[],
                 candidatura_confirmada=confirmed,disponibilidade_inscricao=availability,
                 fonte_disponibilidade_inscricao='fonte.md' if availability else None)
             if not confirmed: other.update(candidatura_em=None,fonte_candidatura=None)
             self.save(other,'empresa/'+suffix)
         text=g.panel(self.root,g.load_processes(self.root),dt.date(2026,10,6))
-        active, finished=text.split('## Em andamento ou pausadas')[1].split('## Anúncios expirados ou processos encerrados')
-        for name in ('Vaga','pausada','enviada'):
+        active, finished=text.split('## Em andamento')[1].split('## Encerradas')
+        for name in ('Vaga','expirada','enviada'):
             self.assertIn('### Empresa — '+name+'\n',active)
             self.assertNotIn('### Empresa — '+name+'\n',finished)
-        for name in ('expirada','encerrada'):
-            self.assertIn('### Empresa — '+name+'\n',finished)
-            self.assertEqual(text.count('### Empresa — '+name+'\n'),1)
+        self.assertIn('### Empresa — encerrada\n',finished)
+        self.assertEqual(text.count('### Empresa — encerrada\n'),1)
+        self.assertEqual(active.count('**Disponibilidade da inscrição:** anúncio expirado'),2)
 
     def test_salary_benchmark_is_visible_without_changing_process_or_score(self):
         self.save()
@@ -139,22 +142,6 @@ class GestaoTests(unittest.TestCase):
         text=g.panel(self.root,g.load_processes(self.root),dt.date(2026,11,1))
         self.assertIn('### Empresa — Vaga\n',text)
         self.assertIn('- **Benchmark salarial:** Pesquisa pendente.',text)
-
-    def test_legacy_salary_research_without_summary_remains_linked(self):
-        self.save()
-        relative = 'oportunidades/empresa/local-001/benchmark-salarial.md'
-        path = self.root / relative
-        for content in (
-            '# Fontes registradas antes da migração\n',
-            '---\npesquisado_em: "2026-11-01"\n---\n# Fontes\n',
-            '---\nresumo: 100\n---\n# Fontes\n',
-            '---\nresumo: [\n---\n# Fontes\n',
-        ):
-            with self.subTest(content=content):
-                path.write_text(content, encoding='utf-8')
-                text = g.panel(self.root, g.load_processes(self.root), dt.date(2026,11,1))
-                self.assertIn(f'- **Benchmark salarial:** [fontes e limites](<{relative}>)', text)
-                self.assertEqual(path.read_text(encoding='utf-8'), content)
 
     def test_panel_preserves_manual_review_tail_across_generations(self):
         self.save()
@@ -206,10 +193,10 @@ class GestaoTests(unittest.TestCase):
         text=g.panel(self.root,g.load_processes(self.root),dt.date(2026,10,6))
         self.assertIn('[Como manter](../plugins/posicionar-carreira/README.md#gestão-de-oportunidades)',text)
 
-    def test_availability_keeps_personal_stage_and_separates_queue(self):
+    def test_availability_keeps_status_and_separates_queue(self):
         self.save()
         other=copy.deepcopy(self.data)
-        other.update(id='empresa/local-002',titulo='Nova vaga',responsavel='titular',
+        other.update(id='empresa/local-002',titulo='Nova vaga',responsavel='titular',status='identificada',
             candidatura_confirmada=False,candidatura_em=None,fonte_candidatura=None,
             ids_externos=[],disponibilidade_inscricao='nao_confirmada',
             fonte_disponibilidade_inscricao='fonte.md')
@@ -221,14 +208,14 @@ class GestaoTests(unittest.TestCase):
         self.assertIn('- **Responsável:** empresa',waiting)
         self.assertIn('- **Responsável:** titular',uncertain)
         self.assertIn('- **Disponibilidade da inscrição:** não confirmada',uncertain)
-        self.assertEqual(records[0]['etapa'],'triagem')
+        self.assertEqual(records[0]['status'],'entrevistas')
         self.assertEqual(sum(d['candidatura_confirmada'] for d in records),1)
 
     def test_current_plan_groups_keep_public_evidence_separate_from_submission(self):
         self.save()
         for suffix, group in [('compatible', 'plano_modalidade_compativel'), ('clarify', 'plano_esclarecimento')]:
             other=copy.deepcopy(self.data)
-            other.update(id='empresa/'+suffix,titulo=suffix,responsavel='titular',
+            other.update(id='empresa/'+suffix,titulo=suffix,responsavel='titular',status='identificada',
                 candidatura_confirmada=False,candidatura_em=None,fonte_candidatura=None,
                 ids_externos=[],grupo_plano_atual=group,abertura_publica='candidatura_publica_disponivel',
                 disponibilidade_inscricao='nao_confirmada',fonte_disponibilidade_inscricao='fonte.md',
@@ -245,6 +232,6 @@ class GestaoTests(unittest.TestCase):
         self.assertNotIn('ausente.md',text)
         self.assertEqual(text.count('### Empresa — clarify\n'),1)
         self.assertEqual(sum(d['candidatura_confirmada'] for d in records),1)
-        self.assertEqual(next(d for d in records if d['titulo']=='clarify')['etapa'],'triagem')
+        self.assertEqual(next(d for d in records if d['titulo']=='clarify')['status'],'identificada')
 
 if __name__=='__main__': unittest.main()

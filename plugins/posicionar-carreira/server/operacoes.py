@@ -18,7 +18,7 @@ from dados import formatar_detalhe, ler_processo, responsavel_pessoal
 
 
 CAMPOS_EDITAVEIS = frozenset((
-    "titulo", "estado", "etapa", "resultado", "prioridade", "proxima_acao", "responsavel",
+    "titulo", "status", "prioridade", "proxima_acao", "responsavel",
     "prazo", "fonte_prazo", "revisar_em", "encerrada_em",
     "candidatura_confirmada", "candidatura_em", "fonte_candidatura",
     "disponibilidade_inscricao", "fonte_disponibilidade_inscricao",
@@ -134,8 +134,8 @@ def _criar(carreira, empresa, titulo, fonte, processo_id, previa):
     if path.parent.exists():
         raise ValueError("Já existe um dossiê com esse ID.")
     registro = {
-        "id": processo_id, "empresa": empresa, "titulo": titulo, "estado": "aberto",
-        "etapa": "identificada", "resultado": None, "prioridade": "media",
+        "id": processo_id, "empresa": empresa, "titulo": titulo, "status": "identificada",
+        "prioridade": "media",
         "proxima_acao": "Avaliar a vaga", "responsavel": responsavel_pessoal(carreira), "fonte_estado": fonte,
         "identificada_em": None, "atualizado_em": entrada["registrado_em"], "encerrada_em": None,
         "candidatura_confirmada": False, "candidatura_em": None, "fonte_candidatura": None,
@@ -196,10 +196,6 @@ def _mudancas(carreira, registro, campos, entrada):
         valor = gestao_vagas.date(mudancas.get(campo), campo)
         if valor and campo in ("encerrada_em", "candidatura_em") and valor > date.today():
             raise ValueError(f"A data de {campo} não pode estar no futuro.")
-    if registro["estado"] == "encerrado" and mudancas.get("estado", "encerrado") != "encerrado":
-        if mudancas["estado"] != "aberto" or mudancas.get("resultado") or mudancas.get("encerrada_em"):
-            raise ValueError("Para reabrir, selecione Aberto e deixe resultado e encerramento vazios.")
-        mudancas.update(resultado=None, encerrada_em=None)
     if mudancas.get("prazo") and not mudancas.get("fonte_prazo"):
         raise ValueError("Informe a fonte do prazo.")
     if "prazo" in mudancas and mudancas["prazo"] is None:
@@ -209,10 +205,13 @@ def _mudancas(carreira, registro, campos, entrada):
         raise ValueError("O envio confirmado deve permanecer no histórico do processo.")
     if confirmada and not registro["candidatura_confirmada"] and not mudancas.get("fonte_candidatura"):
         raise ValueError("Informe a fonte que comprova o envio da candidatura.")
-    if mudancas.get("etapa") == "candidatura_enviada" and not confirmada:
-        raise ValueError("Confirme o envio da candidatura e informe a evidência.")
-    if any(campo in mudancas and mudancas[campo] != registro.get(campo)
-           for campo in ("estado", "etapa", "resultado")):
+    anterior = registro["status"]
+    status = mudancas.get("status", anterior)
+    if status != anterior:
+        if status not in gestao_vagas.TRANSICOES_STATUS[anterior]:
+            raise ValueError(f"Transição de status inválida: {anterior} → {status}.")
+        if status == "candidatura-enviada" and not confirmada:
+            raise ValueError("Confirme o envio da candidatura e informe a evidência.")
         mudancas["fonte_estado"] = entrada["fonte"]
     return {campo: valor for campo, valor in mudancas.items() if registro.get(campo) != valor}
 

@@ -5,7 +5,7 @@ Use quando a pessoa pedir um texto para criar ou atualizar um monitor do Dot. O 
 ## Reunir o necessário
 
 1. Use o texto atual se a pessoa o fornecer. Identifique o que ela quer mudar e preserve as regras, o escopo, a frequência e o histórico que continuam confirmados. Se o texto atual estiver indisponível, apresente um modelo para criar o monitor ou um trecho para incorporar ao existente. Só chame o resultado de atualização completa quando tiver o texto de partida.
-2. Consulte os objetivos, o perfil e as preferências autorizadas na base de carreira. Se houver uma vaga selecionada, confira o dossiê antes de citar cargo, etapa ou prazo. Use as correções explícitas mais recentes. Pergunte apenas pelo que mudar a busca, como a trilha desejada ou uma restrição ainda ambígua.
+2. Consulte os objetivos, o perfil e as preferências autorizadas na base de carreira. Se houver uma vaga selecionada, confira o dossiê antes de citar cargo, status ou prazo. Use as correções explícitas mais recentes. Pergunte apenas pelo que mudar a busca, como a trilha desejada ou uma restrição ainda ambígua.
 3. Use o mínimo de dados que o Dot precisa para executar o monitor. Separe critérios de busca, evidências profissionais e histórico de avisos. Indique as fontes que já estarão acessíveis no destino. Se a tarefa rodar na nuvem, conte apenas com critérios resumidos no texto e fontes conectadas que a pessoa autorizar. Use apenas dados pessoais, processos e preferências pertinentes ao escopo aprovado e destaque o que a pessoa deve revisar antes de colar. Exclua credenciais, contatos particulares, corpos de e-mail, caminhos locais e materiais integrais. Deixe a sincronização e os encaminhamentos existentes sob a configuração já autorizada no Dot.
 
 ## Entregar o texto

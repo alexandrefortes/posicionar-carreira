@@ -16,6 +16,8 @@ Escolha casos sustentados por evidências. Estruture cada resposta com contexto,
 
 ## Entrevista gravada
 
+Consulte `processo.md` para o status, os prazos e a próxima ação oficiais. Vincule o plano da entrevista ao processo.
+
 Quando a pessoa pedir transcrição ou revisão de uma entrevista real, preserve os arquivos originais e organize o material autorizado em `entrevistas/` no dossiê. Associe cada pergunta à resposta correta usando a sequência ou os registros disponíveis. Limite a revisão às partes solicitadas e sinalize associações incertas. Se não puder acessar o áudio, informe isso e trabalhe com o material que a pessoa fornecer.
 
 Na transcrição, preserve o sentido da fala e marque os trechos incertos. Informe a fonte e o método usado, como transcrição automática ou texto fornecido pela pessoa. Se a análise se basear só no texto, restrinja a avaliação ao conteúdo da resposta. Avaliar pronúncia, sotaque ou fluência oral requer acesso à fala.

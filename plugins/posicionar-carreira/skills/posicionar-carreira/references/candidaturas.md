@@ -2,7 +2,7 @@
 
 ## Preparação do dossiê
 
-Confira em `processo.md` a empresa, o cargo, o identificador e a etapa antes de trabalhar no dossiê. Use a descrição em `vaga.md`, a avaliação existente e as fontes autorizadas na base de carreira. Consulte o perfil, o currículo base, as evidências recentes, os casos pertinentes em `portfolio/` e as respostas já aprovadas. [Concilie as fontes](evidencias.md#conferir-fatos-e-correções) com as correções mais recentes da pessoa.
+Confira em `processo.md` a empresa, o cargo, o identificador e o status antes de trabalhar no dossiê. Use a descrição em `vaga.md`, a avaliação existente e as fontes autorizadas na base de carreira. Consulte o perfil, o currículo base, as evidências recentes, os casos pertinentes em `portfolio/` e as respostas já aprovadas. [Concilie as fontes](evidencias.md#conferir-fatos-e-correções) com as correções mais recentes da pessoa.
 
 Confira a [pesquisa salarial da vaga](benchmark-salarial.md) e atualize fontes que já não representem o escopo, a localidade ou o vínculo. Use o levantamento para preparar perguntas e apoiar decisões. Para preencher salário atual ou pretensão, use somente o valor autorizado pela pessoa para aquele campo.
 
@@ -81,4 +81,6 @@ Confirme a capacidade e as permissões da ferramenta antes de usar uma plataform
 
 Envio de candidatura, contato com recrutadores e publicação exigem autorização para cada ação. Após um envio confirmado, registre a fonte e a data conhecida no processo. Formulário preenchido e anexo selecionado ainda aguardam confirmação. Se o recibo não identificar a vaga, mantenha-o em triagem até confirmar a associação.
 
-Preserve em `envios/` a cópia exata dos materiais identificados, com data ou versão. Quando não for possível identificar a versão, registre o envio confirmado e a incerteza sobre o anexo. Atualize a próxima ação sem apagar o histórico nem recalcular a avaliação só porque a etapa mudou.
+Registre a confirmação, a fonte e a data conhecida pelo [MCP](../SKILL.md#gestão-de-processos). Se o status atual for `identificada`, avance para `candidatura-enviada`.
+
+Preserve em `envios/` a cópia exata dos materiais identificados, com data ou versão. Quando não for possível identificar a versão, registre o envio confirmado e a incerteza sobre o anexo. Atualize a próxima ação sem apagar o histórico nem recalcular a avaliação só porque o status mudou.

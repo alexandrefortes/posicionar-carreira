@@ -8,11 +8,11 @@ from pathlib import Path
 
 from configuracao import MODELOS, inicializar_carreira, verificar_configuracao
 from dados import detalhar, ler_processo, listar, resolver_carreira_root
-from gestao_vagas import DISPONIBILIDADES_INSCRICAO
+from gestao_vagas import DISPONIBILIDADES_INSCRICAO, TRANSICOES_STATUS
 
 
-VERSION = "0.7.3"
-UI_URI = "ui://posicionar-carreira-local/painel-v5.html"
+VERSION = "0.8.0"
+UI_URI = "ui://posicionar-carreira-local/painel-v6.html"
 WELCOME_URI = "ui://posicionar-carreira-local/boas-vindas.html"
 DASHBOARD_URI = "ui://posicionar-carreira-local/dashboard.html"
 UI_MIME = "text/html;profile=mcp-app"
@@ -49,8 +49,7 @@ TOOLS = [
     {
         "name": "abrir_dashboard",
         "title": "Dashboard",
-        "description": "Abre a visão geral dos processos: totais, vagas abertas e pausadas por etapa "
-                       "e resultados das vagas encerradas.",
+        "description": "Abre a visão geral dos processos por status, agrupados em andamento e encerrados.",
         "inputSchema": EMPTY_INPUT,
         "_meta": {
             "ui": {"resourceUri": DASHBOARD_URI, "visibility": ["model"], "preferredModelDisplayMode": "inline"},
@@ -60,13 +59,14 @@ TOOLS = [
     {
         "name": "listar_vagas",
         "title": "Listar vagas",
-        "description": "Lê os processos oficiais e retorna ID, empresa, cargo, estado, etapa e resultado.",
+        "description": "Retorna ID, empresa, cargo, status e as transições de status permitidas.",
         "inputSchema": EMPTY_INPUT,
     },
     {
         "name": "detalhar_vaga",
         "title": "Consultar processo",
-        "description": "Lê histórico, materiais, próximo passo, caminho oficial e titulo_chat da vaga pelo ID.",
+        "description": "Retorna status, transições permitidas, histórico, materiais, próximo passo, "
+                       "caminho oficial e titulo_chat da vaga pelo ID.",
         "inputSchema": {
             "type": "object",
             "properties": {"processo_id": {"type": "string", "minLength": 1}},
@@ -95,7 +95,7 @@ EVENT_INPUT = {
 }
 EDIT_INPUT = {
     "titulo": STRING,
-    "estado": STRING, "etapa": STRING, "resultado": NULLABLE, "prioridade": STRING,
+    "status": {**STRING, "enum": list(TRANSICOES_STATUS)}, "prioridade": STRING,
     "proxima_acao": STRING, "responsavel": STRING, "prazo": OPTIONAL_DATE,
     "fonte_prazo": NULLABLE, "revisar_em": OPTIONAL_DATE, "encerrada_em": OPTIONAL_DATE,
     "candidatura_confirmada": {"type": "boolean"}, "candidatura_em": OPTIONAL_DATE,
@@ -106,7 +106,7 @@ EDIT_INPUT = {
 for name, title, description, props, required in (
     (
         "criar_vaga", "Cadastrar vaga",
-        "Cria um processo local identificado. Use a URL do anúncio ou uma fonte relativa à pasta carreira.",
+        "Cria o dossiê local com status identificada. Use a URL do anúncio ou uma fonte relativa à pasta carreira.",
         {"empresa": STRING, "titulo": STRING, "fonte": STRING, "processo_id": STRING},
         ["empresa", "titulo", "fonte"],
     ),
@@ -122,7 +122,8 @@ for name, title, description, props, required in (
         "Para confirmar envio, informe candidatura_confirmada e fonte_candidatura. "
         "Para definir ou mudar disponibilidade_inscricao, informe fonte_disponibilidade_inscricao "
         "(URL ou arquivo relativo a carreira). Use disponibilidade_inscricao null para limpar os dois campos. "
-        "Para alterar prazo, informe fonte_prazo. Encerrar exige resultado e reabrir usa estado aberto.",
+        "Para alterar prazo, informe fonte_prazo. Para mudar o status, use uma das transições "
+        "informadas em transicoes_status ao consultar a vaga.",
         {**EVENT_INPUT, "mudancas": {"type": "object", "properties": EDIT_INPUT,
                                    "minProperties": 1, "additionalProperties": False}},
         ["processo_id", "revisao", "descricao", "fonte", "mudancas"],
@@ -242,7 +243,7 @@ def call_tool(params):
             return tool_result(inicializar_carreira(**arguments))
         root = resolver_carreira_root()
         if name == "listar_vagas":
-            return tool_result({"vagas": listar(root)})
+            return tool_result({"vagas": listar(root), "transicoes_status": TRANSICOES_STATUS})
         if name == "detalhar_vaga":
             return tool_result(detalhar(root, arguments["processo_id"]))
         if name == "abrir_curriculo":

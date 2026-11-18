@@ -24,10 +24,7 @@ class DadosTest(unittest.TestCase):
         (self.carreira / "config.json").write_text(json.dumps({"responsavel": "Pessoa Exemplo"}), encoding="utf-8")
         (self.carreira / "painel-vagas.md").write_text("Painel desatualizado", encoding="utf-8")
         self.primeiro = self.criar_processo("local-001", "2026-10-10")
-        self.criar_processo(
-            "local-002", "2026-10-12",
-            estado="encerrado", etapa="entrevista_tecnica", resultado="reprovado",
-        )
+        self.criar_processo("local-002", "2026-10-12", status="reprovado")
 
     def criar_processo(self, identificador, atualizado, **campos):
         processo_id = f"empresa-exemplo/{identificador}"
@@ -36,7 +33,7 @@ class DadosTest(unittest.TestCase):
         fonte = "https://example.org/oportunidade"
         processo = {
             "id": processo_id, "empresa": "Empresa Exemplo", "titulo": "Vaga de exemplo",
-            "estado": "aberto", "etapa": "triagem", "resultado": None,
+            "status": "identificada",
             "prioridade": "media", "responsavel": "empresa", "proxima_acao": "Aguardar retorno",
             "fonte_estado": fonte, "candidatura_confirmada": False, "atualizado_em": atualizado,
             "eventos": [
@@ -53,12 +50,10 @@ class DadosTest(unittest.TestCase):
     def test_lista_usa_processos_com_mesma_empresa_e_titulo(self):
         segundo, primeiro = listar(self.carreira)
         self.assertEqual(segundo["id"], "empresa-exemplo/local-002")
-        self.assertEqual(segundo["estado"], "encerrado")
-        self.assertEqual(segundo["etapa"], "entrevista_tecnica")
-        self.assertEqual(segundo["resultado"], "reprovado")
+        self.assertEqual(segundo["status"], "reprovado")
         self.assertEqual(primeiro["id"], "empresa-exemplo/local-001")
-        self.assertEqual(primeiro["estado"], "aberto")
-        self.assertIsNone(primeiro["resultado"])
+        self.assertEqual(primeiro["status"], "identificada")
+        self.assertFalse(primeiro.keys() & {"estado", "etapa", "resultado"})
         self.assertNotIn("processo", primeiro)
 
     def test_detalhe_preserva_historico_e_identifica_versoes_por_pasta(self):
@@ -79,39 +74,41 @@ class DadosTest(unittest.TestCase):
 
     def test_titulo_chat_usa_empresa_e_status_confirmados(self):
         casos = (
-            ("aberto", "identificada", None, "identificada"),
-            ("aberto", "candidatura_enviada", None, "enviada"),
-            ("aberto", "entrevista_tecnica", None, "entrevista técnica"),
-            ("pausado", "entrevista_tecnica", None, "pausado"),
-            ("encerrado", "entrevista_tecnica", "desistencia", "desistência"),
+            ("identificada", False, "identificada"),
+            ("candidatura-enviada", True, "enviada"),
+            ("entrevistas", True, "entrevistas"),
+            ("cancelada-pela-empresa", False, "cancelada pela empresa"),
+            ("descartada", False, "descartada"),
         )
-        for numero, (estado, etapa, resultado, status) in enumerate(casos, start=3):
-            with self.subTest(estado=estado, etapa=etapa):
+        for numero, (status, confirmada, rotulo) in enumerate(casos, start=3):
+            with self.subTest(status=status):
                 identificador = f"local-{numero:03}"
                 self.criar_processo(
                     identificador, "2026-10-12",
                     empresa="  Café.–Norte  ", titulo="Eng | Lead",
-                    estado=estado, etapa=etapa, resultado=resultado,
+                    status=status, candidatura_confirmada=confirmada,
+                    fonte_candidatura="https://example.org/envio" if confirmada else None,
                 )
                 detalhe = detalhar(self.carreira, f"empresa-exemplo/{identificador}")
-                self.assertEqual(detalhe["titulo_chat"], f"candidatura - café norte | eng lead - {status}")
+                self.assertEqual(detalhe["titulo_chat"], f"candidatura - café norte | eng lead - {rotulo}")
 
-    def test_titulo_chat_abrevia_cargo_e_recalcula_espaco_apos_mudanca_de_etapa(self):
-        cargo = "Engineering Lead Apps Core para Equipes Internacionais de Automação"
+    def test_titulo_chat_abrevia_cargo_e_recalcula_espaco_apos_mudanca_de_status(self):
+        cargo = "Engineering Lead Apps Mobile para Equipes Internacionais de Automação"
         criada = criar_vaga(self.carreira, "Hyrule 🧪", cargo, "https://example.org/anuncio")
         atualizada = atualizar_vaga(
-            self.carreira, criada["id"], criada["revisao"], "Entrevista confirmada",
-            "https://example.org/entrevista", {"etapa": "entrevista_tecnica"},
+            self.carreira, criada["id"], criada["revisao"], "Candidatura confirmada",
+            "https://example.org/envio", {"status": "candidatura-enviada", "candidatura_confirmada": True,
+                                        "fonte_candidatura": "https://example.org/envio"},
         )
-        for vaga, status in ((criada, "identificada"), (atualizada, "entrevista técnica")):
+        for vaga, status in ((criada, "identificada"), (atualizada, "enviada")):
             with self.subTest(status=status):
                 titulo = vaga["titulo_chat"]
                 self.assertLessEqual(len(titulo.encode("utf-16-le")) // 2, 60)
                 self.assertTrue(titulo.startswith("candidatura - hyrule 🧪 | eng lead "))
                 self.assertTrue(titulo.endswith(f" - {status}"))
                 self.assertEqual(vaga["titulo"], cargo)
-        self.assertLess(len(atualizada["titulo_chat"].rsplit(" - ", 1)[0]),
-                        len(criada["titulo_chat"].rsplit(" - ", 1)[0]))
+        self.assertGreater(len(atualizada["titulo_chat"].rsplit(" - ", 1)[0]),
+                           len(criada["titulo_chat"].rsplit(" - ", 1)[0]))
         self.assertEqual(detalhar(self.carreira, criada["id"])["titulo_chat"], atualizada["titulo_chat"])
 
     def test_rejeita_id_inexistente_ou_caminho_arbitrario(self):

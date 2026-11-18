@@ -2,8 +2,7 @@
 id: conselho-de-rotas-de-hyrule/local-001
 empresa: Conselho de Rotas de Hyrule
 titulo: Cartógrafa de Rotas
-estado: aberto
-etapa: em_preparacao
+status: identificada
 prioridade: media
 proxima_acao: Revisar currículo e carta e reunir perguntas sobre as condições da vaga
 responsavel: candidato

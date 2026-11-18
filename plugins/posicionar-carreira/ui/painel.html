@@ -72,7 +72,7 @@
     .acao-secundaria { color: var(--ink); border-color: var(--line); background: var(--surface); }
     .erro { color: var(--color-text-danger, light-dark(#a4302c, #ffb4aa)); }
     #dashboard { display: grid; gap: 12px; margin-top: 14px; }
-    .dashboard-resumo { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .dashboard-resumo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .dashboard-resumo > div, .dashboard-graficos > section {
       min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
     }
@@ -96,7 +96,6 @@
       .grade { grid-template-columns: 1fr; }
       #vagas { max-height: 174px; }
       #detalhe { max-height: 360px; }
-      .dashboard-resumo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
 </head>
@@ -150,19 +149,18 @@
     <section id="dashboard" aria-labelledby="titulo-painel" hidden>
       <dl class="dashboard-resumo" aria-label="Resumo dos processos">
         <div><dt>Total</dt><dd id="dashboard-total"></dd></div>
-        <div><dt>Abertas</dt><dd id="dashboard-aberto"></dd></div>
-        <div><dt>Pausadas</dt><dd id="dashboard-pausado"></dd></div>
-        <div><dt>Encerradas</dt><dd id="dashboard-encerrado"></dd></div>
+        <div><dt>Em andamento</dt><dd id="dashboard-andamento"></dd></div>
+        <div><dt>Encerradas</dt><dd id="dashboard-encerradas"></dd></div>
       </dl>
       <p id="dashboard-vazio" class="secundario" hidden>Nenhuma vaga cadastrada.</p>
       <div class="dashboard-graficos" id="dashboard-graficos">
-        <section aria-labelledby="dashboard-titulo-etapas">
-          <h2 id="dashboard-titulo-etapas">Abertas e pausadas por etapa</h2>
-          <table><tbody id="dashboard-etapas"></tbody></table>
+        <section aria-labelledby="dashboard-titulo-andamento">
+          <h2 id="dashboard-titulo-andamento">Em andamento por status</h2>
+          <table><tbody id="dashboard-status-andamento"></tbody></table>
         </section>
-        <section aria-labelledby="dashboard-titulo-resultados">
-          <h2 id="dashboard-titulo-resultados">Resultados dos processos encerrados</h2>
-          <table><tbody id="dashboard-resultados"></tbody></table>
+        <section aria-labelledby="dashboard-titulo-encerradas">
+          <h2 id="dashboard-titulo-encerradas">Encerradas por status</h2>
+          <table><tbody id="dashboard-status-encerradas"></tbody></table>
         </section>
       </div>
     </section>
@@ -250,20 +248,13 @@
     }
 
     const labels = {
-      em_avaliacao: "Em avaliação", em_preparacao: "Em preparação",
-      candidatura_enviada: "Candidatura enviada", triagem: "Triagem",
-      entrevista_tecnica: "Entrevista técnica", entrevista_gestao: "Entrevista de gestão",
-      desistencia: "Desistência", vaga_cancelada: "Vaga cancelada",
-      descartado_na_avaliacao: "Descartado na avaliação", media: "Média",
+      "candidatura-enviada": "Candidatura enviada",
+      "cancelada-pela-empresa": "Cancelada pela empresa", media: "Média",
       aberta_verificada: "Aberta e verificada", nao_confirmada: "Não confirmada",
       anuncio_expirado: "Anúncio expirado",
     };
 
     const options = {
-      estado: ["aberto", "pausado", "encerrado"],
-      etapa: ["identificada", "em_avaliacao", "em_preparacao", "candidatura_enviada",
-        "triagem", "entrevista_tecnica", "entrevista_gestao", "oferta"],
-      resultado: ["contratado", "reprovado", "desistencia", "vaga_cancelada", "descartado_na_avaliacao"],
       prioridade: ["alta", "media", "baixa"],
       disponibilidade_inscricao: ["aberta_verificada", "nao_confirmada", "anuncio_expirado"],
     };
@@ -282,13 +273,11 @@
 
     function renderRows() {
       const query = searchKey(search.value.trim());
-      const activeFilters = [...byId("filtros").querySelectorAll("select")].filter(input => input.value);
-      const visible = rows.filter(row => activeFilters.every(input =>
-        (row[input.name] ?? "sem_resultado") === input.value
-      ) && searchKey(
-        [row.titulo, row.empresa, row.id, label(row.estado), label(row.etapa), label(row.resultado)].join(" ")
+      const filter = byId("filtros").querySelector("select")?.value;
+      const visible = rows.filter(row => (!filter || row.status === filter) && searchKey(
+        [row.titulo, row.empresa, row.id, label(row.status)].join(" ")
       ).includes(query));
-      byId("contagem").textContent = query || activeFilters.length ? `${visible.length} de ${rows.length}` :
+      byId("contagem").textContent = query || filter ? `${visible.length} de ${rows.length}` :
         `${rows.length} ${rows.length === 1 ? "vaga" : "vagas"}`;
       const list = byId("vagas");
       list.replaceChildren();
@@ -300,7 +289,7 @@
         button.dataset.id = row.id;
         button.setAttribute("aria-current", String(row.id === selectedId));
         button.append(element("strong", row.titulo), element("span",
-          `${row.empresa} · ${label(row.etapa)} · ${label(row.estado)}`, "secundario"));
+          `${row.empresa} · ${label(row.status)}`, "secundario"));
         button.addEventListener("click", () => select(row.id));
         item.append(button);
         list.append(item);
@@ -324,23 +313,23 @@
       }));
     }
 
-    function renderDashboard() {
-      const states = { aberto: 0, pausado: 0, encerrado: 0 };
-      const stages = Object.fromEntries(options.etapa.map(value => [value, 0]));
-      const outcomes = Object.fromEntries(options.resultado.map(value => [value, 0]));
-      for (const row of rows) {
-        states[row.estado]++;
-        if (row.estado === "encerrado") outcomes[row.resultado]++;
-        else stages[row.etapa]++;
+    function renderDashboard(transitions) {
+      const counts = Object.fromEntries(Object.keys(transitions).map(value => [value, 0]));
+      for (const row of rows) counts[row.status]++;
+      const active = {};
+      const closed = {};
+      for (const [value, count] of Object.entries(counts)) {
+        const group = transitions[value].length ? active : closed;
+        group[value] = count;
       }
+      const activeCount = Object.values(active).reduce((total, count) => total + count, 0);
       byId("dashboard-total").textContent = rows.length.toLocaleString("pt-BR");
-      for (const [key, count] of Object.entries(states)) {
-        byId("dashboard-" + key).textContent = count.toLocaleString("pt-BR");
-      }
+      byId("dashboard-andamento").textContent = activeCount.toLocaleString("pt-BR");
+      byId("dashboard-encerradas").textContent = (rows.length - activeCount).toLocaleString("pt-BR");
       byId("dashboard-vazio").hidden = rows.length > 0;
       byId("dashboard-graficos").hidden = rows.length === 0;
-      renderDashboardTable("dashboard-etapas", stages);
-      renderDashboardTable("dashboard-resultados", outcomes);
+      renderDashboardTable("dashboard-status-andamento", active);
+      renderDashboardTable("dashboard-status-encerradas", closed);
     }
 
     async function enviarAoChat(text, button, feedback, confirmation, fallback) {
@@ -657,13 +646,13 @@
       fields.elements.descricao.focus();
     }
 
-    function editForm(vaga, initialState = vaga.estado) {
+    function editForm(vaga) {
       const fields = renderForm("Editar processo", "Salvar alterações", () => renderDetail(vaga), values => {
         const mudancas = {};
         const titulo = values.titulo.trim();
         if (titulo !== vaga.titulo.trim()) mudancas.titulo = titulo;
-        for (const name of ["estado", "etapa", "prioridade", "proxima_acao", "responsavel",
-          "prazo", "fonte_prazo", "revisar_em", "resultado", "encerrada_em"]) {
+        for (const name of ["status", "prioridade", "proxima_acao", "responsavel",
+          "prazo", "fonte_prazo", "revisar_em", "encerrada_em"]) {
           const value = values[name]?.trim() || null;
           if (value !== (vaga[name] ?? null)) mudancas[name] = value;
         }
@@ -681,10 +670,6 @@
         } else if (availability && availabilitySource !== (vaga.fonte_disponibilidade_inscricao ?? null)) {
           mudancas.fonte_disponibilidade_inscricao = availabilitySource;
         }
-        if (values.estado !== "encerrado") {
-          if (vaga.resultado) mudancas.resultado = null;
-          if (vaga.encerrada_em) mudancas.encerrada_em = null;
-        }
         if (values.candidatura_confirmada) {
           mudancas.candidatura_confirmada = true;
           mudancas.candidatura_em = values.candidatura_em || null;
@@ -695,13 +680,10 @@
       }, result => showSaved(result, "Processo atualizado."), `${vaga.titulo} · ${vaga.id}`);
 
       field(fields, "titulo", "Título da vaga", { required: true, wide: true, value: vaga.titulo });
-      const state = selectField(fields, "estado", "Estado", initialState);
-      if (vaga.estado === "encerrado") state.querySelector('[value="pausado"]').disabled = true;
-      const stage = selectField(fields, "etapa", "Etapa", vaga.etapa);
-      const result = selectField(fields, "resultado", "Resultado", vaga.resultado ?? "", "Selecione um resultado");
+      const transitions = vaga.transicoes_status;
+      const choices = [vaga.status, ...transitions[vaga.status]].map(value => [value, label(value)]);
+      const processStatus = field(fields, "status", "Status", { choices, value: vaga.status });
       const closure = field(fields, "encerrada_em", "Data de encerramento", { type: "date", value: vaga.encerrada_em });
-      const reopening = element("p", "Use a reabertura quando o mesmo processo for retomado. Para outra requisição, cadastre uma nova vaga.", "secundario larga");
-      fields.append(reopening);
       selectField(fields, "prioridade", "Prioridade", vaga.prioridade ?? "media");
       const owners = new Set([...(vaga.responsaveis ?? []), vaga.responsavel]);
       field(fields, "responsavel", "Responsável", {
@@ -734,31 +716,27 @@
       }
 
       function refresh() {
-        const closed = state.value === "encerrado";
-        toggle(result, closed);
-        toggle(closure, closed);
-        result.required = closed;
-        reopening.hidden = vaga.estado !== "encerrado" || closed;
+        toggle(closure, !transitions[processStatus.value].length);
         toggle(deadlineSource, Boolean(deadline.value));
         deadlineSource.required = Boolean(deadline.value);
         toggle(availabilitySource, Boolean(availability.value));
         availabilitySource.required = Boolean(availability.value);
-        const canConfirm = stage.value === "candidatura_enviada" && !vaga.candidatura_confirmada;
+        const canConfirm = processStatus.value === "candidatura-enviada" && !vaga.candidatura_confirmada;
         toggle(confirmation, canConfirm);
-        confirmation.required = canConfirm && stage.value !== vaga.etapa;
+        confirmation.required = canConfirm && processStatus.value !== vaga.status;
         toggle(sent, canConfirm && confirmation.checked);
         toggle(sentSource, canConfirm && confirmation.checked);
         sentSource.required = canConfirm && confirmation.checked;
       }
-      for (const input of [state, stage, deadline, availability, confirmation]) input.addEventListener("change", refresh);
+      for (const input of [processStatus, deadline, availability, confirmation]) input.addEventListener("change", refresh);
       refresh();
-      state.focus();
+      processStatus.focus();
     }
 
     function renderDetail(vaga) {
       detail.replaceChildren(element("h2", vaga.titulo), element("p", `${vaga.empresa} · ${vaga.id}`, "secundario"));
       const fields = element("dl");
-      const summary = [["Estado", vaga.estado], ["Etapa", vaga.etapa], ["Resultado", vaga.resultado]];
+      const summary = [["Status", vaga.status]];
       if (vaga.disponibilidade_inscricao) summary.push(["Disponibilidade de inscrição", vaga.disponibilidade_inscricao]);
       for (const [name, value] of summary) {
         const field = element("div");
@@ -769,10 +747,7 @@
       if (vaga.revisao) {
         const manage = element("div", null, "botoes");
         manage.append(actionButton("Editar processo", () => editForm(vaga), true),
-          actionButton("Registrar evento", () => registerEventForm(vaga), true),
-          vaga.estado === "encerrado" ?
-            actionButton("Reabrir processo", () => editForm(vaga, "aberto"), true) :
-            actionButton("Encerrar processo", () => editForm(vaga, "encerrado"), true));
+          actionButton("Registrar evento", () => registerEventForm(vaga), true));
         detail.append(manage);
       }
       renderResume(vaga);
@@ -862,14 +837,18 @@
       byId("configurar-base").hidden = true;
       status.textContent = "Lendo os dossiês…";
       try {
-        const { vagas } = await callTool("listar_vagas");
+        const { vagas, transicoes_status } = await callTool("listar_vagas");
         if (currentRequest !== listRequest) return;
         rows = vagas;
         if (dashboard) {
-          renderDashboard();
+          renderDashboard(transicoes_status);
           byId("dashboard").hidden = false;
           refresh.hidden = refresh.disabled = false;
         } else {
+          const value = filters.querySelector("select")?.value ?? "";
+          const choices = [["", "Todos"], ...Object.keys(transicoes_status).map(key => [key, label(key)])];
+          filters.replaceChildren();
+          field(filters, "status", "Status", { choices, value }).setAttribute("aria-label", "Filtrar por status");
           renderRows();
           byId("painel").hidden = false;
           for (const id of listControls) byId(id).hidden = false;
@@ -892,7 +871,7 @@
       }
       try {
         const result = await request("ui/initialize", {
-          appInfo: { name: "Posicionar Carreira", version: "0.7.3" },
+          appInfo: { name: "Posicionar Carreira", version: "0.8.0" },
           appCapabilities: {},
           protocolVersion: "2026-01-26",
         });
@@ -911,13 +890,6 @@
 
     search.addEventListener("input", renderRows);
     const filters = byId("filtros");
-    selectField(filters, "estado", "Estado", "", "Todos").setAttribute("aria-label", "Filtrar por estado");
-    selectField(filters, "etapa", "Etapa", "", "Todas").setAttribute("aria-label", "Filtrar por etapa");
-    const resultFilter = selectField(filters, "resultado", "Resultado", "", "Todos");
-    resultFilter.setAttribute("aria-label", "Filtrar por resultado");
-    const unset = element("option", "Sem resultado");
-    unset.value = "sem_resultado";
-    resultFilter.append(unset);
     filters.addEventListener("change", renderRows);
     byId("nova").addEventListener("click", createForm);
     const pesquisarWeb = byId("pesquisar-web");

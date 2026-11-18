@@ -26,7 +26,7 @@ Siga os procedimentos desta skill e consulte as fontes pertinentes ao pedido.
 | `oportunidades/<empresa>/<id>/vaga.md` | Descrição do anúncio, fonte e data, separadas da síntese e da análise. Siga o [registro da descrição](references/busca-e-triagem.md#registro-da-descrição) |
 | `oportunidades/<empresa>/<id>/avaliacao.md` | Análise de aderência, cultura e condições |
 | `oportunidades/<empresa>/<id>/benchmark-salarial.md` | Pesquisa salarial por vaga, com comparáveis, fontes, datas e limites |
-| `oportunidades/<empresa>/<id>/processo.md` | Estado, eventos, evidências de envio e próxima ação oficiais |
+| `oportunidades/<empresa>/<id>/processo.md` | Status, eventos, evidências de envio e próxima ação oficiais |
 | `oportunidades/<empresa>/<id>/plano-preparacao-entrevista.md` | Preparo específico da vaga, com referências ao processo e ao repertório comum |
 | `empresas/<empresa>/pesquisas/` | Pesquisas culturais datadas, interpretadas por vaga e time |
 | `painel-vagas.md` e `monitoramento/triagem.md` | Visão derivada e entradas ainda sem associação confirmada |
@@ -38,7 +38,7 @@ Quando a pessoa pedir ajuda para preencher os modelos iniciais, comece pelo hist
 
 ## Painel no chat
 
-Quando a pessoa selecionar **Posicionar Carreira** e pedir **Dashboard** ou uma visão geral dos processos, chame `abrir_dashboard` diretamente. Se o cliente não exibir a interface, consulte `listar_vagas` e responda com os totais, as etapas dos processos abertos e pausados e os resultados dos encerrados. Conte cada processo pelo ID.
+Quando a pessoa selecionar **Posicionar Carreira** e pedir **Dashboard** ou uma visão geral dos processos, chame `abrir_dashboard` diretamente. Se o cliente não exibir a interface, consulte `listar_vagas` e responda com o total e a contagem por status. Conte cada processo pelo ID.
 
 Quando a pessoa pedir para abrir a lista de vagas no chat, chame `abrir_painel`. Para consultas em texto, use `listar_vagas` ou `detalhar_vaga` com `processo_id`.
 
@@ -49,6 +49,8 @@ Leia o processo e as fontes pertinentes. Para avaliar, siga [Busca e triagem](re
 ## Gestão de processos
 
 No painel, use os formulários de cadastro, edição e eventos. Agentes usam somente as operações MCP `criar_vaga`, `atualizar_vaga` e `registrar_evento` para toda gravação autorizada em registros oficiais. Para editar ou registrar evento, obtenha ID e revisão com `detalhar_vaga` e informe a evidência. Se houver conflito, confira a nova versão antes de tentar novamente. Se o MCP ou a operação necessária estiver indisponível, informe a lacuna e deixe o registro oficial intacto. Consulte o [guia de gestão de oportunidades](../../README.md#gestão-de-oportunidades).
+
+No cadastro, comece em `identificada` e reúna no dossiê a descrição da vaga, as fontes e as informações pertinentes já disponíveis. Registre as lacunas e a próxima ação. O levantamento, a avaliação e a preparação fazem parte de `identificada`. Para avançar, confira `transicoes_status` e use `mudancas.status` com evidência. Guarde os motivos e fatos do processo nos eventos.
 
 Ao montar o dossiê, siga o [registro da descrição da vaga](references/busca-e-triagem.md#registro-da-descrição), registre o [benchmark salarial](references/benchmark-salarial.md) e inclua em `avaliacao.md` os achados e limites da [pesquisa de clima](references/clima-organizacional.md). Para corrigir o título, use `mudancas.titulo` sem trocar o ID. Para editar a disponibilidade de inscrição, use `mudancas.disponibilidade_inscricao` e a evidência em `mudancas.fonte_disponibilidade_inscricao`.
 
@@ -66,9 +68,9 @@ Use um chat por vaga ao cadastrar, avaliar ou acompanhar uma oportunidade espec�
 
 Ao assumir a vaga no chat ou por um atalho do painel, consulte `detalhar_vaga`. Para um cadastro novo, use o retorno confirmado de `criar_vaga`. Use o campo `titulo_chat` como título do próprio chat do Codex. Chame a ferramenta nativa `set_thread_title` passando apenas `title`.
 
-O título segue `candidatura - <empresa> | <cargo> - <status>`, todo em minúsculas, com espaços no lugar de pontos, traços e barras verticais que já venham nos nomes. Por exemplo, `candidatura - conselho | cartógrafa de rotas - em preparação`. Use a etapa enquanto o processo estiver aberto, com `enviada` para `candidatura_enviada`. Use `pausado` durante uma pausa e o resultado confirmado após o encerramento.
+O título segue `candidatura - <empresa> | <cargo> - <status>`, todo em minúsculas, com espaços no lugar de pontos, traços e barras verticais que já venham nos nomes. Por exemplo, `candidatura - empresa | eng lead - entrevistas`. Use o sufixo de status fornecido em `titulo_chat`. O status `candidatura-enviada` aparece como `enviada`.
 
-O Codex Desktop aceita até 60 unidades UTF-16 no título gravado, incluindo espaços e separadores. Preserve `candidatura - `, ` | ` e ` - <status>` por inteiro. Quando exceder o limite, abrevie apenas a empresa e o cargo, mantendo ambos reconhecíveis, como `engineering` para `eng`. Para avaliar uma vaga específica antes do cadastro, use a empresa e o cargo confirmados no anúncio e o status `em avaliação`, com a mesma regra de comprimento.
+O Codex Desktop aceita até 60 unidades UTF-16 no título gravado, incluindo espaços e separadores. Preserve `candidatura - `, ` | ` e ` - <status>` por inteiro. Quando exceder o limite, abrevie apenas a empresa e o cargo, mantendo ambos reconhecíveis, como `engineering` para `eng`. Antes do cadastro, use a empresa e o cargo confirmados no anúncio para identificar a conversa. Acrescente o sufixo com o status quando houver dossiê.
 
 Atualize o título do chat dedicado quando uma mudança confirmada alterar o `titulo_chat`. Use o novo valor retornado pelo MCP, que recalcula o espaço do miolo a partir do nome da empresa, do cargo original e do status atual. Uma prévia ou proposta não muda o título por si só. Preserve o título em buscas gerais, consultas de várias vagas ou quando a pessoa tiver pedido um título próprio. Se a ferramenta nativa estiver indisponível, informe o título para a pessoa aplicar.
 

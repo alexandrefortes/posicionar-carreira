@@ -7,14 +7,22 @@ from pathlib import Path
 import re
 from urllib.parse import unquote
 
-from dados import resolver_carreira_root, responsavel_pessoal
+from dados import _ordem_painel, resolver_carreira_root, responsavel_pessoal
 
-ESTADOS = {'aberto', 'pausado', 'encerrado'}
-ETAPAS = {'identificada', 'em_avaliacao', 'em_preparacao', 'candidatura_enviada',
-          'triagem', 'entrevista_tecnica', 'entrevista_gestao', 'oferta'}
-RESULTADOS = {'contratado', 'reprovado', 'desistencia', 'vaga_cancelada', 'descartado_na_avaliacao'}
+TRANSICOES_STATUS = {
+    'identificada': ['candidatura-enviada', 'descartada', 'cancelada-pela-empresa'],
+    'candidatura-enviada': ['entrevistas', 'oferta', 'contratado', 'reprovado', 'cancelada-pela-empresa'],
+    'entrevistas': ['oferta', 'contratado', 'reprovado', 'cancelada-pela-empresa'],
+    'oferta': ['contratado', 'reprovado', 'cancelada-pela-empresa'],
+    'descartada': [],
+    'cancelada-pela-empresa': [],
+    'reprovado': [],
+    'contratado': [],
+}
+STATUS_APOS_ENVIO = {'candidatura-enviada', 'entrevistas', 'oferta'}
 DISPONIBILIDADES_INSCRICAO = {'aberta_verificada', 'nao_confirmada', 'anuncio_expirado'}
 LINK = re.compile(r'\]\((<[^>]+>|[^)]+)\)')
+
 
 def metadata(path, *, text=None):
     import yaml
@@ -37,13 +45,13 @@ def date(value, field):
         raise ValueError(f'{field}: data deve ser AAAA-MM-DD ou null')
     return dt.date.fromisoformat(value)
 
-def check_source(root, value):
+def check_source(root, value, *, exigir_arquivo=True):
     if not isinstance(value, str) or not value.strip():
         raise ValueError('Fonte de evidência ausente')
     if value.startswith(('https://', 'http://')):
         return
     target = (root / unquote(value.split('#', 1)[0])).resolve()
-    if not target.is_relative_to(root.resolve()) or not target.is_file():
+    if not target.is_relative_to(root.resolve()) or (exigir_arquivo and not target.is_file()):
         raise ValueError(f'Fonte local inexistente ou fora de carreira: {value}')
 
 def process_path(root, processo_id):
@@ -60,42 +68,43 @@ def process_path(root, processo_id):
     return path
 
 
-def validate_process(root, path, d):
-    for key in ('id', 'empresa', 'titulo', 'estado', 'etapa', 'prioridade',
+def validate_process(root, path, d, *, exigir_arquivos=False):
+    if d.keys() & {'estado', 'etapa', 'resultado'}:
+        raise ValueError(f'{path}: migre o cabeçalho YAML para um único campo status')
+    for key in ('id', 'empresa', 'titulo', 'status', 'prioridade',
                 'proxima_acao', 'responsavel', 'fonte_estado'):
         if not isinstance(d.get(key), str) or not d[key].strip():
             raise ValueError(f'{path}: campo obrigatório {key}')
     expected = path.parent.relative_to(root / 'oportunidades').as_posix()
     if d['id'] != expected:
         raise ValueError(f'ID não corresponde à pasta: {d["id"]} / {expected}')
-    if d['estado'] not in ESTADOS or d['etapa'] not in ETAPAS:
-        raise ValueError(f'{path}: estado/etapa inválido')
+    if d['status'] not in TRANSICOES_STATUS:
+        raise ValueError(f'{path}: status inválido')
     if d['prioridade'] not in {'alta', 'media', 'baixa'}:
         raise ValueError(f'{path}: prioridade inválida')
     if d['responsavel'] not in {'titular', 'candidato', 'assistente', 'empresa'} and d['responsavel'] != responsavel_pessoal(root):
         raise ValueError(f'{path}: responsável inválido')
-    if d['estado'] == 'encerrado':
-        if d.get('resultado') not in RESULTADOS:
-            raise ValueError(f'{path}: encerramento sem resultado válido')
-    elif d.get('resultado') is not None or d.get('encerrada_em') is not None:
-        raise ValueError(f'{path}: processo não encerrado com resultado/data final')
+    if TRANSICOES_STATUS[d['status']] and d.get('encerrada_em') is not None:
+        raise ValueError(f'{path}: processo em andamento com data de encerramento')
     if not isinstance(d.get('candidatura_confirmada'), bool):
         raise ValueError(f'{path}: candidatura_confirmada deve ser booleano')
     for field in ('identificada_em', 'candidatura_em', 'atualizado_em', 'encerrada_em', 'prazo', 'revisar_em'):
         date(d.get(field), field)
     if not d.get('atualizado_em'):
         raise ValueError(f'{path}: atualização ausente')
-    check_source(root, d['fonte_estado'])
+    check_source(root, d['fonte_estado'], exigir_arquivo=exigir_arquivos)
     if d.get('disponibilidade_inscricao'):
         if d['disponibilidade_inscricao'] not in DISPONIBILIDADES_INSCRICAO:
             raise ValueError(f'{path}: disponibilidade de inscrição inválida')
-        check_source(root, d.get('fonte_disponibilidade_inscricao'))
+        check_source(root, d.get('fonte_disponibilidade_inscricao'), exigir_arquivo=exigir_arquivos)
     if d['candidatura_confirmada']:
-        check_source(root, d.get('fonte_candidatura'))
+        check_source(root, d.get('fonte_candidatura'), exigir_arquivo=exigir_arquivos)
+    elif d['status'] in STATUS_APOS_ENVIO:
+        raise ValueError(f'{path}: status exige candidatura confirmada')
     elif d.get('candidatura_em') or d.get('fonte_candidatura'):
         raise ValueError(f'{path}: data/fonte de envio sem confirmação')
     if d.get('prazo'):
-        check_source(root, d.get('fonte_prazo'))
+        check_source(root, d.get('fonte_prazo'), exigir_arquivo=exigir_arquivos)
     for field in ('identificada_em', 'candidatura_em', 'encerrada_em'):
         if d.get(field) and d[field] > d['atualizado_em']:
             raise ValueError(f'{path}: {field} posterior à atualização')
@@ -109,11 +118,11 @@ def validate_process(root, path, d):
         date(event.get('registrado_em'), 'evento.registrado_em')
         if not event.get('registrado_em') or not event.get('descricao'):
             raise ValueError(f'{path}: evento incompleto')
-        check_source(root, event.get('fonte'))
+        check_source(root, event.get('fonte'), exigir_arquivo=exigir_arquivos)
 
 
-def _load_process(root, path, d):
-    validate_process(root, path, d)
+def _load_process(root, path, d, *, exigir_arquivos=False):
+    validate_process(root, path, d, exigir_arquivos=exigir_arquivos)
     d['_path'] = path
     d['_score'] = None
     scorefile = path.parent / 'avaliacao-validada.json'
@@ -134,14 +143,14 @@ def load_process(root, processo_id, *, text=None):
     return _load_process(root, path, metadata(path, text=text))
 
 
-def load_processes(root):
+def load_processes(root, *, exigir_arquivos=False):
     records, ids, aliases = [], set(), set()
     for path in sorted((root / 'oportunidades').glob('*/*/processo.md')):
         d = metadata(path)
         processo_id = d.get('id')
         if isinstance(processo_id, str) and processo_id in ids:
             raise ValueError(f'ID duplicado: {processo_id}')
-        records.append(_load_process(root, path, d))
+        records.append(_load_process(root, path, d, exigir_arquivos=exigir_arquivos))
         ids.add(processo_id)
         for alias in d.get('ids_externos', []):
             if alias in aliases:
@@ -188,19 +197,16 @@ def sections(root, records):
         due = f'Prazo: {d["prazo"]}' if d.get('prazo') else 'Sem prazo informado'
         if d.get('revisar_em'):
             due += f'; revisão sugerida: {d["revisar_em"]}'
-        phase = {'em_preparacao': 'em preparação', 'em_avaliacao': 'em avaliação', 'entrevista_tecnica': 'entrevista técnica', 'entrevista_gestao': 'entrevista de gestão'}.get(d['etapa'], d['etapa'].replace('_',' '))
-        if d.get('resultado'):
-            phase += ' / '+d['resultado'].replace('_',' ')
         action = d['proxima_acao']
         if d.get('proxima_acao_plano') and d['proxima_acao_plano'] != action:
             action += ' Plano atual: '+d['proxima_acao_plano']
         title = f'{d["empresa"]} — {d["titulo"]}'.replace('\n', ' ')
         path = d['_path'].relative_to(root).as_posix()
         lines.extend([f'### {title}', '', f'- **Processo:** [Abrir processo](<{path}>)',
-                      f'- **Estado:** {d["estado"].replace("_", " " )}', f'- **Prioridade:** {d["prioridade"]}', f'- **Etapa / resultado:** {phase}',
+                      f'- **Status:** {d["status"]}', f'- **Prioridade:** {d["prioridade"]}',
                       f'- **Próxima ação:** {action}', f'- **Responsável:** {d["responsavel"]}',
                       f'- **Prazo / revisão:** {due}', f'- **Avaliação:** {ev}'])
-        if d['estado'] in {'aberto', 'pausado'}:
+        if TRANSICOES_STATUS[d['status']]:
             benchmark = d['_path'].parent/'benchmark-salarial.md'
             if benchmark.is_file():
                 try:
@@ -216,13 +222,15 @@ def sections(root, records):
             labels = {'aberta_verificada':'aberta verificada', 'nao_confirmada':'não confirmada', 'anuncio_expirado':'anúncio expirado'}
             lines.append(f'- **Disponibilidade da inscrição:** {labels[availability]}')
         plan = d.get('grupo_plano_atual')
-        if plan in {'plano_modalidade_compativel', 'plano_esclarecimento'} and d['estado']=='aberto' and not d['candidatura_confirmada']:
+        if plan in {'plano_modalidade_compativel', 'plano_esclarecimento'} and d['status']=='identificada' and not d['candidatura_confirmada']:
             lines.append('- **Plano atual:** '+('modalidade compatível' if plan=='plano_modalidade_compativel' else 'esclarecer antes de candidatar'))
         lines.append('')
     return '\n'.join(lines) if records else 'Nenhum registro nesta categoria.'
 
 def panel(root, records, today):
-    records = sorted(records, key=lambda d: ({'alta':0,'media':1,'baixa':2}[d['prioridade']],d['empresa'],d['titulo']))
+    ordem = {processo_id: i for i, processo_id in enumerate(dict.fromkeys(_ordem_painel(root)))}
+    records = sorted(records, key=lambda d: (ordem.get(d['id'], len(ordem)),
+        {'alta':0,'media':1,'baixa':2}[d['prioridade']], d['empresa'], d['titulo']))
     guide = '../plugins/posicionar-carreira/README.md'
     help_text = (f'[Como manter]({guide}#gestão-de-oportunidades)' if (root/guide).is_file()
                  else 'Como manter: consulte Gestão de oportunidades no guia do Posicionar Carreira.')
@@ -230,13 +238,13 @@ def panel(root, records, today):
         ('Preferências e pretensão', 'estrategia/referencias-candidaturas.md'),
         ('Triagem de mensagens', 'monitoramento/triagem.md'),
     ) if (root/target).is_file()]
-    lines = ['# Painel geral de vagas', '', f'Gerado em {today.isoformat()}. **Estado e próxima ação oficiais:** consulte o processo de cada vaga e use as operações do Posicionar Carreira para atualizá-lo.', '',
+    lines = ['# Painel geral de vagas', '', f'Gerado em {today.isoformat()}. **Status e próxima ação oficiais:** consulte o processo de cada vaga e use as operações do Posicionar Carreira para atualizá-lo.', '',
              f'{len(records)} oportunidades registradas; {sum(d["candidatura_confirmada"] for d in records)} candidaturas confirmadas no histórico (inclusive encerradas e sem data conhecida). Pistas e recibos sem cargo não contam como envios.', '',
              ' · '.join([*links, help_text]), '',
              'Scores preservados das avaliações validadas. Cultura e condições devem ser lidas com a avaliação; as datas de pesquisa constam dos dossiês.', '']
     for source in sorted({d['fonte_disponibilidade_inscricao'] for d in records if d.get('disponibilidade_inscricao')}):
-        lines += [f'[Auditoria completa de disponibilidade](<{source}>): formulário acessível, anúncio expirado e disponibilidade não confirmada são separados da etapa pessoal. Pistas sem processo constam da auditoria.', '']
-    current = [d for d in records if d['estado']=='aberto' and not d['candidatura_confirmada'] and d.get('grupo_plano_atual') in {'plano_modalidade_compativel', 'plano_esclarecimento'}]
+        lines += [f'[Auditoria completa de disponibilidade](<{source}>): situação das inscrições e pistas sem processo.', '']
+    current = [d for d in records if d['status']=='identificada' and not d['candidatura_confirmada'] and d.get('grupo_plano_atual') in {'plano_modalidade_compativel', 'plano_esclarecimento'}]
     if current:
         lines += [f'{len(current)} famílias no plano atual: {sum(d["grupo_plano_atual"]=="plano_modalidade_compativel" for d in current)} candidaturas a avaliar e {sum(d["grupo_plano_atual"]=="plano_esclarecimento" for d in current)} a esclarecer antes de candidatar. Candidatura pública disponível não garante formulário autenticado ou submissão. Scores anteriores permanecem históricos, sem recálculo.', '']
         sources = {d['fonte_plano'] for d in current if isinstance(d.get('fonte_plano'), str)}
@@ -247,22 +255,22 @@ def panel(root, records, today):
                 continue
             lines += [f'[Fonte do plano atual](<{source}>)', '']
     if (root/'monitoramento/triagem.md').is_file():
-        lines += ['[Triagem — recibos, duplicações e lacunas](monitoramento/triagem.md). Não altera automaticamente estados dos processos.','']
+        lines += ['[Triagem — recibos, duplicações e lacunas](monitoramento/triagem.md).','']
     for p in sorted((root/'empresas').glob('*/empresa.md')):
         if 'interesse_sem_vaga: true' in p.read_text(encoding='utf-8'):
             title = re.search(r'^# (.+)$', p.read_text(encoding='utf-8'), re.M)
             name = title.group(1) if title else p.parent.name
             lines.append(f'- [{name}](<{p.relative_to(root).as_posix()}>) — interesse sem vaga identificada.')
-    finished = [d for d in records if d['estado']=='encerrado' or (d.get('disponibilidade_inscricao')=='anuncio_expirado' and not d['candidatura_confirmada'])]
-    active = [d for d in records if d not in finished]
-    lines += ['', '## Em andamento ou pausadas', '', sections(root, active),
-              '', '## Anúncios expirados ou processos encerrados', '', sections(root, finished)]
+    active = [d for d in records if TRANSICOES_STATUS[d['status']]]
+    finished = [d for d in records if not TRANSICOES_STATUS[d['status']]]
+    lines += ['', '## Em andamento', '', sections(root, active),
+              '', '## Encerradas', '', sections(root, finished)]
     existing = root/'painel-vagas.md'
     if existing.exists():
         previous = existing.read_text(encoding='utf-8')
-        marker = '\n## Revisões recebidas —'
-        if marker in previous:
-            lines.append(previous[previous.index(marker):].rstrip())
+        reviews = re.search(r'\n## Revis(?:ões|ão) recebidas? —', previous)
+        if reviews:
+            lines.append(previous[reviews.start():].rstrip())
     return '\n'.join(lines)+'\n'
 
 def monthly(root, records, month, today):
@@ -284,7 +292,9 @@ def monthly(root, records, month, today):
     for d in records:
         for event in d['eventos']:
             if in_month(event.get('data')):
-                lines.append(f'- {event["data"]} — {process_link(root,d,"../../")}: {event["descricao"]}')
+                change = (event.get('alteracoes') or {}).get('status')
+                status = f' ({change["anterior"]} → {change["atual"]})' if change else ''
+                lines.append(f'- {event["data"]} — {process_link(root,d,"../../")}: {event["descricao"]}{status}')
     unknown = [d for d in records if d['candidatura_confirmada'] and not d.get('candidatura_em')]
     lines += ['', '## Limites de contagem','',f'{len(unknown)} candidatura(s) confirmada(s) sem data de envio conhecida; excluídas da contagem mensal. Eventos sem data também não são atribuídos ao mês de importação. Recibos sem cargo e pistas não contam como candidaturas.','']
     return '\n'.join(lines)
@@ -298,7 +308,7 @@ def main():
     args=parser.parse_args()
     today=date(args.data,'data')
     root=resolver_carreira_root() if args.root is None else args.root.expanduser().resolve()
-    records=load_processes(root)
+    records=load_processes(root, exigir_arquivos=True)
     if not records:
         raise ValueError('Nenhum processo encontrado; painel não será substituído')
     pending = {(root/'painel-vagas.md').resolve()} if args.acao=='gerar' else set()

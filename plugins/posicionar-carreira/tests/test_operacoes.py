@@ -6,6 +6,7 @@ import unittest
 
 import test_dados
 from dados import detalhar, listar
+from gestao_vagas import metadata
 from operacoes import atualizar_vaga, criar_vaga, registrar_evento
 
 
@@ -33,14 +34,28 @@ class OperacoesTest(unittest.TestCase):
             FONTE, mudancas,
         )
 
+    def test_grava_status_e_historico_seguindo_o_fluxo(self):
+        for proibido in ("entrevistas", "oferta", "reprovado", "pausado"):
+            with self.subTest(proibido=proibido), self.assertRaisesRegex(ValueError, "Transição de status"):
+                self.atualizar({"status": proibido})
+        self.atualizar({
+            "status": "candidatura-enviada", "candidatura_confirmada": True, "fonte_candidatura": FONTE,
+        }, descricao="Envio confirmado")
+        atualizada = self.atualizar({"status": "entrevistas"}, descricao="Entrevista confirmada")
+        self.assertEqual(atualizada["status"], "entrevistas")
+        self.assertEqual(atualizada["eventos"][-1]["alteracoes"]["status"], {
+            "anterior": "candidatura-enviada", "atual": "entrevistas",
+        })
+        registro = metadata(self.primeiro)
+        self.assertEqual(registro["status"], "entrevistas")
+        self.assertFalse(registro.keys() & {"estado", "etapa", "resultado"})
+
     def test_cria_processo_sem_inventar_envio_e_recusa_duplicatas(self):
         painel = self.painel.read_bytes()
         identificador = "outra-empresa/local-002"
         criado = criar_vaga(self.carreira, "Outra Empresa", "Vaga nova", FONTE, identificador)
         self.assertEqual(criado["id"], identificador)
-        self.assertEqual(criado["etapa"], "identificada")
-        self.assertEqual(criado["estado"], "aberto")
-        self.assertIsNone(criado["resultado"])
+        self.assertEqual(criado["status"], "identificada")
         self.assertFalse(criado["candidatura_confirmada"])
         self.assertEqual(criado["eventos"][0]["fonte"], FONTE)
         self.assertEqual(self.atual(identificador), criado)
@@ -53,6 +68,43 @@ class OperacoesTest(unittest.TestCase):
                 criar_vaga(self.carreira, empresa, "Vaga nova", fonte, processo_id)
         self.assertEqual(len(listar(self.carreira)), 3)
         self.assertEqual(self.atual(identificador), criado)
+
+    def test_arquivar_fonte_preserva_processo_e_permite_corrigir_referencia(self):
+        fonte = self.carreira / "consulta.md"
+        fonte.write_text("Formulário de inscrição acessível.", encoding="utf-8")
+        processo_id = "outra-empresa/local-001"
+        criado = criar_vaga(self.carreira, "Outra Empresa", "Vaga nova", fonte.name, processo_id)
+        antes = atualizar_vaga(
+            self.carreira, processo_id, criado["revisao"], "Inscrição conferida", fonte.name,
+            {"disponibilidade_inscricao": "aberta_verificada", "fonte_disponibilidade_inscricao": fonte.name},
+        )
+        arquivada = self.carreira / "archive" / fonte.name
+        arquivada.parent.mkdir()
+        fonte.rename(arquivada)
+
+        lista = {vaga["id"]: vaga for vaga in listar(self.carreira)}
+        self.assertEqual(lista[processo_id]["status"], antes["status"])
+        atual = self.atual(processo_id)
+        for campo in ("revisao", "eventos", "disponibilidade_inscricao", "fonte_disponibilidade_inscricao"):
+            self.assertEqual(atual[campo], antes[campo])
+        outro = criar_vaga(self.carreira, "Outro Cadastro", "Outra vaga", FONTE)
+        self.assertEqual(outro["status"], "identificada")
+
+        ref = arquivada.relative_to(self.carreira).as_posix()
+        corrigido = atualizar_vaga(
+            self.carreira, processo_id, atual["revisao"], "Referência atualizada após arquivar", ref,
+            {"fonte_disponibilidade_inscricao": ref},
+        )
+        self.assertEqual(corrigido["fonte_disponibilidade_inscricao"], ref)
+        self.assertEqual(corrigido["eventos"][:-1], antes["eventos"])
+        processo = self.carreira / "oportunidades" / processo_id / "processo.md"
+        salvo = processo.read_bytes()
+        with self.assertRaisesRegex(ValueError, "Fonte local inexistente"):
+            atualizar_vaga(
+                self.carreira, processo_id, corrigido["revisao"], "Fonte incorreta", FONTE,
+                {"fonte_disponibilidade_inscricao": "nao-existe.md"},
+            )
+        self.assertEqual(processo.read_bytes(), salvo)
 
     def test_registra_evento_preservando_corpo_metadados_painel_e_envios(self):
         original = self.primeiro.read_bytes().replace(
@@ -70,7 +122,7 @@ class OperacoesTest(unittest.TestCase):
         self.assertEqual(revisao, sha256(original + corpo).hexdigest())
 
         salvo = registrar_evento(self.carreira, PRIMEIRO_ID, revisao, "Retorno adicional", FONTE)
-        self.assertEqual(salvo["etapa"], "triagem")
+        self.assertEqual(salvo["status"], "identificada")
         self.assertEqual([e["descricao"] for e in salvo["eventos"]], [
             "Retorno registrado", "Retorno adicional",
         ])
@@ -97,15 +149,15 @@ class OperacoesTest(unittest.TestCase):
         original = self.primeiro.read_bytes()
         revisao = self.atual()["revisao"]
         previa = criar_vaga(self.carreira, "Outra empresa", "Vaga nova", FONTE, previa=True)
-        self.assertEqual(previa["processo"]["etapa"], "identificada")
+        self.assertEqual(previa["processo"]["status"], "identificada")
         self.assertEqual(len(listar(self.carreira)), 2)
 
         evento = registrar_evento(self.carreira, PRIMEIRO_ID, revisao, "Novo evento", FONTE, previa=True)
         self.assertEqual(evento["evento"]["descricao"], "Novo evento")
         mudanca = atualizar_vaga(
-            self.carreira, PRIMEIRO_ID, revisao, "Mudança", FONTE, {"estado": "pausado"}, previa=True,
+            self.carreira, PRIMEIRO_ID, revisao, "Mudança", FONTE, {"status": "descartada"}, previa=True,
         )
-        self.assertEqual(mudanca["mudancas"]["estado"], "pausado")
+        self.assertEqual(mudanca["mudancas"]["status"], "descartada")
         self.assertEqual(mudanca["revisao"], revisao)
         self.assertEqual(self.primeiro.read_bytes(), original)
         self.assertEqual(self.painel.read_bytes(), painel)
@@ -113,41 +165,33 @@ class OperacoesTest(unittest.TestCase):
     def test_exige_evidencia_para_registrar_candidatura(self):
         anterior = self.primeiro.read_bytes()
         for mudancas in (
-            {"etapa": "candidatura_enviada"},
-            {"etapa": "candidatura_enviada", "candidatura_confirmada": True},
+            {"status": "candidatura-enviada"},
+            {"status": "candidatura-enviada", "candidatura_confirmada": True},
         ):
             with self.subTest(mudancas=mudancas), self.assertRaises(ValueError):
                 self.atualizar(mudancas)
             self.assertEqual(self.primeiro.read_bytes(), anterior)
         salvo = self.atualizar({
-            "etapa": "candidatura_enviada",
+            "status": "candidatura-enviada",
             "candidatura_confirmada": True,
             "fonte_candidatura": FONTE,
         })
-        self.assertEqual(salvo["etapa"], "candidatura_enviada")
+        self.assertEqual(salvo["status"], "candidatura-enviada")
         self.assertTrue(salvo["candidatura_confirmada"])
         self.assertIsNone(salvo["candidatura_em"])
         self.assertEqual(salvo["fonte_candidatura"], FONTE)
 
-    def test_reabertura_precisa_de_mudanca_explicita_de_estado(self):
+    def test_status_final_preserva_edicao_sem_permitir_transicoes(self):
         anterior = self.segundo.read_bytes().replace(
-            b"estado: encerrado", b"encerrada_em: '2026-10-12'\nestado: encerrado",
+            b"status: reprovado", b"encerrada_em: '2026-10-12'\nstatus: reprovado",
         )
         self.segundo.write_bytes(anterior)
-        with self.assertRaises(ValueError):
-            self.atualizar({"estado": "aberto", "resultado": "reprovado"}, SEGUNDO_ID)
+        with self.assertRaisesRegex(ValueError, "Transição de status"):
+            self.atualizar({"status": "identificada"}, SEGUNDO_ID)
         self.assertEqual(self.segundo.read_bytes(), anterior)
         registro = self.atualizar({"proxima_acao": "Registrar feedback"}, SEGUNDO_ID)
-        self.assertEqual(registro["estado"], "encerrado")
-        self.assertEqual(registro["resultado"], "reprovado")
+        self.assertEqual(registro["status"], "reprovado")
         self.assertEqual(registro["encerrada_em"], "2026-10-12")
-
-        aberto = self.atualizar({"estado": "aberto", "etapa": "triagem"}, SEGUNDO_ID, "Reabertura confirmada")
-        self.assertEqual(aberto["estado"], "aberto")
-        self.assertEqual(aberto["etapa"], "triagem")
-        self.assertIsNone(aberto["resultado"])
-        self.assertIsNone(aberto["encerrada_em"])
-        self.assertEqual(aberto["eventos"][:-1], registro["eventos"])
 
     def test_recusa_datas_futuras_de_evento_envio_e_encerramento(self):
         futuro = (date.today() + timedelta(days=3)).isoformat()
@@ -157,7 +201,7 @@ class OperacoesTest(unittest.TestCase):
                 self.carreira, PRIMEIRO_ID, self.atual()["revisao"], "Evento futuro", FONTE, futuro,
             )
         for mudancas in (
-            {"estado": "encerrado", "resultado": "reprovado", "encerrada_em": futuro},
+            {"status": "descartada", "encerrada_em": futuro},
             {"candidatura_confirmada": True, "candidatura_em": futuro, "fonte_candidatura": FONTE},
             {"prazo": futuro},
         ):

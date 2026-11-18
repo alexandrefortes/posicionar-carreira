@@ -13,7 +13,7 @@ class IndiceTest(unittest.TestCase):
         self.dados.criar_processo("local-003", "2026-10-13")
         self.dados.criar_processo("local-004", "2026-10-14")
 
-    def test_painel_incompleto_prioriza_links_sem_inferir_estado(self):
+    def test_painel_incompleto_prioriza_links_sem_inferir_status(self):
         texto = (
             "# Painel geral de vagas\n"
             "[Apresentação](oportunidades/empresa-exemplo/local-003/processo.md)\n"
@@ -32,10 +32,7 @@ class IndiceTest(unittest.TestCase):
             [vaga["id"] for vaga in vagas],
             [f"empresa-exemplo/local-00{numero}" for numero in (1, 2, 4, 3)],
         )
-        self.assertEqual(
-            [(vaga["estado"], vaga["etapa"], vaga["resultado"]) for vaga in vagas[:2]],
-            [("aberto", "triagem", None), ("encerrado", "entrevista_tecnica", "reprovado")],
-        )
+        self.assertEqual([vaga["status"] for vaga in vagas[:2]], ["identificada", "reprovado"])
         self.assertEqual(self.painel.read_text(encoding="utf-8"), texto)
 
     def test_painel_ausente_mantem_ordem_por_atualizacao(self):

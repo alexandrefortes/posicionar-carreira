@@ -59,9 +59,10 @@ class LoteTest(unittest.TestCase):
                 "fonte": "https://example.org/cadastro", "processo_id": "outra-empresa/local-001",
             },
         }
-        atualizacao = self.evento(PRIMEIRO, "Mudança de próxima ação")
+        atualizacao = self.evento(PRIMEIRO, "Vaga descartada após a avaliação")
         atualizacao["ferramenta"] = "atualizar_vaga"
-        atualizacao["argumentos"]["mudancas"] = {"proxima_acao": "Preparar entrevista"}
+        mudancas = {"status": "descartada", "proxima_acao": "Concluir acompanhamento"}
+        atualizacao["argumentos"]["mudancas"] = mudancas
         invalido = self.evento(SEGUNDO, "Tentativa com campo extra")
         invalido["argumentos"]["previa"] = False
         entradas = [cadastro, atualizacao, invalido]
@@ -71,7 +72,7 @@ class LoteTest(unittest.TestCase):
         codigo, previa = self.rodar_cli(entradas)
         self.assertEqual(codigo, 1)
         self.assertEqual([r["status"] for r in previa["resultados"]], ["previa", "previa", "erro"])
-        self.assertEqual(previa["resultados"][1]["previa"]["mudancas"], {"proxima_acao": "Preparar entrevista"})
+        self.assertEqual(previa["resultados"][1]["previa"]["mudancas"], {**mudancas, "fonte_estado": FONTE})
         self.assertEqual(previa["falhas"], [invalido])
         self.assertEqual([p.read_bytes() for p in (self.primeiro, self.segundo, self.painel)], anteriores)
         self.assertFalse(novo.exists())
@@ -80,7 +81,9 @@ class LoteTest(unittest.TestCase):
         self.assertEqual(codigo, 1)
         self.assertEqual([r["status"] for r in aplicado["resultados"]], ["aplicado", "aplicado", "erro"])
         self.assertEqual(aplicado["falhas"], [invalido])
-        self.assertEqual(self.detalhe(PRIMEIRO)["proxima_acao"], "Preparar entrevista")
+        detalhe = self.detalhe(PRIMEIRO)
+        self.assertEqual(detalhe["status"], "descartada")
+        self.assertEqual(detalhe["proxima_acao"], "Concluir acompanhamento")
         self.assertTrue(novo.is_file())
         self.assertEqual(self.segundo.read_bytes(), anteriores[1])
         self.assertEqual(self.painel.read_bytes(), anteriores[2])

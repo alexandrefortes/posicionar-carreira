@@ -26,17 +26,17 @@ Se a conversa não exibir a tela, peça **“Verifique a configuração da minha
 2. Selecione **Posicionar Carreira** do catálogo **Carreira local**.
 3. Envie **“Abra o painel de vagas.”**
 
-No painel **Vagas**, você pode filtrar os processos, usar **Nova vaga** para cadastrar uma oportunidade ou pedir ao agente para **Pesquisar vagas na web**. Ao selecionar uma vaga, você vê a etapa, a disponibilidade da inscrição, a próxima ação, o histórico e os materiais. Pelo detalhe, pode editar o processo, corrigir o título mantendo o mesmo dossiê, registrar um evento, preparar uma candidatura ou entrevista e abrir o currículo em Markdown ou PDF, quando disponível.
+No painel **Vagas**, você pode filtrar os processos, usar **Nova vaga** para cadastrar uma oportunidade ou pedir ao agente para **Pesquisar vagas na web**. Ao selecionar uma vaga, você vê o status, a disponibilidade da inscrição, a próxima ação, o histórico e os materiais. Pelo detalhe, pode editar o processo, corrigir o título mantendo o mesmo dossiê, registrar um evento, preparar uma candidatura ou entrevista e abrir o currículo em Markdown ou PDF, quando disponível.
 
 Para experimentar, [instale a base fictícia](#ler-o-exemplo-da-zelda) e abra **Conselho de Rotas de Hyrule — Cartógrafa de Rotas**. Os botões do currículo abrem os arquivos fictícios nos aplicativos associados no Windows. Você também pode registrar um evento de teste.
 
-Use um chat por vaga que quiser acompanhar. Depois de cadastrar uma vaga pelo painel, clique em **Usar vaga neste chat** para iniciar a conversa com ela. Ao trabalhar na vaga, o agente dá ao chat um título como `candidatura - conselho | cartógrafa de rotas - em preparação` e atualiza o status conforme o processo avança.
+Use um chat por vaga que quiser acompanhar. Depois de cadastrar uma vaga pelo painel, clique em **Usar vaga neste chat** para iniciar a conversa com ela. Ao trabalhar na vaga, o agente dá ao chat um título como `candidatura - conselho | cartógrafa de rotas - identificada` e atualiza o status conforme o processo avança.
 
 O painel depende do suporte a MCP Apps na conversa. Se a interface não aparecer, peça **“Liste minhas vagas”** ou **“Mostre os detalhes da vaga de Cartógrafa de Rotas”** no chat. Para gerar novos PDFs, instale as dependências indicadas na [skill de conversão](plugins/posicionar-carreira/skills/md-to-cv/SKILL.md).
 
 ## Dashboard
 
-No chat do Codex, selecione **@Posicionar Carreira** e envie **Dashboard**. A visão geral mostra o total de vagas, quantas estão abertas, pausadas ou encerradas, as etapas das abertas e pausadas e os resultados dos processos encerrados.
+No chat do Codex, selecione **@Posicionar Carreira** e envie **Dashboard**. A visão geral mostra o total de vagas, quantas estão em andamento ou encerradas e a distribuição por status.
 
 Use **Atualizar** para reler a base local. Para filtrar vagas, abrir dossiês ou editar processos, clique em **Ver vagas**. No painel detalhado, o botão **Dashboard** abre a visão geral.
 
@@ -55,7 +55,9 @@ python -B plugins/posicionar-carreira/server/servidor.py --carreira-root
 
 Se você já usava a edição anterior, continue com a mesma pasta. `POSICIONAR_CARREIRA_ROOT` e `~/.posicionar-carreira-raiz` continuam apontando para a pasta acima de `carreira/`. A edição também reconhece a base existente em `~/PosicionarCarreira/carreira`. Confira qual pasta está em uso antes de cadastrar ou editar vagas. As variáveis de ambiente têm prioridade sobre os arquivos seletores. [Ordem de resolução e opções de configuração](plugins/posicionar-carreira/README.md#fonte-local)
 
-Mantenha a base pessoal fora do repositório. Dentro de cada dossiê, `processo.md` contém estado, etapa, resultado, histórico e próxima ação. O painel e o chat usam os mesmos registros. Os materiais enviados ficam em `envios/`. Os atalhos de preparação levam o contexto da vaga à conversa. Revise qualquer material antes de autorizar submissão.
+Antes de abrir uma base do formato anterior na 0.8.0, faça uma cópia e converta o cabeçalho de cada `processo.md` para o campo único `status`. Preserve os dados anteriores no histórico e siga o [fluxo de status](plugins/posicionar-carreira/README.md#gestão-de-oportunidades). A base fictícia distribuída já usa o formato atual.
+
+Mantenha a base pessoal fora do repositório. Dentro de cada dossiê, `processo.md` contém status, histórico e próxima ação. O painel e o chat usam os mesmos registros. Os materiais enviados ficam em `envios/`. Os atalhos de preparação levam o contexto da vaga à conversa. Revise qualquer material antes de autorizar submissão.
 
 ## Preparar seus dados no chat
 

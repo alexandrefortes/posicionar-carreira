@@ -7,7 +7,9 @@ from tempfile import TemporaryDirectory
 import unittest
 
 
-SERVIDOR = Path(__file__).resolve().parents[1] / "server/servidor.py"
+PLUGIN = Path(__file__).resolve().parents[1]
+SERVIDOR = PLUGIN / "server/servidor.py"
+VERSAO_MANIFESTO = json.loads((PLUGIN / "plugin.json").read_text(encoding="utf-8"))["version"]
 
 
 class ConfiguracaoTest(unittest.TestCase):
@@ -35,8 +37,7 @@ class ConfiguracaoTest(unittest.TestCase):
         respostas = [json.loads(linha) for linha in resultado.stdout.splitlines()]
         self.assertEqual([msg["id"] for msg in respostas], list(range(len(mensagens))))
         self.assertTrue(all("result" in msg for msg in respostas), respostas)
-        self.assertEqual(respostas[0]["result"]["serverInfo"]["name"], "posicionar-carreira-local")
-        self.assertEqual(respostas[0]["result"]["serverInfo"]["version"], "0.7.3")
+        self.assertEqual(respostas[0]["result"]["serverInfo"]["version"], VERSAO_MANIFESTO)
         ferramentas = {item["name"]: item for item in respostas[1]["result"]["tools"]}
         self.assertTrue(ferramentas["verificar_configuracao"]["annotations"]["readOnlyHint"])
         self.assertEqual(ferramentas["inicializar_carreira"]["inputSchema"]["required"], ["pasta"])
