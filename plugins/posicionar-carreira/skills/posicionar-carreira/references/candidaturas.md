@@ -77,6 +77,10 @@ Cruze os destaques com a vaga. Confira formação, idiomas e datas no perfil pro
 
 Reaproveite respostas aprovadas somente quando o significado, o idioma e o contexto coincidirem. Separe salário atual, pretensão e faixa anunciada. Quando faltar um valor obrigatório, peça confirmação. Respeite os limites de caracteres e confirme declarações pessoais e consentimentos opcionais com a pessoa.
 
+Baseie respostas sobre motivações e intenções pessoais no que a pessoa efetivamente declarou. Se a plataforma pedir uma motivação ainda não declarada, prepare um rascunho e peça aprovação antes de preencher ou enviar a resposta. Não trate inferências como declarações da pessoa.
+
+Quando for necessário autenticar, deixe a digitação de senha e de códigos de verificação com a pessoa. Retome o fluxo quando a sessão estiver autenticada, seguindo as instruções da ferramenta. Exclua senhas, códigos e tokens dos registros.
+
 Confirme a capacidade e as permissões da ferramenta antes de usar uma plataforma. Siga as [orientações para o LinkedIn](busca-linkedin.md) quando aplicáveis. Confira se um botão salva, avança ou submete antes de clicar. Use a vaga correta, as respostas revisadas e o anexo identificado. Se o envio do arquivo depender da pessoa, indique seu nome e caminho absoluto. Respeite bloqueios, CAPTCHA e recusas da ferramenta.
 
 Envio de candidatura, contato com recrutadores e publicação exigem autorização para cada ação. Após um envio confirmado, registre a fonte e a data conhecida no processo. Formulário preenchido e anexo selecionado ainda aguardam confirmação. Se o recibo não identificar a vaga, mantenha-o em triagem até confirmar a associação.

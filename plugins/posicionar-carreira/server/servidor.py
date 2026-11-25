@@ -11,7 +11,7 @@ from gestao_vagas import DISPONIBILIDADES_INSCRICAO, TRANSICOES_STATUS, lint
 from diagnosticos import formatar_lint
 
 
-VERSION = "0.10.0"
+VERSION = "0.10.1"
 UI_URI = "ui://posicionar-carreira-local/painel-v8.html"
 WELCOME_URI = "ui://posicionar-carreira-local/boas-vindas.html"
 DASHBOARD_URI = "ui://posicionar-carreira-local/dashboard.html"
