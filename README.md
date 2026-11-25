@@ -2,6 +2,18 @@
 
 Plugin local para cadastrar vagas, acompanhar processos e preparar currículos, candidaturas e entrevistas no Codex. Os dados ficam em uma pasta da pessoa que usa o plugin. Este repositório inclui uma base fictícia e uma vaga para experimentar.
 
+## Termos para conversar com o agente
+
+Use estes termos nos pedidos. Para uma vaga específica, informe a empresa e o cargo.
+
+| Termo | O que significa | Exemplo de pedido |
+|---|---|---|
+| **Painel de vagas** | Lista para filtrar, abrir e editar vagas e processos. | “Abra o painel de vagas” ou “Liste meus processos em andamento”. |
+| **Processo seletivo** | Acompanhamento de uma vaga específica: status, histórico e próximo passo. | “Como está o processo seletivo de analista na Empresa Exemplo?” |
+| **Dossiê da vaga** | Pasta com os registros e materiais daquela vaga, como anúncio, avaliação, currículo e histórico do processo. | “Abra o dossiê da vaga de analista na Empresa Exemplo.” |
+| **Base de carreira** | Pasta local com perfil, objetivos, evidências e dossiês que alimentam o painel. | “Qual base de carreira está em uso?” |
+| **Dashboard / visão geral** | Visão agregada, com totais e contagens por status. | “Mostre o Dashboard dos processos.” |
+
 ## Instalar no Windows
 
 Extraia o ZIP ou clone este repositório e abra o PowerShell na raiz da pasta. Você precisa do Codex desktop e do Python 3.10 ou posterior disponível como `python`.

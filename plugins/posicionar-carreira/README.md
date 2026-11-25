@@ -2,6 +2,18 @@
 
 Cadastre vagas, acompanhe processos e prepare currículos e entrevistas no Codex. Abra uma vaga para ver o histórico, os materiais e a próxima ação. Os atalhos enviam o ID e o caminho do dossiê ao chat.
 
+## Termos para conversar com o agente
+
+Use estes termos nos pedidos. Para uma vaga específica, informe a empresa e o cargo.
+
+| Termo | O que significa | Exemplo de pedido |
+|---|---|---|
+| **Painel de vagas** | Lista para filtrar, abrir e editar vagas e processos. | “Abra o painel de vagas” ou “Liste meus processos em andamento”. |
+| **Processo seletivo** | Acompanhamento de uma vaga específica: status, histórico e próximo passo. | “Como está o processo seletivo de analista na Empresa Exemplo?” |
+| **Dossiê da vaga** | Pasta com os registros e materiais daquela vaga, como anúncio, avaliação, currículo e histórico do processo. | “Abra o dossiê da vaga de analista na Empresa Exemplo.” |
+| **Base de carreira** | Pasta local com perfil, objetivos, evidências e dossiês que alimentam o painel. | “Qual base de carreira está em uso?” |
+| **Dashboard / visão geral** | Visão agregada, com totais e contagens por status. | “Mostre o Dashboard dos processos.” |
+
 ## Instalar e abrir
 
 1. Na pasta do plugin, instale o PyYAML com `python -m pip install -r requirements-gestao-vagas.txt`. O comando `python` deve usar a versão 3.10 ou posterior.
