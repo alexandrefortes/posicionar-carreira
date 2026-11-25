@@ -4,7 +4,7 @@
 
 ## Posicionamento
 
-Cartógrafa com foco em rotas de abastecimento. Organiza livros de remessas, confere os registros com os postos de expedição e transforma as contagens em informações legíveis no mapa.
+Sou cartógrafa. Quando dois relatos de viagem divergem, gosto de ouvir quem percorreu o caminho e conferir os registros com quem os escreveu. Deixo anotado o motivo de cada correção para que outra pessoa consiga refazer o percurso no mapa.
 
 ## Experiência
 

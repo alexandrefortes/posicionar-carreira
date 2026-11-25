@@ -1,23 +1,23 @@
 ---
+estado_pesquisa: pesquisado
 pesquisado_em: '2025-01-15'
-resumo: 'Exemplo fictício em rúpias. Faixa do anúncio ausente e dois comparáveis com escopo parcialmente semelhante.'
+resumo: 'Anúncio fictício de 380 a 450 rúpias mensais. Referência de mercado sugerida de 440 a 450 para o trabalho entre postos.'
 ---
 
-# Pesquisa salarial fictícia
+# Pesquisa salarial fictícia de Hyrule
 
-## Escopo e fonte
+A [vaga de Cartógrafa de Rotas](vaga.md) anuncia **380 a 450 rúpias mensais** de remuneração base, em contrato mensal do Conselho. A função reúne cartografia, conciliação de registros e conferência com mais de um posto. Todos os anúncios e valores deste exemplo são inventados.
 
-Em 15/01/2025, a consulta à [descrição da vaga fictícia](vaga.md) identificou uma função de cartografia, conferência de remessas e documentação de indicadores. O anúncio omite a faixa, a localidade de trabalho e o regime de contratação.
+## Comparáveis pesquisados em 15/01/2025
 
-## Comparáveis e limites
-
-| Comparável fictício | Faixa mensal | Limite |
+| Fonte fictícia | Base mensal | Trabalho comparado |
 |---|---|---|
-| [Cartógrafa no posto de Vila Kakariko](https://example.org/hyrule/comparaveis/cartografia-kakariko) | 350 a 450 rúpias | Atuação em um posto e sem responsabilidade sobre rotas de outras regiões. |
-| [Analista de remessas na Cidade Goron](https://example.org/hyrule/comparaveis/remessas-goron) | 380 a 480 rúpias | Inclui conferência de registros. A manutenção do mapa fica com outra função. |
+| [Cartografia em Vila Kakariko](https://example.org/hyrule/comparaveis/cartografia-kakariko) | 350 a 410 rúpias | Mesmo vínculo e região. A pessoa cuida dos mapas de um único posto. |
+| [Rotas da Planície de Hyrule](https://example.org/hyrule/comparaveis/rotas-planicie) | 400 a 460 rúpias | Mesmo vínculo. O trabalho inclui mapas e conciliação entre dois postos. |
+| [Rotas da Ponte de Eldin](https://example.org/hyrule/comparaveis/rotas-eldin) | 410 a 470 rúpias | Mesmo vínculo e escopo entre postos. Inclui revisão de caminhos com mensageiros. |
 
-As faixas foram inventadas para demonstrar o registro de fontes e limites. Resultado `informacao_insuficiente` para estimar a remuneração da vaga, pois só há dois comparáveis parciais e as condições de contratação seguem pendentes.
+## Referência para a vaga
 
-## Pergunta para o Conselho
+Os objetivos fictícios da Zelda, em `estrategia/objetivos.md`, não estabelecem piso nem pretensão. A referência média-superior sugerida é **440 a 450 rúpias mensais**. Esse intervalo fica dentro das duas faixas de trabalho entre postos, mais próximas das responsabilidades da vaga. A função de um só posto tem escopo menor. A comparação cobre três anúncios de salário base. Benefícios, deslocamentos e valores efetivamente pagos seguem desconhecidos.
 
-Qual é a faixa de remuneração mensal em rúpias, qual é o regime de contratação e como são pagas as despesas de deslocamento entre postos?
+A referência serve à avaliação desta vaga. Piso e pretensão continuam em aberto até Zelda os declarar. Para a conversa com o Conselho, vale esclarecer como funcionam as viagens e o reembolso entre os postos.

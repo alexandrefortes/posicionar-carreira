@@ -15,7 +15,7 @@ O Conselho de Rotas de Hyrule procura uma pessoa para manter os mapas de abastec
 - Experiência em cartografia de rotas e conferência de livros de remessas.
 - Capacidade de explicar critérios de contagem a quem organiza os despachos.
 - No exercício de seleção, revisar uma folha de lançamentos, identificar remessas repetidas e explicar os indicadores escolhidos.
-- Localidade, frequência de viagens, regime e remuneração seguem em aberto.
+- O trabalho envolve postos da região central de Hyrule. O Conselho anuncia 380 a 450 rúpias de salário base por mês, em contrato mensal. Frequência das viagens e despesas de deslocamento seguem em aberto.
 
 ## Fonte
 

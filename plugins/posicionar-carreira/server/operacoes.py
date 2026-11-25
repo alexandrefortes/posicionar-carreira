@@ -26,6 +26,11 @@ CAMPOS_EDITAVEIS = frozenset((
 CONFLITO = "O processo mudou desde a abertura. Recarregue o detalhe e revise os dados."
 EVENTO_REPETIDO = "Este evento já foi registrado no processo."
 
+PESQUISA_SALARIAL_PENDENTE = (
+    "---\nestado_pesquisa: pendente\nresumo: Pesquisa de mercado pendente.\n---\n\n"
+    "# Pesquisa salarial\n\nRegistre as fontes, as datas e a comparação com a vaga.\n"
+).encode("utf-8")
+
 
 def texto(valor, campo):
     if not isinstance(valor, str) or not valor.strip():
@@ -103,10 +108,28 @@ def _slug(nome):
     return re.sub(r"[^a-z0-9]+", "-", ascii_nome).strip("-")[:72].rstrip("-") or "empresa"
 
 
-def _criar(carreira, empresa, titulo, fonte, processo_id, previa, fonte_compartilhada):
+def _descricao_vaga(titulo, fonte, descricao_vaga, cobertura_descricao):
+    if descricao_vaga is None:
+        if cobertura_descricao not in (None, "indisponivel"):
+            raise ValueError("Forneça o texto para registrar cobertura integral ou parcial.")
+        cobertura = "indisponível no cadastro"
+        corpo = "Texto não fornecido no cadastro. Acesso à descrição integral ainda não verificado.\n"
+    else:
+        texto(descricao_vaga, "a descrição da vaga")
+        cobertura = cobertura_descricao or "parcial"
+        if cobertura not in ("integral", "parcial"):
+            raise ValueError("Use cobertura integral ou parcial para o texto fornecido.")
+        corpo = descricao_vaga
+    return (f"# {titulo}\n\nFonte: {fonte}\nData do registro: {date.today().isoformat()}\n"
+            f"Cobertura: {cobertura}\n\n## Descrição do anúncio\n\n" + corpo).encode("utf-8")
+
+
+def _criar(carreira, empresa, titulo, fonte, processo_id, previa, fonte_compartilhada,
+           descricao_vaga, cobertura_descricao):
     descricao = f"A fonte identifica a vaga {titulo} em {empresa}." if fonte_compartilhada else "Oportunidade cadastrada"
     entrada = evento(carreira, descricao, fonte, None)
     fonte = entrada["fonte"]
+    captura = _descricao_vaga(titulo, fonte, descricao_vaga, cobertura_descricao)
     existentes = gestao_vagas.load_processes(carreira)
     urls = [fonte] if not fonte_compartilhada and fonte.startswith(("http://", "https://")) else []
     if urls and any(fonte in r.get("urls", []) or
@@ -154,25 +177,37 @@ def _criar(carreira, empresa, titulo, fonte, processo_id, previa, fonte_comparti
     if previa:
         return {"id": processo_id, "acao": "cadastrar", "processo": registro}
     path.parent.mkdir(parents=True)
+    materiais = {"vaga.md": captura, "benchmark-salarial.md": PESQUISA_SALARIAL_PENDENTE}
+    criados = []
     try:
+        for nome, dados in materiais.items():
+            material = path.with_name(nome)
+            gravar_bytes(material, dados, None)
+            criados.append(material)
         conteudo = gravar(path, registro)
     except BaseException:
+        for material in criados:
+            if material.is_file() and material.read_bytes() == materiais[material.name]:
+                material.unlink()
         if not any(path.parent.iterdir()):
             path.parent.rmdir()
         raise
     return formatar_detalhe(carreira, {**registro, "_path": path}, conteudo)
 
 
-def criar_vaga(carreira, empresa, titulo, fonte, processo_id=None, *, previa=False, fonte_compartilhada=False):
+def criar_vaga(carreira, empresa, titulo, fonte, processo_id=None, *, previa=False, fonte_compartilhada=False,
+               descricao_vaga=None, cobertura_descricao=None):
     carreira = carreira.resolve()
     empresa = texto(empresa, "a empresa")
     titulo = texto(titulo, "o título da vaga")
     if not isinstance(fonte_compartilhada, bool):
         raise ValueError("Indique se a fonte do cadastro é compartilhada.")
     if previa:
-        return _criar(carreira, empresa, titulo, fonte, processo_id, previa, fonte_compartilhada)
+        return _criar(carreira, empresa, titulo, fonte, processo_id, previa, fonte_compartilhada,
+                      descricao_vaga, cobertura_descricao)
     with trava(carreira / "oportunidades", ".posicionar-carreira-cadastro.lock"):
-        return _criar(carreira, empresa, titulo, fonte, processo_id, previa, fonte_compartilhada)
+        return _criar(carreira, empresa, titulo, fonte, processo_id, previa, fonte_compartilhada,
+                      descricao_vaga, cobertura_descricao)
 
 
 def _mudancas(carreira, registro, campos, entrada):

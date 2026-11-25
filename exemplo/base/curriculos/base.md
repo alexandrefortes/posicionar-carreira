@@ -12,7 +12,7 @@ Cartógrafa | zelda@example.com
 
 ## Resumo
 
-Cartógrafa com experiência em mapas de rotas, conferência de livros de remessas e documentação de critérios de contagem. Trabalhou com postos de expedição do reino para registrar entregas e investigar divergências.
+Sou cartógrafa e gosto de entender por que dois relatos do mesmo caminho divergem. Confiro os registros com quem fez a viagem e deixo por escrito como cheguei à correção.
 
 ## Experiência
 

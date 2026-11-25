@@ -94,9 +94,13 @@ Para testar outra base via `data-root.txt`, deixe as variáveis de ambiente de c
 
 Coloque a apresentação, o vídeo, a captura ou o áudio exportado na pasta do projeto. Indique o arquivo no chat e peça para criar ou atualizar um caso no portfólio existente. Cada afirmação deve citar o slide, o trecho ou o arquivo que a sustenta. O caso fica na base local. Peça a publicação separadamente.
 
+Use **Preparar currículo** ou **Preparar candidatura** para revisar o primeiro rascunho. O Perfil apresenta quem você é e como trabalha. Antes do PDF, o agente confere o Markdown requisito por requisito, corrige o texto e explica o que segue sem evidência. [Revisão do currículo](skills/posicionar-carreira/references/candidaturas.md#ciclo-de-otimização-por-vaga)
+
 ## Gestão de oportunidades
 
 Cada vaga tem um registro oficial em `oportunidades/<empresa>/<id>/processo.md`. Mantenha o ID e o caminho ao corrigir o título, mudar de mês ou encerrar o processo. Antes de cadastrar, compare IDs externos, URLs, empresa, cargo e escopo. Uma nova requisição comprovada pode ter outro dossiê. Guarde recibos de associação incerta em `monitoramento/triagem.md` e preserve a entrada original.
+
+Ao cadastrar ou importar uma vaga, forneça o texto do anúncio ou peça ao agente para capturá-lo. O dossiê guarda o texto em `vaga.md` com fonte, data e cobertura. Quando você fornece apenas o link, a captura do texto fica pendente.
 
 Use os formulários do painel ou peça ao agente uma das operações abaixo. O agente grava no registro oficial somente pelo MCP, com autorização, inclusive em lote.
 
@@ -137,7 +141,7 @@ Durante a pesquisa, a avaliação e o preparo dos materiais, mantenha `identific
 
 O painel lê o score de `avaliacao-validada.json`. Mantenha `avaliacao.md` coerente com esse valor e registre aderência, cultura, condições, recomendação e fontes datadas. Para recalcular, siga a [avaliação determinística](skills/posicionar-carreira/SKILL.md#avaliação-determinística).
 
-Ao mapear uma vaga, siga a [pesquisa salarial](skills/posicionar-carreira/references/benchmark-salarial.md). Para vagas em andamento, o painel Markdown opcional mostra a síntese e o link ou indica pesquisa pendente.
+Todo cadastro abre a [pesquisa salarial](skills/posicionar-carreira/references/benchmark-salarial.md) como pendente. Use **Avaliar vaga** ou peça que o agente monte o dossiê. Você verá a faixa anunciada e os comparáveis em separado, mesmo quando a empresa informa salário. Sua estratégia orienta a avaliação. Sem critério individual, o agente sugere uma referência média-superior quando as fontes a sustentam. Se a comparação for inconclusiva, consulte as fontes tentadas e as lacunas.
 
 ### Validação, painel Markdown e relatórios
 

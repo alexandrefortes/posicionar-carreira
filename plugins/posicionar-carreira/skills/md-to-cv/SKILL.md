@@ -15,6 +15,8 @@ python -B "<pasta-da-skill>/scripts/convert.py" "<caminho-do-dossie>/curriculo.m
 
 Passe o caminho absoluto ou relativo ao diretório atual. `--output` recebe só o nome do PDF. O conversor grava o arquivo ao lado do Markdown. Sem a opção, usa o nome da fonte com extensão `.pdf`.
 
+Ao preparar um currículo por vaga, conclua a [revisão requisito por requisito](../posicionar-carreira/references/candidaturas.md#ciclo-de-otimização-por-vaga) no Markdown antes de exportar. Para converter um texto final já aprovado, preserve a versão indicada.
+
 ## Nome do PDF
 
 Use nome, empresa e cargo, separados por underscores, como no exemplo fictício acima. Acrescente data ou identificador quando precisar distinguir vagas ou versões. Preserve o nome do Markdown de trabalho e atualize os links do dossiê quando renomear o PDF.

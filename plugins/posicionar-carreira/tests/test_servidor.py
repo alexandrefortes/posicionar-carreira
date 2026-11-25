@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import date
 from pathlib import Path
 import subprocess
 import sys
@@ -89,6 +90,44 @@ class ServidorTest(unittest.TestCase):
         for campo, valor in esperado.items():
             self.assertEqual(atual[campo], valor)
         return atual
+
+    def test_mcp_preserva_anuncio_e_explica_cobertura(self):
+        descricao = "## Responsibilities\r\n- Build APIs.  \n\n## Benefits\nSalary advertised: 400 fictional coins per month."
+        casos = [(descricao, "integral", "integral"), (descricao, None, "parcial"),
+                 (None, "indisponivel", "indisponível no cadastro")]
+        for indice, (conteudo, cobertura, esperada) in enumerate(casos):
+            with self.subTest(cobertura=esperada):
+                args = {"empresa": f"Empresa Captura {indice}", "titulo": "Engenheira de Software",
+                        "fonte": f"https://example.org/anuncio/{indice}"}
+                if conteudo is not None:
+                    args["descricao_vaga"] = conteudo
+                if cobertura is not None:
+                    args["cobertura_descricao"] = cobertura
+                resposta = self.mcp("tools/call", {"name": "criar_vaga", "arguments": args})
+                self.assertFalse(resposta.get("isError"), resposta)
+                vaga = resposta["structuredContent"]
+                captura = Path(vaga["processo"]).with_name("vaga.md").read_bytes()
+                pesquisa = Path(vaga["processo"]).with_name("benchmark-salarial.md").read_text(encoding="utf-8")
+                self.assertIn("estado_pesquisa: pendente", pesquisa)
+                self.assertNotIn("pesquisado_em:", pesquisa)
+                self.assertIn({"caminho": "benchmark-salarial.md", "tipo": "material"}, vaga["materiais"])
+                self.assertIn(args["fonte"].encode(), captura)
+                self.assertIn(date.today().isoformat().encode(), captura)
+                self.assertIn(f"Cobertura: {esperada}".encode(), captura)
+                self.assertEqual(vaga["status"], "identificada")
+                self.assertFalse(vaga["candidatura_confirmada"])
+                if conteudo is not None:
+                    self.assertTrue(captura.endswith(conteudo.encode()))
+                else:
+                    self.assertIn("Acesso à descrição integral ainda não verificado".encode(), captura)
+
+    def test_mcp_recusa_cobertura_integral_sem_texto(self):
+        resposta = self.mcp("tools/call", {"name": "criar_vaga", "arguments": {
+            "empresa": "Empresa Sem Texto", "titulo": "Engenheira", "fonte": FONTE_ANUNCIO,
+            "cobertura_descricao": "integral",
+        }})
+        self.assertTrue(resposta["isError"])
+        self.assertFalse((self.dados.carreira / "oportunidades/empresa-sem-texto").exists())
 
     def test_mesmo_anuncio_identifica_dois_cargos(self):
         for cargo in ("Gerência", "Coordenação"):

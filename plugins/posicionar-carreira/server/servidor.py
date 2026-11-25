@@ -11,7 +11,7 @@ from gestao_vagas import DISPONIBILIDADES_INSCRICAO, TRANSICOES_STATUS, lint
 from diagnosticos import formatar_lint
 
 
-VERSION = "0.10.1"
+VERSION = "0.11.0"
 UI_URI = "ui://posicionar-carreira-local/painel-v8.html"
 WELCOME_URI = "ui://posicionar-carreira-local/boas-vindas.html"
 DASHBOARD_URI = "ui://posicionar-carreira-local/dashboard.html"
@@ -114,8 +114,12 @@ EDIT_INPUT = {
 for name, title, description, props, required in (
     (
         "criar_vaga", "Cadastrar vaga",
-        "Cria o dossiê local com status identificada. Use a URL do anúncio ou uma fonte relativa à pasta carreira.",
+        "Cadastra a vaga e salva o texto original de descricao_vaga em vaga.md com a cobertura informada. "
+        "A pesquisa salarial começa pendente. Ao montar o dossiê, pesquise o mercado mesmo com salário anunciado.",
         {"empresa": STRING, "titulo": STRING, "fonte": STRING, "processo_id": STRING,
+         "descricao_vaga": {**STRING, "description": "Texto original do anúncio, preservando idioma, títulos, listas, links e condições."},
+         "cobertura_descricao": {"type": "string", "enum": ["integral", "parcial", "indisponivel"],
+                                 "description": "Integral somente após conferir todo o anúncio. Texto sem indicação fica parcial; sem texto, fica indisponível no cadastro."},
          "fonte_compartilhada": {"type": "boolean", "description": "O original identifica várias vagas. "
                                 "Reutilize sua URL ou caminho em cada dossiê."}},
         ["empresa", "titulo", "fonte"],

@@ -5,9 +5,9 @@ from dados import resolver_carreira_root
 
 MODELOS = {
     "perfil": ("perfil/perfil-profissional.md",
-               "# Perfil profissional\n\n[preencher: experiências, formação e competências comprovadas]\n"),
+               "# Perfil profissional\n\n[preencher: o que te move, como trabalha, experiências, formação e competências comprovadas]\n"),
     "preferencias": ("estrategia/referencias-candidaturas.md",
-                     "# Objetivos e preferências\n\n[preencher: objetivos, funções e condições de trabalho]\n"),
+                     "# Objetivos e preferências\n\n[preencher: objetivos, funções, condições de trabalho e critérios de remuneração, se houver]\n"),
     "curriculo": ("curriculos/base.md",
                   "# Currículo base\n\n[preencher: nome e trajetória que deseja apresentar]\n"),
     "portfolio": ("portfolio/README.md",

@@ -204,7 +204,7 @@ class PainelTest(unittest.TestCase):
             self.mensagens[0]["content"][0]["text"],
             "Use $posicionar-carreira:posicionar-carreira. "
             "Ajude-me a escolher uma vaga e a preparar um currículo para ela. "
-            "Siga o ciclo de otimização por vaga e apresente o resumo da revisão.",
+            "Antes do PDF, confira o rascunho requisito por requisito, aplique as melhorias sustentadas e repita a revisão até restarem apenas lacunas reais ou mudanças sem ganho.",
         )
         boas_vindas.get_by_role("button", name="Revisar perfil e objetivos").click()
         expect(boas_vindas.locator("#configuracao-chat-status")).to_contain_text("Pedido enviado")
@@ -274,7 +274,7 @@ class PainelTest(unittest.TestCase):
         self.assertEqual(self.mensagens[2], {"role": "user", "content": [{
             "type": "text",
             "text": "Use $posicionar-carreira:posicionar-carreira para preparar o currículo desta oportunidade. "
-                    "Siga o ciclo de otimização por vaga e apresente o resumo da revisão.\n"
+                    "Antes do PDF, confira o rascunho requisito por requisito, aplique as melhorias sustentadas e repita a revisão até restarem apenas lacunas reais ou mudanças sem ganho.\n"
                     f"ID do processo: {self.vaga_id}\nArquivo oficial: {processo}",
         }]})
 
@@ -482,7 +482,7 @@ class PainelTest(unittest.TestCase):
         detalhe.get_by_label("Título da vaga").fill("Engenharia de teste")
         detalhe.get_by_label("Fonte da vaga").fill("https://example.org/vaga-nova")
         detalhe.get_by_role("button", name="Cadastrar vaga").click()
-        expect(detalhe.get_by_text("Vaga cadastrada.", exact=True)).to_be_visible()
+        expect(detalhe.get_by_text("Vaga cadastrada. Pesquisa salarial pendente. Use Avaliar vaga para pesquisar o mercado.", exact=True)).to_be_visible()
         expect(detalhe.get_by_text("Responsável: Pessoa Exemplo", exact=True)).to_be_visible()
         expect(painel.get_by_text("3 vagas", exact=True)).to_be_visible()
         novas = [vaga for vaga in listar(self.dados.carreira) if vaga["empresa"] == "Empresa Nova"]
@@ -602,6 +602,11 @@ class PainelTest(unittest.TestCase):
             expect(detalhe.get_by_role("status")).to_have_text("O chat recebeu o contexto da vaga.")
             mensagem = self.mensagens[-1]["content"][0]["text"]
             self.assertIn(f"para {acao}", mensagem)
+            if titulo in ("Preparar currículo", "Preparar candidatura"):
+                self.assertIn("Antes do PDF, confira o rascunho requisito por requisito", mensagem)
+                self.assertIn("aplique as melhorias sustentadas e repita", mensagem)
+            if titulo == "Avaliar vaga":
+                self.assertIn("mesmo com remuneração anunciada", mensagem)
             self.assertIn(f"ID do processo: {self.vaga_id}\nArquivo oficial: {processo}", mensagem)
         self.assertEqual(curadoria.read_bytes(), painel_original)
         self.assertEqual(self.material.read_bytes(), material_original)

@@ -57,6 +57,8 @@ class LoteTest(unittest.TestCase):
             "argumentos": {
                 "empresa": "Outra empresa", "titulo": "Vaga sintética",
                 "fonte": "https://example.org/cadastro", "processo_id": "outra-empresa/local-001",
+                "descricao_vaga": "# Vaga sintética\n\nResponsabilidades e benefícios do anúncio.",
+                "cobertura_descricao": "integral",
             },
         }
         atualizacao = self.evento(PRIMEIRO, "Vaga descartada após a avaliação")
@@ -85,6 +87,9 @@ class LoteTest(unittest.TestCase):
         self.assertEqual(detalhe["status"], "descartada")
         self.assertEqual(detalhe["proxima_acao"], "Concluir acompanhamento")
         self.assertTrue(novo.is_file())
+        self.assertIn("estado_pesquisa: pendente", novo.with_name("benchmark-salarial.md").read_text(encoding="utf-8"))
+        self.assertTrue(novo.with_name("vaga.md").read_text(encoding="utf-8").endswith(
+            cadastro["argumentos"]["descricao_vaga"]))
         self.assertEqual(self.segundo.read_bytes(), anteriores[1])
         self.assertEqual(self.painel.read_bytes(), anteriores[2])
 

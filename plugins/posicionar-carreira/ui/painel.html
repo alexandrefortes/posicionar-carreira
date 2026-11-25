@@ -354,7 +354,7 @@
       nao_verificado: "A verificar", ausente: "Ausente", rascunho: "Rascunho",
       indisponivel: "Indisponível", disponivel: "Encontrado",
     };
-    const orientacaoCurriculo = "Siga o ciclo de otimização por vaga e apresente o resumo da revisão.";
+    const orientacaoCurriculo = "Antes do PDF, confira o rascunho requisito por requisito, aplique as melhorias sustentadas e repita a revisão até restarem apenas lacunas reais ou mudanças sem ganho.";
     const workflows = [
       ["gestao_de_vagas", "Gestão de vagas", "Cadastre vagas e registre eventos na base em uso.",
         "Abrir vagas na base em uso"],
@@ -628,7 +628,7 @@
           ...(values.fonte_compartilhada ? { fonte_compartilhada: true } : {}),
           ...(processo_id.trim() ? { processo_id: processo_id.trim() } : {}),
         });
-      }, vaga => showSaved(vaga, "Vaga cadastrada.", true));
+      }, vaga => showSaved(vaga, "Vaga cadastrada. Pesquisa salarial pendente. Use Avaliar vaga para pesquisar o mercado.", true));
       field(fields, "empresa", "Empresa", { required: true, wide: true }).focus();
       field(fields, "titulo", "Título da vaga", { required: true, wide: true });
       field(fields, "fonte", "Fonte da vaga", { required: true, wide: true, placeholder: "URL ou caminho em carreira/" });
@@ -768,9 +768,9 @@
         ["Usar vaga neste chat", "usar este chat no acompanhamento", "ajustar o título deste chat para o acompanhamento",
           " Ajuste o título do chat."],
         ["Preparar entrevista", "preparar a entrevista", "preparar entrevista"],
-        ["Avaliar vaga", "avaliar a vaga", "avaliar vaga"],
+        ["Avaliar vaga", "avaliar a vaga", "avaliar vaga", " Pesquise o mercado para este dossiê mesmo com remuneração anunciada. Consulte os critérios da pessoa."],
         ["Preparar currículo", "preparar o currículo", "preparar currículo", ` ${orientacaoCurriculo}`],
-        ["Preparar candidatura", "preparar a candidatura", "preparar candidatura"],
+        ["Preparar candidatura", "preparar a candidatura", "preparar candidatura", ` ${orientacaoCurriculo}`],
       ]) {
         const button = actionButton(title, () => prepare(vaga, button, feedback, prompt, fallback, orientacao),
           title !== "Preparar entrevista");
@@ -877,7 +877,7 @@
       }
       try {
         const result = await request("ui/initialize", {
-          appInfo: { name: "Posicionar Carreira", version: "0.10.1" },
+          appInfo: { name: "Posicionar Carreira", version: "0.11.0" },
           appCapabilities: {},
           protocolVersion: "2026-01-26",
         });

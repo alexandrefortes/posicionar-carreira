@@ -13,8 +13,8 @@
 
 O [anúncio fictício](vaga.md), consultado em 15/01/2025, descreve trabalho em parceria com escrivães e mensageiros. Essa é a descrição do Conselho no cenário. Ainda faltam observações dos trabalhadores para avaliar o clima da equipe. Uma pergunta para a entrevista é como o Conselho distribui as revisões de mapa quando mais de um posto precisa de ajuda no mesmo dia.
 
-A frequência das visitas aos postos e o vínculo seguem pendentes. A [pesquisa salarial](benchmark-salarial.md) descreve os comparáveis fictícios e os limites da comparação.
+O Conselho anuncia 380 a 450 rúpias por mês. A frequência das visitas aos postos e o reembolso de deslocamento seguem pendentes. A [pesquisa salarial](benchmark-salarial.md) descreve os comparáveis fictícios e os limites da comparação.
 
 ## Recomendação e próxima ação
 
-Vale revisar a [carta](carta.md) e o [currículo](curriculo.md), porque o caso de portfólio cobre as atividades centrais. Antes de decidir pelo envio, esclareça local de trabalho, frequência de viagens e regime de contratação. Para a seleção, prepare uma explicação curta de como o número de despacho mantém a contagem estável quando os registros são corrigidos.
+Vale revisar a [carta](carta.md) e o [currículo](curriculo.md), porque o caso de portfólio cobre as atividades centrais. Antes de decidir pelo envio, esclareça a frequência de viagens e o reembolso dos deslocamentos. Para a seleção, prepare uma explicação curta de como o número de despacho mantém a contagem estável quando os registros são corrigidos.

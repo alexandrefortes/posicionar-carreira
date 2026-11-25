@@ -222,6 +222,18 @@ class GestaoTests(unittest.TestCase):
         self.assertIn('### Empresa — Vaga\n',text)
         self.assertIn('- **Benchmark salarial:** Pesquisa pendente.',text)
 
+    def test_painel_aceita_pesquisa_legada_sem_resumo(self):
+        self.save()
+        pasta = self.root / "oportunidades/empresa/local-001"
+        pesquisa = pasta / "benchmark-salarial.md"
+        for original in ("---\npesquisado_em: '2026-11-01'\n---\nFontes históricas.\n", "# Pesquisa anterior\n"):
+            with self.subTest(original=original):
+                pesquisa.write_text(original, encoding="utf-8")
+                painel = g.panel(self.root, g.load_processes(self.root), dt.date(2026, 11, 1))
+                self.assertIn("oportunidades/empresa/local-001/benchmark-salarial.md", painel)
+                self.assertIn("### Empresa — Vaga", painel)
+                self.assertEqual(pesquisa.read_text(encoding="utf-8"), original)
+
     def test_panel_preserves_manual_review_tail_across_generations(self):
         self.save()
         path=self.root/'painel-vagas.md'

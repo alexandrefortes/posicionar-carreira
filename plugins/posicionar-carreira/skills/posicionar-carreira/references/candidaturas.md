@@ -4,7 +4,7 @@
 
 Confira em `processo.md` a empresa, o cargo, o identificador e o status antes de trabalhar no dossiê. Use a descrição em `vaga.md`, a avaliação existente e as fontes autorizadas na base de carreira. Consulte o perfil, o currículo base, as evidências recentes, os casos pertinentes em `portfolio/` e as respostas já aprovadas. [Concilie as fontes](evidencias.md#conferir-fatos-e-correções) com as correções mais recentes da pessoa.
 
-Confira a [pesquisa salarial da vaga](benchmark-salarial.md) e atualize fontes que já não representem o escopo, a localidade ou o vínculo. Use o levantamento para preparar perguntas e apoiar decisões. Para preencher salário atual ou pretensão, use somente o valor autorizado pela pessoa para aquele campo.
+Ao montar ou retomar o dossiê, faça a [pesquisa salarial da vaga](benchmark-salarial.md) se estiver pendente e confira se os comparáveis ainda servem. Para preencher salário atual ou pretensão, use apenas o valor que a pessoa autorizou para o campo.
 
 ## Ordem de trabalho
 
@@ -34,16 +34,15 @@ Retome da etapa pertinente quando já houver material revisado. Uma consulta ini
 
 ### Ciclo de otimização por vaga
 
-Ao criar ou otimizar um currículo para uma vaga, pelo atalho ou pelo chat, registre as verificações abaixo na conversa. Mostre a matriz antes de editar o currículo. Antes de entregar, apresente ao menos uma rodada com hipótese, comparação com a versão anterior, leitura isolada e conferência na fonte. Termine com o motivo para encerrar e as lacunas restantes. Relate as verificações que executou.
+Siga o ciclo no chat e pelos atalhos **Preparar currículo** e **Preparar candidatura**. Faça a revisão no Markdown antes do primeiro PDF, de uma nova exportação após edições e de usar o texto em um formulário. Guarde a matriz e as comparações no chat ou em material temporário fora do dossiê. Preserve o currículo base, as edições da pessoa e as versões enviadas.
 
-Se a leitura indicar que o currículo atual já está adequado, trate a conferência como uma rodada sem edição. Mostre o trecho conferido, a evidência e o motivo para manter o texto. Trabalhe no Markdown e mantenha a versão anterior comparável durante a revisão. Guarde matrizes e comparações na conversa ou em material temporário fora do dossiê.
+1. **Leia a vaga e escolha as evidências.** Use a descrição integral da mesma requisição. Se o acesso for parcial, identifique os trechos disponíveis e sinalize o limite. Decomponha o trabalho central, os requisitos obrigatórios e os desejáveis na ordem de importância dada pelo anúncio. Explique qualquer prioridade que tenha precisado inferir. Leia a estratégia da base em `estrategia/referencias-candidaturas.md`, os objetivos em `estrategia/objetivos.md` quando a estratégia faltar ou for rascunho, o perfil, as evidências, o portfólio pertinente e o currículo atual. Para cada requisito relevante, escolha a evidência que melhor demonstra o trabalho e identifique a fonte, a contribuição pessoal, o estágio e os limites. Mostre a matriz e a diretriz individual usada antes de editar. Sem diretriz registrada, trabalhe com as preferências declaradas e os fatos disponíveis.
+2. **Escreva o rascunho.** Faça o Perfil apresentar a pessoa segundo a orientação abaixo. Dê às evidências prioritárias um lugar visível na seção que melhor as explica. Preserve autoria, datas, métricas e escopo. Mantenha uma versão anterior comparável. Se partir do zero, o primeiro Markdown serve de base para a revisão.
+3. **Confira o texto requisito por requisito.** Releia o rascunho isoladamente. Na mesma matriz, cite o trecho exato e indique se atende, atende em parte, falta no texto apesar de haver evidência, falta evidência ou o item é inaplicável por um motivo específico. Para cada parcial, diga se o limite está na redação ou na experiência documentada. Aceite termos equivalentes quando comprovarem o mesmo trabalho. Um obrigatório sem evidência permanece como lacuna.
+4. **Corrija o próprio Markdown e repita a conferência.** Insira, reescreva ou mova a evidência que a fonte sustenta. Compare o texto anterior e o novo, confira a atribuição na fonte e releia todos os requisitos relevantes depois das mudanças. Se um destaque disputar espaço, preserve o que melhor demonstra o trabalho prioritário e explique a escolha. O currículo pode manter o mesmo tamanho.
+5. **Feche a revisão antes do PDF.** Encerre quando não restar melhoria útil que as fontes sustentem. Mostre as mudanças aplicadas, as lacunas reais e o motivo para parar. Se o primeiro rascunho já atender, cite os trechos e fontes que justificam mantê-lo. Aplique o [Humanizer](../../humanizer/SKILL.md), reconfira as afirmações editadas e só então exporte. Confira o texto extraído, a ordem de leitura e todas as páginas. Se corrigir o Markdown, atualize a conferência e o PDF.
 
-1. **Monte a matriz da vaga.** Leia a estratégia da pessoa em `CARREIRA_DIR/estrategia/referencias-candidaturas.md` ou, se faltar uma estratégia preenchida, em `CARREIRA_DIR/estrategia/objetivos.md`. Registre na matriz a diretriz que orienta os destaques e a fonte, quando disponíveis. Leia também o anúncio, o perfil, as evidências, o portfólio pertinente e o currículo atual. Para cada requisito relevante, anote a fonte, a contribuição pessoal, o estágio da entrega, onde a evidência aparece no currículo e se a cobertura é comprovada, transferível ou pendente. Se o currículo ainda não existir, use o primeiro rascunho baseado nas fontes como referência de comparação. Esclareça somente as lacunas que podem mudar a candidatura.
-2. **Escolha os casos pelo mandato da vaga.** Aplique a diretriz ao resumo, à primeira página e à carta quando ela fizer parte da revisão. Dê destaque às evidências mais relevantes para o escopo da função. Explicite o que a pessoa implementou, o que liderou e o que a equipe entregou. Preserve o estágio real, o período e o alcance de cada entrega. Use métricas com fonte, período e autorização para o público da candidatura.
-3. **Teste uma hipótese por rodada.** Faça o menor ajuste que possa responder a uma pergunta concreta, como “A primeira página deixa claro que a pessoa liderou a entrega e também implementou parte dela?”. Quando houver outro revisor, peça que leia só o currículo e aponte os trechos que sustentam sua resposta. Caso contrário, faça a leitura isolada. Em seguida, confira esses trechos nas fontes e compare as duas versões pela mesma matriz.
-4. **Mantenha ganhos observáveis.** Aceite a alteração se ela melhorar cobertura, clareza de autoria ou destaque de evidência pertinente sem perder cobertura útil nem alterar cargos, datas, tecnologias, estágios e resultados confirmados. Pare quando os ajustes restantes forem cosméticos ou dependerem de evidência nova. Informe o que melhorou e o que segue pendente.
-
-Preserve as edições da pessoa, o currículo base e as cópias já enviadas. Use o [Humanizer](../../humanizer/SKILL.md) na revisão final e reconfira as afirmações afetadas. Quando a entrega incluir PDF, feche o Markdown primeiro. Compare o texto extraído com a fonte revisada, incluindo a ordem de leitura, e revise todas as páginas renderizadas para detectar cortes. Gere o arquivo novamente e repita a conferência se corrigir o Markdown.
+**Perfil / Profile.** Descreva o que move a pessoa e como ela costuma trabalhar, resolver problemas ou colaborar. Consulte o que ela declarou ou documentou na sua base de carreira. Use o anúncio para escolher a ênfase. Ao reler, faça a pergunta **“Este texto ainda descreveria a pessoa se ela mudasse de emprego amanhã?”** Guarde empresa, cargo e detalhes de projetos para a Experiência quando servirem para demonstrar realizações. Inclua um exemplo no Perfil somente se ajudar a entender a pessoa. Se faltar material sobre seu jeito de trabalhar, use apenas fatos sustentados e peça o detalhe que faria diferença.
 
 ### Modelo de conteúdo em Markdown
 
@@ -54,7 +53,7 @@ Use esta estrutura como ponto de partida. Adapte a ordem e os títulos à vaga e
 [Localização, contato e links pertinentes]
 
 ## Perfil profissional
-[Cargo-alvo e resumo da experiência que sustenta a candidatura]
+[Quem é a pessoa, o que a move e como trabalha, segundo as fontes da sua base de carreira]
 
 ## Experiência profissional
 ### [Empresa | Cargo exercido | Período]
@@ -82,6 +81,8 @@ Baseie respostas sobre motivações e intenções pessoais no que a pessoa efeti
 Quando for necessário autenticar, deixe a digitação de senha e de códigos de verificação com a pessoa. Retome o fluxo quando a sessão estiver autenticada, seguindo as instruções da ferramenta. Exclua senhas, códigos e tokens dos registros.
 
 Confirme a capacidade e as permissões da ferramenta antes de usar uma plataforma. Siga as [orientações para o LinkedIn](busca-linkedin.md) quando aplicáveis. Confira se um botão salva, avança ou submete antes de clicar. Use a vaga correta, as respostas revisadas e o anexo identificado. Se o envio do arquivo depender da pessoa, indique seu nome e caminho absoluto. Respeite bloqueios, CAPTCHA e recusas da ferramenta.
+
+Antes de avançar, sair ou enviar uma etapa do formulário, salve no dossiê os campos, respostas efetivas, opções e versões dos anexos conferidos. Identifique pendências e exclua credenciais. Após a confirmação do envio, preserve em `envios/` a cópia datada desse registro junto aos anexos identificados.
 
 Envio de candidatura, contato com recrutadores e publicação exigem autorização para cada ação. Após um envio confirmado, registre a fonte e a data conhecida no processo. Formulário preenchido e anexo selecionado ainda aguardam confirmação. Se o recibo não identificar a vaga, mantenha-o em triagem até confirmar a associação.
 

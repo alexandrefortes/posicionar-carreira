@@ -128,6 +128,29 @@ class OperacoesTest(unittest.TestCase):
         self.assertEqual(registro["status"], "entrevistas")
         self.assertFalse(registro.keys() & {"estado", "etapa", "resultado"})
 
+    def test_captura_respeita_previa_e_preserva_original_no_cadastro_duplicado(self):
+        texto = "Responsibilities\n- Build systems.\n\nBenefits\nRemote."
+        args = (self.carreira, "Empresa Captura", "Engenheira", FONTE, "empresa-captura/local-001")
+        pasta = self.carreira / "oportunidades/empresa-captura/local-001"
+        criar_vaga(*args, descricao_vaga=texto, cobertura_descricao="integral", previa=True)
+        self.assertFalse(pasta.exists())
+        criar_vaga(*args, descricao_vaga=texto, cobertura_descricao="integral")
+        anterior = (pasta / "vaga.md").read_bytes()
+        pesquisa = pasta / "benchmark-salarial.md"
+        concluida = b"---\nestado_pesquisa: pesquisado\n---\nPesquisa individual concluida.\n"
+        pesquisa.write_bytes(concluida)
+        with self.assertRaises(ValueError):
+            criar_vaga(*args, descricao_vaga="Outro texto", cobertura_descricao="parcial")
+        self.assertEqual((pasta / "vaga.md").read_bytes(), anterior)
+        self.assertEqual(pesquisa.read_bytes(), concluida)
+
+    def test_falha_no_processo_nao_deixa_captura_isolada(self):
+        with patch("operacoes.gravar", side_effect=OSError("Falha na gravação")):
+            with self.assertRaisesRegex(OSError, "Falha na gravação"):
+                criar_vaga(self.carreira, "Empresa Falha", "Engenheira", FONTE,
+                           descricao_vaga="Texto original", cobertura_descricao="integral")
+        self.assertFalse((self.carreira / "oportunidades/empresa-falha/local-001").exists())
+
     def test_cria_processo_sem_inventar_envio_e_recusa_duplicatas(self):
         painel = self.painel.read_bytes()
         identificador = "outra-empresa/local-002"

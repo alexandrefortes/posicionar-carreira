@@ -74,7 +74,7 @@ O título segue `candidatura - <empresa> | <cargo> - <status>`, todo em minúscu
 
 O Codex Desktop aceita até 60 unidades UTF-16 no título gravado, incluindo espaços e separadores. Preserve `candidatura - `, ` | ` e ` - <status>` por inteiro. Quando exceder o limite, abrevie apenas a empresa e o cargo, mantendo ambos reconhecíveis, como `engineering` para `eng`. Antes do cadastro, use a empresa e o cargo confirmados no anúncio para identificar a conversa. Acrescente o sufixo com o status quando houver dossiê.
 
-Atualize o título do chat dedicado quando uma mudança confirmada alterar o `titulo_chat`. Use o novo valor retornado pelo MCP, que recalcula o espaço do miolo a partir do nome da empresa, do cargo original e do status atual. Uma prévia ou proposta não muda o título por si só. Preserve o título em buscas gerais, consultas de várias vagas ou quando a pessoa tiver pedido um título próprio. Se a ferramenta nativa estiver indisponível, informe o título para a pessoa aplicar.
+Ao concluir cada turno dedicado a uma vaga, inclusive uma consulta sem mudança de status, sincronize o título com o último `titulo_chat` confirmado pelo MCP. Use `detalhar_vaga` se não houve gravação no turno. Preserve títulos escolhidos pela pessoa e títulos de buscas gerais ou consultas de várias vagas. Se a ferramenta nativa estiver indisponível, informe o título à pessoa.
 
 ## Modos de trabalho
 
@@ -82,7 +82,7 @@ Atualize o título do chat dedicado quando uma mudança confirmada alterar o `ti
 |---|---|
 | Reconhecer entregas, competências, feedbacks ou pontos de atenção em outro projeto | [Evidências](references/evidencias.md): sugerir captura sem desviar a tarefa; registrar quando autorizado |
 | Buscar, triar ou avaliar vagas e empresas | [Busca e triagem](references/busca-e-triagem.md), [benchmark salarial](references/benchmark-salarial.md), [pesquisa de clima](references/clima-organizacional.md) e [scoring](references/scoring.md) quando houver informação suficiente |
-| Preparar currículo, apresentação, respostas, PDF ou formulário | [Candidaturas](references/candidaturas.md), com matriz antes da edição e resumo da revisão antes da entrega do currículo. [md-to-cv](../md-to-cv/SKILL.md) para gerar PDF |
+| Preparar currículo ou candidatura, pelo chat ou pelos atalhos | Siga o [ciclo de otimização por vaga](references/candidaturas.md#ciclo-de-otimização-por-vaga). Consulte a estratégia, escreva o Perfil sobre a pessoa, confira cada requisito no Markdown e aplique as melhorias antes do PDF ou formulário. Para carta, respostas e envio, siga a [ordem da candidatura](references/candidaturas.md). |
 | Acompanhar candidaturas e retornos | [Continuidade](#continuidade) e [gestão de oportunidades](../../README.md#gestão-de-oportunidades) |
 | Desenvolver posicionamento ou preparar entrevistas | [Entrevistas](references/entrevistas.md) para planos por vaga, vínculo no mapa geral, perguntas, simulação, transcrição e feedback; [limites LinkedIn](references/linkedin-boundaries.md) para perfil e conteúdo público |
 

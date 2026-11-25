@@ -13,7 +13,7 @@ Use este contrato apenas para vagas com informação suficiente sobre função, 
 | `competencias_evidencias` | 10% | Os requisitos obrigatórios têm evidência no perfil? |
 | `remuneracao_contrato` | 10% | O vínculo e as demais condições contratuais comprovadas são compatíveis com as preferências da pessoa? |
 
-Cada dimensão exige nota de 0 a 10 e justificativa não vazia. Em `remuneracao_contrato`, avalie as condições contratuais comprovadas, como o tipo de vínculo, em relação às preferências confirmadas. Use 5 quando faltar informação para justificar outra nota. Mantenha o valor salarial e sua ausência neutros no score. Registre a faixa e os comparáveis na [pesquisa salarial da vaga](benchmark-salarial.md).
+Justifique cada nota de 0 a 10. Em `remuneracao_contrato`, consulte a estratégia salarial na base da pessoa. Considere o valor salarial na nota somente com critério individual explícito e evidência comparável da vaga. Sem critério sobre o valor, avalie as demais condições contratuais confirmadas. Se faltarem informações decisivas, use 5 e registre as lacunas na [pesquisa salarial](benchmark-salarial.md). Preserve os pesos e os resultados históricos.
 
 ## Entrada do validador
 
@@ -48,7 +48,7 @@ Nesse caso, o resultado não contém score nem rótulo.
 
 ## Desqualificadores
 
-Marque `confirmed: true` somente quando houver conflito confirmado, como segmento excluído, função incompatível, idioma obrigatório não dominado, modalidade impossível, vínculo que a pessoa confirmou não aceitar ou requisito eliminatório que ela confirmou não possuir. Inclua uma razão específica. Apresente a remuneração para decisão da pessoa, sem descarte automático por faixa ou ausência de valor.
+Marque `confirmed: true` somente com conflito comprovado frente a requisito decisivo ou critério eliminatório explícito da pessoa. Isso inclui um piso firme apenas quando o valor confirmado da vaga estiver abaixo dele em condições comparáveis. Cite a evidência e a razão. Informação ausente ou abaixo da referência de mercado, por si só, não desqualifica.
 
 Desqualificador confirmado produz score 0 e rótulo `Disqualified`. Ausência de informação não é desqualificador.
 

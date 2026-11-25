@@ -105,13 +105,13 @@ Use a organização dos exemplos e substitua o conteúdo pelas suas fontes. Voc�
 
 ## Pesquisar remuneração e preparar uma candidatura
 
-Ao mapear uma vaga pelo chat, o plugin pesquisa a faixa anunciada e referências de mercado e registra as fontes em `benchmark-salarial.md`. A pesquisa indica o que falta confirmar e usa os critérios da sua base. O exemplo fictício inclui esse arquivo para você consultar nos materiais do dossiê. [Pesquisa salarial](plugins/posicionar-carreira/skills/posicionar-carreira/references/benchmark-salarial.md)
+Cada cadastro abre uma pesquisa salarial pendente. Ao montar o dossiê, o agente pesquisa o mercado mesmo quando a vaga já anuncia salário. Use **Avaliar vaga** para consultar os comparáveis e a conclusão. A avaliação segue sua estratégia. Sem critério individual, o agente pode justificar uma referência média-superior ou indicar que faltam dados. Piso e pretensão dependem do que você declarou. [Pesquisa salarial](plugins/posicionar-carreira/skills/posicionar-carreira/references/benchmark-salarial.md)
 
 Ao montar o dossiê ou usar **Avaliar vaga**, o agente também pesquisa o clima da empresa em avaliações públicas de funcionários, como Glassdoor e Indeed, e em outras fontes pertinentes. A avaliação registra os achados, seus limites e perguntas para a entrevista. [Roteiro de pesquisa de clima](plugins/posicionar-carreira/skills/posicionar-carreira/references/clima-organizacional.md)
 
 Para preparar uma candidatura, peça a revisão das evidências, do currículo e da carta. O plugin pode gerar um PDF com nome descritivo, conferir o conteúdo e preparar as respostas para sua revisão. O envio requer sua autorização. [Fluxo de candidatura](plugins/posicionar-carreira/skills/posicionar-carreira/references/candidaturas.md)
 
-Para criar ou otimizar o currículo de uma vaga, use **Preparar currículo** no painel ou peça no chat. O agente consulta a sua estratégia, mostra quais evidências sustentam os requisitos antes de editar, compara o resultado com a versão anterior e registra as lacunas e o motivo para encerrar. Se a versão atual já estiver adequada, a revisão pode terminar preservando o texto. [Ciclo de otimização](plugins/posicionar-carreira/skills/posicionar-carreira/references/candidaturas.md#ciclo-de-otimização-por-vaga)
+Use **Preparar currículo** ou **Preparar candidatura**, ou peça pelo chat. O Perfil apresenta quem você é e como trabalha. Antes do primeiro PDF, o agente lê o anúncio por prioridade, confere cada requisito no rascunho e aplica as melhorias com apoio nas suas fontes. Você recebe o texto revisado e as lacunas que restaram. [Ciclo de revisão](plugins/posicionar-carreira/skills/posicionar-carreira/references/candidaturas.md#ciclo-de-otimização-por-vaga)
 
 Você também pode pedir ao **Humanizer** que revise um texto mantendo a voz e os fatos do original. Para usar suas preferências de escrita, indique-as no pedido ou forneça uma amostra. [Humanizer](plugins/posicionar-carreira/skills/humanizer/SKILL.md)
 

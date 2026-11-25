@@ -11,7 +11,7 @@ Construa buscas por famílias de funções e responsabilidades compatíveis com 
 - Antes de buscar ou criar dossiê, consulte processos e entradas já tratados e use o painel Markdown se existir. Confira possíveis duplicatas por IDs, URLs, empresa, escopo e localidade.
 - Para encontrar anúncios atuais em fontes públicas, siga [Buscar vagas na web](busca-vagas.md). Alertas de e-mail e agregadores são pistas. Acesso a conta depende de autorização e ferramenta apropriada; não prometer monitoramento sem agendamento real.
 - Registre fonte e data da consulta, cargo, responsabilidades, requisitos, modalidade, localização, idioma, vínculo e remuneração quando informados. Diferencie disponibilidade verificada de anúncio antigo ou página inacessível.
-- Ao mapear uma vaga, pesquise o [benchmark salarial](benchmark-salarial.md) mesmo quando o anúncio omitir a faixa. Registre o resultado ou a insuficiência de comparáveis no dossiê e vincule-o à avaliação e ao plano existente.
+- Ao montar cada dossiê, execute a [pesquisa salarial](benchmark-salarial.md), mesmo com faixa anunciada. Registre o resultado ou os limites dos comparáveis antes de concluir a avaliação.
 - Entregue uma lista proporcional ao pedido. Se a pessoa já escolheu uma vaga e pediu candidatura, avalie-a diretamente.
 - Mensagem genérica sem cargo não avança processos por suposição. Possíveis republicações permanecem pendentes até confirmação. Use `monitoramento/triagem.md` para ambiguidades, preservando entradas recebidas.
 
@@ -21,11 +21,15 @@ Ao resolver uma associação, [registre o fato e encerre a pendência](../SKILL.
 
 ## Registro da descrição
 
-Salve a descrição da vaga na íntegra em `CARREIRA_DIR/oportunidades/<empresa>/<id>/vaga.md`, com a fonte (URL do anúncio ou identificação do material recebido) e a data de captura ou conferência. Preserve o texto, o idioma, os títulos, as listas e os links do anúncio, inclusive condições e benefícios quando presentes. Navegação do site e campos do formulário de candidatura não fazem parte da descrição.
+Salve o anúncio em `CARREIRA_DIR/oportunidades/<empresa>/<id>/vaga.md`. Identifique a URL ou o material recebido e a data de captura ou conferência.
 
-Delimite o texto original em uma seção própria. Mantenha eventual síntese em seção separada e a análise de aderência, cultura e condições em `avaliacao.md`; o resumo não substitui a descrição integral. Identifique registros históricos e não misture comentários ou inferências ao texto do anúncio.
+Ao cadastrar pelo MCP ou importar um lote, passe o texto original em `descricao_vaga` de `criar_vaga`. Marque `cobertura_descricao` como `integral` somente após conferir todo o anúncio; use `parcial` para um trecho. O MCP grava `vaga.md` com a fonte e a data do registro. Sem texto, o arquivo indica a descrição indisponível no cadastro, sem presumir que o site está inacessível. Capture o texto público ou fornecido antes de concluir o cadastro quando ele estiver disponível.
 
-Se o acesso ou a extração forem parciais, registre essa limitação e os trechos ausentes conhecidos, com fonte e data. Não rotule uma captura parcial ou síntese como descrição integral nem complete lacunas por inferência.
+Em um dossiê existente, preserve originais e sínteses históricas. Acrescente a captura com sua própria fonte, data e cobertura, distinguindo o texto consultado agora da versão vigente no envio. Se a descrição integral já estiver em outro arquivo do dossiê, vincule esse original em `vaga.md`.
+
+Em uma seção própria, transcreva a descrição integral com idioma, títulos, listas, links, condições e benefícios originais. Exclua navegação do site e campos do formulário. Identifique anúncios históricos. Coloque eventual síntese em outra seção. Guarde a análise em `avaliacao.md`.
+
+Se a captura for parcial, indique o limite, a fonte, a data e os trechos ausentes conhecidos. Preserve as lacunas sem completá-las por inferência.
 
 ## Avaliação conjunta da vaga e da empresa
 
@@ -33,7 +37,7 @@ Em `avaliacao.md`, apresentar aderência e evidências, lacunas, condições, cu
 
 Para avaliar a cultura da empresa, siga o [roteiro de pesquisa de clima](clima-organizacional.md). Vincule a pesquisa da empresa à avaliação da vaga e converta as lacunas em perguntas para a entrevista.
 
-Na remuneração, distinguir salário atual, pretensão aprovada, faixa publicada para a vaga e benchmark de mercado. Aplicar o procedimento de [benchmark salarial](benchmark-salarial.md), preservando exceções aprovadas. Salário é informação comparativa: não há piso mínimo e valor menor não elimina a vaga, reduz automaticamente sua prioridade ou penaliza o score.
+Separe a faixa anunciada, os comparáveis de mercado, o piso declarado e a pretensão autorizada. Aplique o critério individual e as exceções confirmadas conforme a [pesquisa salarial](benchmark-salarial.md) e o [scoring](scoring.md).
 
 ## Decisão e continuidade
 
